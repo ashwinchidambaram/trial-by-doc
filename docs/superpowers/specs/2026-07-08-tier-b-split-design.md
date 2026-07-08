@@ -77,20 +77,46 @@ interface (`answer(markdown, question) -> str`), selected in config:
 |---|---|---|---|
 | API (Anthropic) | Claude Haiku 4.5 | `ANTHROPIC_API_KEY` | recommended default |
 | API (OpenAI) | GPT-5 mini | `OPENAI_API_KEY` | second reader (owner will provide key) |
-| Local (vLLM) | frozen Qwen2.5-7B (`@a09a35458c70`) | none | automatic fallback when no key |
+| Local (vLLM) | **any instruction-tuned model** (default: frozen Qwen2.5-7B `@a09a35458c70`) | none | fallback when no key |
+
+The local reader is **not fixed to Qwen** — the interface is `answer(markdown, question) -> str`,
+so any vLLM-servable instruction model qualifies. Qwen2.5-7B is only the *default* because it's
+the pinned instrument already shared with the Tier C boundary judge (zero extra VRAM). The reader
+config takes a model id + revision, so Gemma 4, Llama, Phi, or a smaller Qwen can be dropped in.
+Comprehension is text-only, so multimodal readers (e.g. Gemma 4) are served via their text path.
 
 - Exact API model IDs and pricing are **verified live at wire-in** (house rule — not from memory):
-  Haiku `claude-haiku-4-5-*`, GPT-5-mini id confirmed against the OpenAI models list.
+  Haiku `claude-haiku-4-5-*`, GPT-5-mini id confirmed against the OpenAI models list. Local reader
+  model ids/revisions/licenses and **vLLM 0.22.1 + sm_120 support** are likewise verified at
+  wire-in (Gemma 4 is new — do not assume it serves on the pinned stack until confirmed).
 - Each B.2 result row is stamped with `reader_identity`, `api_model_version`, and `called_on`
   date (APIs roll → non-reproducibility is stamped honestly, not hidden).
 - Cost is negligible (text-only: ~2k in + ~60 out tokens/call; ~$0.50–$1.80 per full 8-model run).
   The existing `estimate-cost` + `budget.max_usd_per_model` guard applies before any spend.
 - New OpenAI text-reader instrument gets a `validate-adapter` smoke call (cents) before real use.
 
-**Reader-sensitivity check (a feature of having two API readers).** The v1 findings run B.2 under
+**Reader-sensitivity check (a feature of having multiple readers).** The v1 findings run B.2 under
 BOTH Haiku 4.5 and GPT-5 mini. If the OCR-model ranking is stable across readers, B.2 is
 reader-agnostic (trustworthy). If it flips, B.2 is reader-sensitive → flagged as a caveat. This
 diagnostic falls out for free and is reported in the findings.
+
+**Comprehension-floor study (optional, opt-in — finds the minimum viable reader).** Because the
+local reader is now a configurable list, we can measure *at what point a reader is too weak to be
+a fair instrument* — i.e. where a low B.2 score reflects the reader's failure, not the OCR's. Clean
+two-axis design (vary one thing at a time):
+
+- **Size axis (family held constant):** Qwen2.5-Instruct `0.5B → 1.5B → 3B → 7B`. Isolates the
+  parameter count at which comprehension breaks down. Same family ⇒ a score drop is attributable
+  to size, not architecture.
+- **Family axis (size held ≈ constant):** Gemma-4-E4B-it and/or a Llama-3.x small vs Qwen at
+  ~4–8B. Isolates whether family matters at a fixed size.
+
+Mechanics: each ladder rung is one extra B.2 scoring pass over the **predictions already on disk**
+(no re-inference) — load reader → answer 100 questions × N OCR models → score. Sequential local
+loads reuse the existing `LocalModelAdapter` GPU-teardown path. Output: a B.2-vs-reader curve in
+the findings, and a recommended *minimum local reader* (the smallest rung whose B.2 tracks the
+strong API readers). This is a **bounded study, not core v1 B.2** — core ships with the three
+readers above; the ladder runs when the GPU is free and its scope (which rungs) is the owner's call.
 
 ## 4. README — "How Tier B works" explainer (owner-required)
 
