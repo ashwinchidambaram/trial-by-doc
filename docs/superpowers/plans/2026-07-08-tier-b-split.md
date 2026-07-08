@@ -110,7 +110,9 @@ def is_extractive_gold(question: str, golds: list[str]) -> bool:
 
 def _value_in_markdown(value: str, markdown: str, anls_threshold: float) -> bool:
     """Is `value` present in `markdown`? Numeric: any numeric token matches (tolerant).
-    String/bool: canonical substring, else best sliding-window ANLS >= threshold."""
+    Boolean (true/false): any markdown token canonicalizes to the same boolean (credits a
+    correctly-transcribed checkbox glyph like [X]/[ ]). String: canonical substring, else best
+    sliding-window ANLS >= threshold."""
     md = markdown or ""
     n = _as_number(value)
     if n is not None:
@@ -119,6 +121,12 @@ def _value_in_markdown(value: str, markdown: str, anls_threshold: float) -> bool
                 return True
         return False
     cv = _canon_value(value)
+    if cv in ("true", "false"):
+        # tokenize incl. checkbox glyphs, then canonicalize each token to its boolean (if any)
+        for tok in _re.findall(r"\[[ xX✓✔]\]|\([ xX]\)|☑|☐|[^\s]+", md):
+            if _canon_value(tok) == cv:
+                return True
+        return False
     if not cv:
         return True
     md_norm = " ".join(md.lower().split())
