@@ -19,7 +19,7 @@ dependencies = [
 local = [
     "torch>=2.11",
     "vllm>=0.22,<0.23",   # 0.22.1 verified on RTX 5090 sm_120 (ocparse S8); bump only after re-verification
-    "transformers>=5.11",
+    "transformers>=5.11,<5.12",  # 5.11 verified (5.13 breaks dots.ocr remote-code registration)
     "accelerate",
     "docling-core",
     "pypdfium2",
