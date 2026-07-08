@@ -131,6 +131,43 @@ def render(run_dir: Path, *, fmt: str = "md", by: str = "bench", registry=None) 
     return "\n".join(out)
 
 
+def _collect_tier_b(run_dir):
+    store = CheckpointStore(run_dir)
+    per = {}   # model -> {b1: [...], n_total, n_extractive, b2: [...], reader}
+    latest = {}
+    for r in store.iter_records():
+        if r.get("bench") != "realdoc_qa":
+            continue
+        latest[(r["model"], str(r.get("sample_id")))] = r
+    for (m, _sid), r in latest.items():
+        d = per.setdefault(m, {"b1": [], "n_total": 0, "n_extractive": 0, "b2": [], "reader": None})
+        mt = r.get("metrics") or {}
+        d["n_total"] += 1
+        if mt.get("extractive"):
+            d["n_extractive"] += 1
+            if isinstance(mt.get("b1"), (int, float)):
+                d["b1"].append(mt["b1"])
+        if isinstance(mt.get("b2"), (int, float)):
+            d["b2"].append(mt["b2"])
+        d["reader"] = d["reader"] or mt.get("reader")
+    return per
+
+
+def render_tier_b(run_dir, models=None):
+    per = _collect_tier_b(run_dir)
+    order = [m for m in (models or per) if m in per]
+    if not order:
+        return "_no Tier-B records_"
+    out = ["| model | B.1 extract | coverage | B.2 comp | reader |", "|---|---|---|---|---|"]
+    for m in order:
+        d = per[m]
+        b1 = f"{sum(d['b1'])/len(d['b1']):.3f}" if d["b1"] else "—"
+        cov = f"{d['n_extractive']}/{d['n_total']}"
+        b2 = f"{sum(d['b2'])/len(d['b2']):.3f}" if d["b2"] else "—"
+        out.append(f"| {m} | {b1} | {cov} | {b2} | {d['reader'] or '—'} |")
+    return "\n".join(out)
+
+
 README_BEGIN, README_END = "<!-- SCOREBOARD:BEGIN -->", "<!-- SCOREBOARD:END -->"
 
 

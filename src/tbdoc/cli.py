@@ -143,9 +143,13 @@ def validate_adapter(model_key, pages):
 @click.option("--by", type=click.Choice(["bench", "tier", "category", "provenance"]), default="bench")
 @click.option("--readme-inject", is_flag=True, help="write the scores into README.md's scoreboard block")
 @click.option("--perf", is_flag=True, help="show per-page latency / VRAM / cost instead")
-def scoreboard(run_id, fmt, by, readme_inject, perf):
+@click.option("--tier-b", is_flag=True, help="show Tier-B scores (B.1 + coverage + B.2 + reader)")
+def scoreboard(run_id, fmt, by, readme_inject, perf, tier_b):
     """Print the scoreboard for a run."""
-    from tbdoc.report.scoreboard import inject_readme, render, render_perf
+    from tbdoc.report.scoreboard import inject_readme, render, render_perf, render_tier_b
+    if tier_b:
+        click.echo(render_tier_b(_latest_run(run_id)))
+        return
     if perf:
         click.echo(render_perf(_latest_run(run_id)))
         return
