@@ -37,6 +37,66 @@ def _mean(vals: list[float]) -> str:
     return f"{sum(vals)/len(vals):.3f}" if vals else "—"
 
 
+def _perf(run_dir: Path):
+    """Per-model performance from prediction telemetry: latency/page, peak VRAM, $/page.
+
+    Reads predictions/*.jsonl (structured_doc = one telemetry; page_docs = one per page).
+    """
+    import json
+    from statistics import median
+    root = Path(run_dir) / "predictions"
+    per: dict[str, dict[str, list]] = {}
+    for f in root.rglob("*.jsonl"):
+        model = f.parent.name
+        d = per.setdefault(model, {"lat": [], "vram": [], "cost": []})
+        for line in f.read_text().splitlines():
+            if not line.strip():
+                continue
+            try:
+                pred = json.loads(line).get("prediction")
+            except Exception:
+                continue
+            tels = ([pred.get("telemetry")] if isinstance(pred, dict)
+                    else [x.get("telemetry") for x in pred] if isinstance(pred, list) else [])
+            for t in tels:
+                if not t:
+                    continue
+                if t.get("latency_s") is not None:
+                    d["lat"].append(t["latency_s"])
+                if t.get("peak_vram_mb"):
+                    d["vram"].append(t["peak_vram_mb"])
+                if t.get("cost_usd"):
+                    d["cost"].append(t["cost_usd"])
+    out = {}
+    for m, d in per.items():
+        if not d["lat"]:
+            continue
+        out[m] = {
+            "n": len(d["lat"]),
+            "median_s": round(median(d["lat"]), 2),
+            "mean_s": round(sum(d["lat"]) / len(d["lat"]), 2),
+            "p90_s": round(sorted(d["lat"])[int(len(d["lat"]) * 0.9)], 2),
+            "peak_vram_gb": round(max(d["vram"]) / 1024, 1) if d["vram"] else None,
+            "cost_per_page_usd": round(sum(d["cost"]) / len(d["cost"]), 5) if d["cost"] else None,
+        }
+    return out
+
+
+def render_perf(run_dir: Path, models: list[str] | None = None) -> str:
+    perf = _perf(run_dir)
+    order = [m for m in (models or perf) if m in perf]
+    if not order:
+        return "_no timing telemetry_"
+    out = ["| model | median s/page | mean s/page | p90 s/page | peak VRAM | $/page |",
+           "|---|---|---|---|---|---|"]
+    for m in order:
+        p = perf[m]
+        vram = f"{p['peak_vram_gb']} GB" if p["peak_vram_gb"] else "— (API)"
+        cost = f"${p['cost_per_page_usd']}" if p["cost_per_page_usd"] else "—"
+        out.append(f"| {m} | {p['median_s']} | {p['mean_s']} | {p['p90_s']} | {vram} | {cost} |")
+    return "\n".join(out)
+
+
 def render(run_dir: Path, *, fmt: str = "md", by: str = "bench", registry=None) -> str:
     models, benches, cells, cats = _collect(run_dir)
     bmeta = (registry.benchmarks if registry else {}) or {}

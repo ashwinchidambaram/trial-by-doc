@@ -1,0 +1,4 @@
+model,olmocr_bench,omnidocbench
+olmocr2,0.8362,0.8282
+qwen25vl,0.7015,0.7358
+got2,0.3042,0.6382

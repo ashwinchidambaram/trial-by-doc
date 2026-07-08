@@ -43,6 +43,20 @@ repetition-loop degeneration on a few dense historical pages. got2 (580M) handle
 plain text but emits **no table structure** (0/103 table unit tests) — a
 capability/format limit of the small specialist, not a scorer artifact. Ranking
 tracks the prior baseline; per-model detail in `findings/`.
+
+**Performance — time per page** (local models; median/mean/p90 seconds, from telemetry):
+
+| model | median s/page | mean s/page | p90 s/page | peak VRAM* |
+|---|---|---|---|---|
+| got2 (580M) | 3.4 | 4.1 | 9.1 | 3.5 GB |
+| dots_ocr (1.7B) | 6.5 | 17.2 | 78.4 | 31.1 GB |
+| qwen25vl (7B) | 10.8 | 14.2 | 41.3 | 28.8 GB |
+| olmocr2 (7B) | 13.7 | 15.8 | 41.0 | 28.8 GB |
+
+\*peak VRAM = whole-GPU (nvidia-smi) during the vLLM serve, i.e. the KV-cache pool
+(gpu_memory_utilization=0.9 on a 32GB card), NOT the model's own footprint. dots_ocr's
+long p90 is dense layout-JSON pages hitting the 16k-token cap. Per-page $/page for API
+models lands when they're scored. `gauntlet scoreboard --perf` regenerates this.
 <!-- SCOREBOARD:END -->
 
 ## Benchmarks

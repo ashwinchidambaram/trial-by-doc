@@ -1,0 +1,105 @@
+{
+  "updated_at": "2026-07-08T06:46:07",
+  "totals": {
+    "done": 600,
+    "total": 600,
+    "pct": 100.0
+  },
+  "current": null,
+  "cells": [
+    {
+      "model": "olmocr2",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.8362,
+      "state": "done"
+    },
+    {
+      "model": "olmocr2",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.8282,
+      "state": "done"
+    },
+    {
+      "model": "qwen25vl",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7015,
+      "state": "done"
+    },
+    {
+      "model": "qwen25vl",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7358,
+      "state": "done"
+    },
+    {
+      "model": "got2",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.3042,
+      "state": "done"
+    },
+    {
+      "model": "got2",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.6382,
+      "state": "done"
+    }
+  ],
+  "hardware": {
+    "captured_at": "2026-07-08T06:09:35",
+    "gpu": {
+      "available": true,
+      "name": "NVIDIA GeForce RTX 5090",
+      "vram_gb": 33.7,
+      "capability": [
+        12,
+        0
+      ],
+      "arch": "sm_120",
+      "driver_version": "595.71.05",
+      "supported_arch_list": [
+        "sm_75",
+        "sm_80",
+        "sm_86",
+        "sm_90",
+        "sm_100",
+        "sm_120"
+      ]
+    },
+    "cuda": {
+      "torch_cuda_build": "13.0",
+      "toolkit_home": "/home/ashwinc/cuda-13.3",
+      "toolkit_path": "/home/ashwinc/cuda-13.3",
+      "nvcc_version": "13.3",
+      "nvcc_present": true,
+      "note": "standalone CUDA toolkit, build-time only (JIT compile for FlashInfer/deepseek); torch runtime stays at torch_cuda_build. Lives outside the repo \u2014 see findings/S7-cuda-toolkit.md."
+    },
+    "software": {
+      "python": "3.12.13",
+      "torch": "2.11.0+cu130",
+      "torchvision": "0.26.0+cu130",
+      "triton": "3.6.0",
+      "vllm": "0.22.1",
+      "transformers": "5.11.0",
+      "datasets": null,
+      "accelerate": "1.14.0",
+      "huggingface_hub": "1.22.0"
+    },
+    "system": {
+      "os": "Linux",
+      "kernel": "7.0.0-27-generic",
+      "cpu_count": 24
+    }
+  }
+}

@@ -1,23 +1,17 @@
 {
-  "run_id": "all-models-smoke",
-  "created_at": "2026-07-07T22:17:52",
+  "run_id": "v1-baseline",
+  "created_at": "2026-07-08T07:39:25",
   "harness": {
-    "git_sha": "8e5917ccac6ff4118fb8fb6f743df5e6cfb3ad3c",
+    "git_sha": "823a72bc78b434a6447ca6b514b0136f2eca97ba",
     "git_dirty": true,
     "python": "3.12.13",
     "argv": [
       "/home/ashwinc/dev/projects/trial-by-doc/.venv/bin/gauntlet",
       "run",
-      "-m",
-      "dots_ocr",
-      "-b",
-      "olmocr_bench",
-      "--max-samples",
-      "2",
+      "--profile",
+      "full",
       "--run-id",
-      "all-models-smoke",
-      "--phase",
-      "infer"
+      "v1-baseline"
     ]
   },
   "configs": {
@@ -26,10 +20,52 @@
     "models.yaml": "e93a78b903325c42"
   },
   "models": {
+    "olmocr2": {
+      "key": "olmocr2",
+      "repo_id": "allenai/olmOCR-2-7B-1025",
+      "revision": "e52d6f090b7a9007afffbbd6ce510876222fea93",
+      "backend": "vllm"
+    },
+    "qwen25vl": {
+      "key": "qwen25vl",
+      "repo_id": "Qwen/Qwen2.5-VL-7B-Instruct",
+      "revision": "cc594898137f460bfe9f0759e9844b3ce807cfb5",
+      "backend": "vllm"
+    },
+    "got2": {
+      "key": "got2",
+      "repo_id": "stepfun-ai/GOT-OCR-2.0-hf",
+      "revision": "d3017ef2c2c1395888c8d635c5e0508bcb0ac78d",
+      "backend": "transformers"
+    },
     "dots_ocr": {
       "key": "dots_ocr",
       "repo_id": "rednote-hilab/dots.ocr",
       "revision": "c0111ce6bc07803dbc267932ffef0ae3a51dc951",
+      "backend": "vllm"
+    },
+    "paddleocr_vl": {
+      "key": "paddleocr_vl",
+      "repo_id": "PaddlePaddle/PaddleOCR-VL",
+      "revision": "baee27eebcbf26cdeab160116679d765f13a3f27",
+      "backend": "vllm"
+    },
+    "deepseek_ocr": {
+      "key": "deepseek_ocr",
+      "repo_id": "deepseek-ai/DeepSeek-OCR",
+      "revision": "9f30c71f441d010e5429c532364a86705536c53a",
+      "backend": "vllm"
+    },
+    "granite_docling": {
+      "key": "granite_docling",
+      "repo_id": "ibm-granite/granite-docling-258M",
+      "revision": "982fe3b40f2fa73c365bdb1bcacf6c81b7184bfe",
+      "backend": "transformers"
+    },
+    "lightonocr": {
+      "key": "lightonocr",
+      "repo_id": "lightonai/LightOnOCR-1B-1025",
+      "revision": "a8a4a065974c82d6c707ca13132bc19f857625fc",
       "backend": "vllm"
     }
   },
@@ -42,6 +78,33 @@
       "revision": "54a96a6f",
       "license": "odc-by",
       "scorer": "container"
+    },
+    "omnidocbench": {
+      "key": "omnidocbench",
+      "tier": "A",
+      "unit": "page",
+      "provenance": "official",
+      "revision": "d386947f",
+      "license": "unspecified",
+      "scorer": "venv"
+    },
+    "realdoc_qa": {
+      "key": "realdoc_qa",
+      "tier": "B",
+      "unit": "page",
+      "provenance": "official",
+      "revision": "906170ab",
+      "license": "cc-by-4.0",
+      "scorer": "native"
+    },
+    "merged_forms": {
+      "key": "merged_forms",
+      "tier": "C",
+      "unit": "document",
+      "provenance": "custom",
+      "revision": null,
+      "license": null,
+      "scorer": "native"
     }
   },
   "instruments": {
@@ -64,7 +127,7 @@
     }
   },
   "hardware": {
-    "captured_at": "2026-07-07T22:14:36",
+    "captured_at": "2026-07-08T07:34:10",
     "gpu": {
       "available": true,
       "name": "NVIDIA GeForce RTX 5090",

@@ -139,9 +139,13 @@ def validate_adapter(model_key, pages):
 @click.option("--format", "fmt", type=click.Choice(["csv", "md"]), default="md")
 @click.option("--by", type=click.Choice(["bench", "tier", "category", "provenance"]), default="bench")
 @click.option("--readme-inject", is_flag=True, help="write the scores into README.md's scoreboard block")
-def scoreboard(run_id, fmt, by, readme_inject):
+@click.option("--perf", is_flag=True, help="show per-page latency / VRAM / cost instead")
+def scoreboard(run_id, fmt, by, readme_inject, perf):
     """Print the scoreboard for a run."""
-    from tbdoc.report.scoreboard import inject_readme, render
+    from tbdoc.report.scoreboard import inject_readme, render, render_perf
+    if perf:
+        click.echo(render_perf(_latest_run(run_id)))
+        return
     if readme_inject:
         inject_readme(_latest_run(run_id), Path("README.md"), registry=_registry())
         click.echo("README.md scoreboard block updated")
