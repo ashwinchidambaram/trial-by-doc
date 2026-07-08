@@ -8,13 +8,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from tbdoc.models.local._vllm_base import load_image, resize_longest
-from tbdoc.core.model_adapter import ModelAdapter
+from tbdoc.core.model_adapter import LocalModelAdapter
 from tbdoc.core.structured_doc import StructuredDoc, Telemetry
 from tbdoc.core.telemetry import track
+from tbdoc.models.local._vllm_base import load_image, resize_longest
 
 
-class TransformersModelAdapter(ModelAdapter):
+class TransformersModelAdapter(LocalModelAdapter):
     max_new_tokens: int = 4096
     attn_implementation: str = "sdpa"  # sm_120 + no flash-attn
     trust_remote_code: bool = False

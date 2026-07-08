@@ -42,6 +42,7 @@ class VLLMExtractor:
         registry edit can never silently change the Tier-B instrument. Registry unreadable => code stands."""
         try:
             from pathlib import Path
+
             import yaml
             reg = Path(__file__).resolve().parents[3] / "configs" / "model_registry.yaml"
             ex = (yaml.safe_load(reg.read_text()) or {}).get("extractor", {}) or {}

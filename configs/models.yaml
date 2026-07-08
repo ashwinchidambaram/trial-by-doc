@@ -1,0 +1,41 @@
+# Model registry — every entry: adapter dotted path + verified provenance.
+# Revisions/licenses verified against live HF model cards 2026-06-11 (ocparse S1);
+# re-verify on download. API pricing verified 2026-07-07 (see findings/).
+
+models:
+  qwen25vl:
+    kind: local
+    adapter: "tbdoc.models.local.qwen25vl:Qwen25VLAdapter"
+    repo_id: Qwen/Qwen2.5-VL-7B-Instruct
+    revision: cc594898137f460bfe9f0759e9844b3ce807cfb5
+    backend: vllm
+    params: 7B
+    license: apache-2.0
+    commercial_use: true
+    specialties: "general VLM; OCR via explicit markdown prompt"
+
+  anthropic_vision:
+    kind: api
+    adapter: "tbdoc.models.api.anthropic_vision:AnthropicVisionAdapter"
+    provider: anthropic
+    api_model_id: claude-haiku-4-5-20251001
+    secrets: [ANTHROPIC_API_KEY]
+    rate_limit: { rps: 1.0, burst: 2 }
+    retry: { max_attempts: 5, base_s: 1.0 }
+    pricing: { per_mtok_in_usd: 1.00, per_mtok_out_usd: 5.00,
+               source: "https://platform.claude.com/docs/en/about-claude/pricing",
+               as_of: "2026-07-07" }
+    commercial_use: true            # API ToS; outputs usable commercially
+    specialties: "frontier VLM baseline (vision chat -> markdown)"
+
+# Frozen measuring instruments (never vary per model; pin-assert in code).
+instruments:
+  extractor:
+    chosen: Qwen/Qwen2.5-7B-Instruct
+    revision: a09a35458c70
+    license: apache-2.0
+    sampling: { temperature: 0, seed: 0, repetition_penalty: 1.05, max_answer_tokens: 64 }
+    max_model_len: 32768
+  boundary_judge:            # Tier C (M3) — model+prompt pinned when wired
+    chosen: null
+    prompt_version: null

@@ -1,0 +1,16 @@
+# Which models × which benchmarks; run profiles.
+
+run:
+  results_dir: results/runs
+  seeds: { sampling_seed: 0, temperature: 0 }
+  budget: { max_usd_per_model: 10.0 }   # API guard; estimate-cost must not exceed
+
+profiles:
+  smoke:
+    models: [qwen25vl, anthropic_vision]
+    benchmarks: [olmocr_bench]
+    max_samples: 5
+  full:
+    models: [qwen25vl, anthropic_vision]
+    benchmarks: [olmocr_bench]
+    max_samples: null

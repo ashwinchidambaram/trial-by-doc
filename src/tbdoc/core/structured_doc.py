@@ -10,7 +10,7 @@ None for API models; cost fields are None for local models).
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from typing import Any
 
 

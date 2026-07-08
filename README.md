@@ -1,4 +1,4 @@
-# trial-by-doc 🧙
+# trial-by-doc ⚖️
 
 **An OCR / document-intelligence model gauntlet.** Wire in any model — local
 open-weights, commercial doc-AI APIs, or frontier VLMs — and run it through a

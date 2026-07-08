@@ -15,7 +15,7 @@ from typing import Any
 
 from PIL import Image
 
-from tbdoc.core.model_adapter import ModelAdapter
+from tbdoc.core.model_adapter import LocalModelAdapter
 from tbdoc.core.structured_doc import StructuredDoc, Telemetry
 from tbdoc.core.telemetry import gpu_used_mb_smi, summarize_entropy, summarize_logprobs, track
 
@@ -43,7 +43,7 @@ def to_data_url(img: Image.Image) -> str:
     return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
-class VLLMModelAdapter(ModelAdapter):
+class VLLMModelAdapter(LocalModelAdapter):
     # ---- per-model knobs (override in subclass; verify against the model card) ----
     prompt: str = "Convert this document page to markdown."
     longest_side: int | None = None
@@ -65,6 +65,7 @@ class VLLMModelAdapter(ModelAdapter):
 
     def load(self) -> None:
         import os
+
         from tbdoc.core.cuda_env import ensure_cuda_home
         # The cu13 wheels bundle a full nvcc toolchain (verified 2026-06-12). Wire CUDA_HOME so any
         # runtime JIT can find it: DeepSeek-OCR's custom ops compile through this; vLLM's FlashInfer

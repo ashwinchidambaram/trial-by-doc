@@ -1,0 +1,16 @@
+# Benchmark registry. provenance: official (third-party dataset + wrapped official
+# scorer) | custom (we own GT + scorer; validation_doc REQUIRED — registry enforces).
+
+benchmarks:
+  olmocr_bench:
+    adapter: "tbdoc.benches.official.olmocr_bench:OlmOCRBench"
+    tier: A
+    unit: page
+    provenance: official
+    source:
+      hf_repo: allenai/olmOCR-bench
+      revision: 54a96a6f
+      license: odc-by
+    scorer:
+      kind: venv                    # benchmarks/_scorers/olmocr_bench (text/order native;
+      render: container             # math/table via Playwright container, M2)

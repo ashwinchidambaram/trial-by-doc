@@ -33,7 +33,7 @@ api = [
     "azure-ai-documentintelligence",
     "google-cloud-documentai",
 ]
-dev = ["pytest>=8", "pytest-timeout"]
+dev = ["pytest>=8", "pytest-timeout", "ruff"]
 all = ["tbdoc[local,api,dev]"]
 
 [project.scripts]
@@ -48,3 +48,11 @@ packages = ["src/tbdoc"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]
