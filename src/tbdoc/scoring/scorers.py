@@ -186,7 +186,10 @@ def _value_in_markdown(value: str, markdown: str, anls_threshold: float) -> bool
     if cv in md_norm:
         return True
     w = len(cv)
-    for i in range(0, max(1, len(md_norm) - w + 1), max(1, w // 2)):
+    step = max(1, w // 2)
+    starts = set(range(0, max(1, len(md_norm) - w + 1), step))
+    starts.add(max(0, len(md_norm) - w))
+    for i in sorted(starts):
         if anls(md_norm[i:i + w], [cv], threshold=anls_threshold) >= anls_threshold:
             return True
     return False

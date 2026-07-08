@@ -15,8 +15,11 @@ def test_partial_multifield_recall():
     got = field_value_presence(md, ["amount=8500;name=John Doe"])
     assert abs(got - 0.5) < 1e-9
 
-def test_string_value_slightly_garbled_within_threshold():
-    md = "Applicant name: Jane Roee"  # one-char OCR slip
+def test_string_value_garbled_matches_via_fuzzy_window():
+    # 'Jane Rox' is NOT a literal substring of gold 'Jane Roe' (last char differs), so this
+    # forces the ANLS sliding-window path (not exact substring); it sits at the END of the
+    # markdown — the position the naive step-loop skipped.
+    md = "Applicant: Jane Rox"
     assert field_value_presence(md, ["name=Jane Roe"], anls_threshold=0.8) == 1.0
 
 def test_boolean_alias_present():
