@@ -66,6 +66,24 @@ class MergedFormsBench(BenchAdapter):
     unit = "document"
     provenance = "custom"
 
+    SD2_URL = "https://s3.amazonaws.com/nist-srd/SD2/sd02.zip"  # verified live 2026-07-07
+
+    def fetch_data(self) -> None:
+        """Download NIST SD2 (public domain) + generate the seeded manifest."""
+        import subprocess
+        root = Path(self.data_dir)
+        raw = root.parent / "raw"
+        sd02 = raw / "sd02"
+        if not sd02.exists():
+            raw.mkdir(parents=True, exist_ok=True)
+            zip_path = raw / "sd02.zip"
+            print(f"downloading {self.SD2_URL} (~300MB)...")
+            subprocess.run(["curl", "-sL", "-o", str(zip_path), self.SD2_URL], check=True)
+            subprocess.run(["unzip", "-q", str(zip_path), "-d", str(sd02)], check=True)
+        if not (root / "manifest.json").exists():
+            m = generate_manifest(sd02, root / "manifest.json")
+            print(f"generated {len(m['streams'])} streams (seed={m['seed']})")
+
     def load(self) -> Iterable[Sample]:
         root = Path(self.data_dir)
         manifest_path = root / "manifest.json"

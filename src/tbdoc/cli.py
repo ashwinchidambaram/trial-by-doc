@@ -138,9 +138,14 @@ def validate_adapter(model_key, pages):
 @click.option("--run-id", default=None, help="default: latest run")
 @click.option("--format", "fmt", type=click.Choice(["csv", "md"]), default="md")
 @click.option("--by", type=click.Choice(["bench", "tier", "category", "provenance"]), default="bench")
-def scoreboard(run_id, fmt, by):
+@click.option("--readme-inject", is_flag=True, help="write the scores into README.md's scoreboard block")
+def scoreboard(run_id, fmt, by, readme_inject):
     """Print the scoreboard for a run."""
-    from tbdoc.report.scoreboard import render
+    from tbdoc.report.scoreboard import inject_readme, render
+    if readme_inject:
+        inject_readme(_latest_run(run_id), Path("README.md"), registry=_registry())
+        click.echo("README.md scoreboard block updated")
+        return
     click.echo(render(_latest_run(run_id), fmt=fmt, by=by, registry=_registry()))
 
 
@@ -188,7 +193,12 @@ def download(bench):
             continue
         repo = src.get("hf_repo")
         if not repo:
-            click.echo(f"{k}: no hf_repo source (custom/generated bench?) — see its README")
+            ba = reg.bench(k)
+            if hasattr(ba, "fetch_data"):
+                click.echo(f"{k}: fetching via the benchmark's own fetch_data()")
+                ba.fetch_data()
+            else:
+                click.echo(f"{k}: no hf_repo source and no fetch_data() — see its README")
             continue
         from huggingface_hub import snapshot_download
         click.echo(f"{k}: downloading {repo}@{src.get('revision', 'main')} -> {data_dir}")

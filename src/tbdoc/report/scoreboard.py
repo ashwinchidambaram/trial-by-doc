@@ -69,3 +69,18 @@ def render(run_dir: Path, *, fmt: str = "md", by: str = "bench", registry=None) 
     n = sum(len(v) for v in cells.values())
     out.append(f"\n_{n} scored samples · run: {Path(run_dir).name}_")
     return "\n".join(out)
+
+
+README_BEGIN, README_END = "<!-- SCOREBOARD:BEGIN -->", "<!-- SCOREBOARD:END -->"
+
+
+def inject_readme(run_dir: Path, readme_path: Path, *, registry=None,
+                  extra_md: str = "") -> None:
+    """Replace the README's scoreboard block with this run's rendered scores."""
+    md = render(run_dir, fmt="md", by="bench", registry=registry)
+    body = f"{README_BEGIN}\n{md}\n{extra_md}\n{README_END}"
+    text = readme_path.read_text()
+    import re
+    new = re.sub(re.escape(README_BEGIN) + r".*?" + re.escape(README_END),
+                 body, text, flags=re.S)
+    readme_path.write_text(new)
