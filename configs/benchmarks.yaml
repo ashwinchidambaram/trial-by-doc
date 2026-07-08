@@ -12,5 +12,19 @@ benchmarks:
       revision: 54a96a6f
       license: odc-by
     scorer:
-      kind: venv                    # benchmarks/_scorers/olmocr_bench (text/order native;
-      render: container             # math/table via Playwright container, M2)
+      kind: container                 # tbdoc-scorer-olmocr:v1 (full suite incl math/table);
+      image: tbdoc-scorer-olmocr:v1   # falls back to isolated venv (render excluded)
+
+
+  realdoc_qa:
+    adapter: "tbdoc.benches.official.realdoc_qa:RealDocQA"
+    tier: B
+    unit: page
+    provenance: official
+    source:
+      hf_repo: Extend-AI/RealDoc-Bench
+      revision: 906170ab
+      license: cc-by-4.0
+    scorer:
+      kind: native                  # field-aware EM + ANLS (deterministic, pure python)
+      instrument: extractor         # frozen Qwen2.5-7B (see configs/models.yaml)

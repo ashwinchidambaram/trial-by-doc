@@ -59,7 +59,15 @@ class OlmOCRBench(BenchAdapter):
                        extractor: Any | None = None) -> dict[str, dict]:
         bench_data = str(Path(self.data_dir) / "bench_data")
         docs = [{"pdf_id": s.id, "markdown": p.markdown} for s, p in zip(samples, predictions)]
-        results = score_batch_venv(_SCORER_DIR, [bench_data], docs)
+        # Prefer the container scorer: it runs the FULL official suite (math/table render
+        # via Playwright). Fall back to the isolated venv (render tests excluded, flagged).
+        from tbdoc.scoring.container_scorer import docker_available, score_batch
+        image = ((self.entry.get("scorer") or {}).get("image")) or "tbdoc-scorer-olmocr:v1"
+        if docker_available():
+            results = score_batch(image, {str(Path(bench_data).resolve()): "/data"}, docs,
+                                  timeout_s=7200)
+        else:
+            results = score_batch_venv(_SCORER_DIR, [bench_data], docs)
         out: dict[str, dict] = {}
         for s in samples:
             r = results.get(s.id)

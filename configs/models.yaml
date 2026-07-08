@@ -1,8 +1,20 @@
 # Model registry — every entry: adapter dotted path + verified provenance.
-# Revisions/licenses verified against live HF model cards 2026-06-11 (ocparse S1);
-# re-verify on download. API pricing verified 2026-07-07 (see findings/).
+# Local revisions/licenses verified against live HF model cards 2026-06-11 (ocparse S1)
+# and re-checked at download. API pricing verified 2026-07-07 (see findings/).
 
 models:
+  # ---- local open-weights (GPU, vLLM/transformers) --------------------------
+  olmocr2:
+    kind: local
+    adapter: "tbdoc.models.local.olmocr2:OlmOCR2Adapter"
+    repo_id: allenai/olmOCR-2-7B-1025
+    revision: e52d6f090b7a9007afffbbd6ce510876222fea93
+    backend: vllm
+    params: 7B
+    license: apache-2.0
+    commercial_use: true
+    specialties: "purpose-built OCR (olmocr v4 prompt); strongest all-round parser in prior baseline"
+
   qwen25vl:
     kind: local
     adapter: "tbdoc.models.local.qwen25vl:Qwen25VLAdapter"
@@ -12,8 +24,104 @@ models:
     params: 7B
     license: apache-2.0
     commercial_use: true
-    specialties: "general VLM; OCR via explicit markdown prompt"
+    specialties: "general VLM; OCR via explicit markdown prompt; strong tables"
 
+  got2:
+    kind: local
+    adapter: "tbdoc.models.local.got2:GotOcr2Adapter"
+    repo_id: stepfun-ai/GOT-OCR-2.0-hf
+    revision: d3017ef2c2c1395888c8d635c5e0508bcb0ac78d
+    backend: transformers
+    params: 580M
+    license: apache-2.0
+    commercial_use: true
+    specialties: "small OCR specialist; markdown/LaTeX (format mode)"
+
+  dots_ocr:
+    kind: local
+    adapter: "tbdoc.models.local.dots_ocr:DotsOCRAdapter"
+    repo_id: rednote-hilab/dots.ocr
+    revision: c0111ce6bc07803dbc267932ffef0ae3a51dc951
+    backend: vllm
+    trust_remote_code: true
+    params: 1.7B
+    license: mit
+    commercial_use: true
+    specialties: "layout+text JSON (bbox+category); tables leader in prior baseline"
+
+  paddleocr_vl:
+    kind: local
+    adapter: "tbdoc.models.local.paddleocr_vl:PaddleOCRVLAdapter"
+    repo_id: PaddlePaddle/PaddleOCR-VL
+    revision: baee27eebcbf26cdeab160116679d765f13a3f27
+    backend: vllm
+    trust_remote_code: true
+    params: 0.9B
+    license: apache-2.0
+    commercial_use: true
+    specialties: "element-level OCR (full-page layout needs unwired PP-DocLayoutV2)"
+
+  deepseek_ocr:
+    kind: local
+    adapter: "tbdoc.models.local.deepseek_ocr:DeepSeekOCRAdapter"
+    repo_id: deepseek-ai/DeepSeek-OCR
+    revision: 9f30c71f441d010e5429c532364a86705536c53a
+    backend: vllm
+    trust_remote_code: true
+    params: 3B
+    license: mit
+    commercial_use: true
+    specialties: "markdown + grounding tags (bbox refs); strong headers/footers"
+
+  granite_docling:
+    kind: local
+    adapter: "tbdoc.models.local.granite_docling:GraniteDoclingAdapter"
+    repo_id: ibm-granite/granite-docling-258M
+    revision: 982fe3b40f2fa73c365bdb1bcacf6c81b7184bfe
+    backend: transformers
+    params: 258M
+    license: apache-2.0
+    commercial_use: true
+    specialties: "DocTags -> markdown via docling-core; tiny footprint"
+
+  lightonocr:
+    kind: local
+    adapter: "tbdoc.models.local.lightonocr:LightOnOCRAdapter"
+    repo_id: lightonai/LightOnOCR-1B-1025
+    revision: a8a4a065974c82d6c707ca13132bc19f857625fc
+    backend: vllm
+    params: 1B
+    license: apache-2.0
+    commercial_use: true
+    specialties: "distilled OCR; #1 ANLS + math in prior baseline; image-only prompt"
+
+  # ---- APIs: v1-scored pair -------------------------------------------------
+  mistral_ocr:
+    kind: api
+    adapter: "tbdoc.models.api.mistral_ocr:MistralOCRAdapter"
+    provider: mistral
+    api_model_id: mistral-ocr-latest
+    secrets: [MISTRAL_API_KEY]
+    rate_limit: { rps: 1.0, burst: 2 }
+    retry: { max_attempts: 5, base_s: 1.0 }
+    pricing: { per_page_usd: 0.004, source: "https://mistral.ai/pricing/api", as_of: "2026-07-07" }
+    commercial_use: true
+    specialties: "purpose-built OCR API; native markdown per page"
+
+  gemini_flash_lite:
+    kind: api
+    adapter: "tbdoc.models.api.gemini_vision:GeminiVisionAdapter"
+    provider: google
+    api_model_id: gemini-2.5-flash-lite
+    secrets: [GEMINI_API_KEY]
+    rate_limit: { rps: 0.5, burst: 2 }
+    retry: { max_attempts: 5, base_s: 2.0 }
+    pricing: { per_mtok_in_usd: 0.10, per_mtok_out_usd: 0.40,
+               source: "https://ai.google.dev/gemini-api/docs/pricing", as_of: "2026-07-07" }
+    commercial_use: true
+    specialties: "cheapest credible VLM baseline; strong doc-OCR reputation"
+
+  # ---- APIs: adapters built, scored runs deferred ---------------------------
   anthropic_vision:
     kind: api
     adapter: "tbdoc.models.api.anthropic_vision:AnthropicVisionAdapter"
@@ -23,9 +131,21 @@ models:
     rate_limit: { rps: 1.0, burst: 2 }
     retry: { max_attempts: 5, base_s: 1.0 }
     pricing: { per_mtok_in_usd: 1.00, per_mtok_out_usd: 5.00,
-               source: "https://platform.claude.com/docs/en/about-claude/pricing",
-               as_of: "2026-07-07" }
-    commercial_use: true            # API ToS; outputs usable commercially
+               source: "https://platform.claude.com/docs/en/about-claude/pricing", as_of: "2026-07-07" }
+    commercial_use: true
+    specialties: "frontier VLM baseline (vision chat -> markdown)"
+
+  openai_vision:
+    kind: api
+    adapter: "tbdoc.models.api.openai_vision:OpenAIVisionAdapter"
+    provider: openai
+    api_model_id: gpt-5.4-mini
+    secrets: [OPENAI_API_KEY]
+    rate_limit: { rps: 1.0, burst: 2 }
+    retry: { max_attempts: 5, base_s: 1.0 }
+    pricing: { per_mtok_in_usd: 0.80, per_mtok_out_usd: 3.20,
+               source: "https://developers.openai.com/api/docs/pricing", as_of: "2026-07-07" }
+    commercial_use: true
     specialties: "frontier VLM baseline (vision chat -> markdown)"
 
 # Frozen measuring instruments (never vary per model; pin-assert in code).

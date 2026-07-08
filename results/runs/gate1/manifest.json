@@ -1,8 +1,8 @@
 {
   "run_id": "gate1",
-  "created_at": "2026-07-07T20:22:59",
+  "created_at": "2026-07-07T20:33:56",
   "harness": {
-    "git_sha": "07b442179fb9eed7ea90a9ddc38a3a1ad78629cb",
+    "git_sha": "56051f2e9b81b7d6b3e23888680a1f156c2de8e3",
     "git_dirty": true,
     "python": "3.12.13",
     "argv": [
@@ -11,13 +11,20 @@
       "--profile",
       "smoke",
       "--run-id",
-      "gate1"
+      "gate1",
+      "--phase",
+      "score",
+      "--rescore",
+      "-m",
+      "qwen25vl",
+      "-b",
+      "olmocr_bench"
     ]
   },
   "configs": {
-    "benchmarks.yaml": "68fcc6235a471650",
+    "benchmarks.yaml": "c3ae3cd4e38af95f",
     "matrix.yaml": "6a7a65ce34a94293",
-    "models.yaml": "e00abd4036b15e22"
+    "models.yaml": "40b8a8f4f6edd532"
   },
   "models": {
     "qwen25vl": {
@@ -25,14 +32,6 @@
       "repo_id": "Qwen/Qwen2.5-VL-7B-Instruct",
       "revision": "cc594898137f460bfe9f0759e9844b3ce807cfb5",
       "backend": "vllm"
-    },
-    "anthropic_vision": {
-      "key": "anthropic_vision",
-      "provider": "anthropic",
-      "api_model_id": "claude-haiku-4-5-20251001",
-      "api_version": null,
-      "called_on": "2026-07-07",
-      "backend": "api"
     }
   },
   "benchmarks": {
@@ -43,7 +42,7 @@
       "provenance": "official",
       "revision": "54a96a6f",
       "license": "odc-by",
-      "scorer": "venv"
+      "scorer": "container"
     }
   },
   "instruments": {
@@ -65,7 +64,7 @@
     }
   },
   "hardware": {
-    "captured_at": "2026-07-07T20:19:42",
+    "captured_at": "2026-07-07T20:30:39",
     "gpu": {
       "available": true,
       "name": "NVIDIA GeForce RTX 5090",

@@ -59,17 +59,47 @@ def run(models, benches, profile, max_samples, run_id, phase, rescore, no_llm_in
             click.echo(f"[no-llm-instruments] dropping Tier B benches: {', '.join(drop)}")
         bench_keys = [b for b in bench_keys if b not in drop]
     phases = ("infer", "score") if phase == "all" else (phase,)
+    # API budget guard (house rule): estimated spend must clear the per-model cap
+    # BEFORE any call is made.
+    if "infer" in phases:
+        cap = ((_matrix_cfg().get("run") or {}).get("budget") or {}).get("max_usd_per_model")
+        if cap is not None:
+            est = _estimate(reg, model_keys, bench_keys, max_samples)
+            over = {m: usd for m, usd in est.items() if usd > cap}
+            if over:
+                raise click.ClickException(
+                    f"budget guard: estimated spend exceeds max_usd_per_model=${cap}: "
+                    + ", ".join(f"{m}=${u:.2f}" for m, u in over.items())
+                    + " — shrink the run or raise the cap in configs/matrix.yaml")
+            spend = {m: u for m, u in est.items() if u > 0}
+            if spend:
+                click.echo("estimated API spend: "
+                           + ", ".join(f"{m}=${u:.4f}" for m, u in spend.items()))
     try:
         hw = hw_fingerprint()
     except Exception:
         hw = None
-    summary = run_matrix(
-        models=model_keys, benches=bench_keys,
-        model_factory=reg.model, bench_factory=reg.bench,
-        results_dir=(_matrix_cfg().get("run") or {}).get("results_dir", "results/runs"),
-        run_id=run_id, max_samples=max_samples, phases=phases, rescore=rescore,
-        boundary_judge=None if no_llm_instruments else _boundary_judge(reg),
-        hardware=hw, instruments_meta=reg.instruments)
+    # Tier B needs the frozen extractor during the SCORE phase (own GPU pass, after
+    # OCR models have unloaded). Lazy: constructed only if a selected bench needs it.
+    extractor = None
+    if "score" in phases and not no_llm_instruments:
+        needs = [b for b in bench_keys
+                 if (reg.benchmarks.get(b, {}).get("scorer") or {}).get("instrument") == "extractor"]
+        if needs:
+            from tbdoc.instruments.vllm_extractor import VLLMExtractor
+            extractor = VLLMExtractor()
+            click.echo(f"[instruments] frozen extractor {extractor.identity} for: {', '.join(needs)}")
+    try:
+        summary = run_matrix(
+            models=model_keys, benches=bench_keys,
+            model_factory=reg.model, bench_factory=reg.bench,
+            results_dir=(_matrix_cfg().get("run") or {}).get("results_dir", "results/runs"),
+            run_id=run_id, max_samples=max_samples, phases=phases, rescore=rescore,
+            boundary_judge=None if no_llm_instruments else _boundary_judge(reg),
+            extractor=extractor, hardware=hw, instruments_meta=reg.instruments)
+    finally:
+        if extractor is not None:
+            extractor.unload()
     click.echo(json.dumps(summary, indent=2))
 
 
@@ -134,16 +164,72 @@ def status(run_id):
 @main.command()
 @click.argument("bench", default="all")
 def download(bench):
-    """Download benchmark data at pinned revisions (M2)."""
-    raise click.ClickException("landing in M2 — see the build plan")
+    """Download benchmark data at PINNED revisions (skips benches with data present)."""
+    reg = _registry()
+    keys = list(reg.benchmarks) if bench == "all" else [bench]
+    for k in keys:
+        e = reg.benchmarks.get(k)
+        if e is None:
+            raise click.ClickException(f"unknown benchmark '{k}'")
+        src = e.get("source") or {}
+        data_dir = Path(e.get("data_dir") or
+                        Path("benchmarks") / e.get("provenance", "official") / k / "data")
+        if data_dir.exists() and any(data_dir.iterdir()):
+            click.echo(f"{k}: data present at {data_dir} — skipping")
+            continue
+        repo = src.get("hf_repo")
+        if not repo:
+            click.echo(f"{k}: no hf_repo source (custom/generated bench?) — see its README")
+            continue
+        from huggingface_hub import snapshot_download
+        click.echo(f"{k}: downloading {repo}@{src.get('revision', 'main')} -> {data_dir}")
+        snapshot_download(repo_id=repo, repo_type="dataset",
+                          revision=src.get("revision"), local_dir=str(data_dir))
+        click.echo(f"{k}: done — re-verify the LICENSE on the live dataset card "
+                   f"(pinned license: {src.get('license', '?')})")
+
+
+# Token assumptions for per-Mtok-priced vision APIs (verified workload model 2026-07-07:
+# ~1.5MP page ≈ 1-4k image tokens depending on provider; ~1k output tokens/page).
+_EST_IN_TOK, _EST_OUT_TOK = 2000, 1000
+
+
+def _estimate(reg: Registry, model_keys: list[str], bench_keys: list[str],
+              max_samples: int | None) -> dict[str, float]:
+    """{model_key: estimated_usd} for API models (0.0 for local)."""
+    n_pages = 0
+    for b in bench_keys:
+        ba = reg.bench(b)
+        n = sum(1 for _ in ba.load())
+        n_pages += min(n, max_samples) if max_samples else n
+    out: dict[str, float] = {}
+    for m in model_keys:
+        e = reg.models.get(m) or {}
+        if e.get("kind") != "api":
+            out[m] = 0.0
+            continue
+        p = e.get("pricing") or {}
+        if "per_page_usd" in p:
+            per_page = p["per_page_usd"]
+        else:
+            per_page = (_EST_IN_TOK * p.get("per_mtok_in_usd", 0)
+                        + _EST_OUT_TOK * p.get("per_mtok_out_usd", 0)) / 1e6
+        out[m] = round(per_page * n_pages, 4)
+    return out
 
 
 @main.command("estimate-cost")
 @click.option("--models", "-m", required=True)
 @click.option("--benches", "-b", required=True)
-def estimate_cost(models, benches):
-    """Estimate API spend for a run BEFORE any calls (M2)."""
-    raise click.ClickException("landing in M2 — see the build plan")
+@click.option("--max-samples", type=int, default=None)
+def estimate_cost(models, benches, max_samples):
+    """Estimate API spend for a run BEFORE any calls."""
+    reg = _registry()
+    est = _estimate(reg, models.split(","), benches.split(","), max_samples)
+    for m, usd in est.items():
+        kind = (reg.models.get(m) or {}).get("kind", "?")
+        click.echo(f"{m:20s} {kind:6s} ${usd:.4f}")
+    click.echo(f"{'TOTAL':20s}        ${sum(est.values()):.4f}")
 
 
 def _latest_run(run_id: str | None) -> Path:

@@ -44,8 +44,8 @@ class VLLMExtractor:
             from pathlib import Path
 
             import yaml
-            reg = Path(__file__).resolve().parents[3] / "configs" / "model_registry.yaml"
-            ex = (yaml.safe_load(reg.read_text()) or {}).get("extractor", {}) or {}
+            reg = Path(__file__).resolve().parents[4] / "configs" / "models.yaml"
+            ex = ((yaml.safe_load(reg.read_text()) or {}).get("instruments") or {}).get("extractor") or {}
         except Exception:
             return
         chosen, rev = ex.get("chosen"), str(ex.get("revision") or "")
