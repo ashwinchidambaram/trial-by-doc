@@ -28,3 +28,15 @@ benchmarks:
     scorer:
       kind: native                  # field-aware EM + ANLS (deterministic, pure python)
       instrument: extractor         # frozen Qwen2.5-7B (see configs/models.yaml)
+
+  merged_forms:
+    adapter: "tbdoc.benches.custom.merged_forms:MergedFormsBench"
+    tier: C
+    unit: document
+    provenance: custom
+    validation_doc: benchmarks/custom/merged_forms/VALIDATION.md
+    source:
+      origin: "generated from NIST SD2 (public domain, US government work)"
+      generator_seed: 0
+    scorer:
+      kind: native                  # PQ / boundary F1 / STP — deterministic, no LLM

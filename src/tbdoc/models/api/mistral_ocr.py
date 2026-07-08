@@ -21,8 +21,9 @@ class MistralOCRAdapter(APIModelAdapter):
     longest_side: int | None = None   # dedicated OCR API handles resolution itself
 
     def _client(self) -> Any:
-        from mistralai import Mistral
         import os
+
+        from mistralai import Mistral
         return Mistral(api_key=os.environ["MISTRAL_API_KEY"])
 
     def _call_api(self, image: Any) -> Any:

@@ -19,3 +19,5 @@ results/**/*.log
 # HF / model caches
 .cache/
 *.safetensors
+benchmarks/custom/*/raw/
+benchmarks/**/*.zip

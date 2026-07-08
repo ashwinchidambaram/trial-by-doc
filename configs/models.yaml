@@ -159,3 +159,17 @@ instruments:
   boundary_judge:            # Tier C (M3) — model+prompt pinned when wired
     chosen: null
     prompt_version: null
+
+  # ---- Tier-C trivial baselines (scoreboard floor; no GPU/API/LLM) ----------
+  baseline_every_page:
+    kind: baseline
+    adapter: "tbdoc.models.local.baselines:EveryPageBoundary"
+    specialties: "floor: new doc at every page"
+  baseline_no_boundary:
+    kind: baseline
+    adapter: "tbdoc.models.local.baselines:NoBoundary"
+    specialties: "floor: one single document"
+  baseline_pixel_diff:
+    kind: baseline
+    adapter: "tbdoc.models.local.baselines:PixelDiff"
+    specialties: "floor + seam-artifact canary: visual page-delta threshold"

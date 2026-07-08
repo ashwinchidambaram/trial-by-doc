@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-07-07T20:22:59",
+  "updated_at": "2026-07-07T20:38:24",
   "totals": {
-    "done": 10,
-    "total": 10,
+    "done": 5,
+    "total": 5,
     "pct": 100.0
   },
   "current": null,
@@ -12,20 +12,12 @@
       "bench": "olmocr_bench",
       "done": 5,
       "total": 5,
-      "primary_mean": 0.5292,
-      "state": "done"
-    },
-    {
-      "model": "anthropic_vision",
-      "bench": "olmocr_bench",
-      "done": 5,
-      "total": 5,
-      "primary_mean": null,
+      "primary_mean": 0.4704,
       "state": "done"
     }
   ],
   "hardware": {
-    "captured_at": "2026-07-07T20:19:42",
+    "captured_at": "2026-07-07T20:30:39",
     "gpu": {
       "available": true,
       "name": "NVIDIA GeForce RTX 5090",

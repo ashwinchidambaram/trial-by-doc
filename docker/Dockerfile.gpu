@@ -1,0 +1,24 @@
+# trial-by-doc GPU image — local open-weights models (vLLM) + full CLI.
+# Requires nvidia-container-toolkit. Mount your HF cache + results:
+#   docker run --gpus all --env-file .env \
+#     -v $HOME/.cache/huggingface:/hf -e HF_HOME=/hf \
+#     -v $PWD/benchmarks:/app/benchmarks -v $PWD/results:/app/results \
+#     tbdoc:gpu run --profile smoke
+# Scorer containers run as SIBLINGS: add -v /var/run/docker.sock:/var/run/docker.sock
+# or score on the host afterwards (gauntlet run --phase score) — the venv fallback
+# also works inside this image for text/order tests.
+FROM nvidia/cuda:13.0.0-runtime-ubuntu24.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.12 python3.12-venv curl git && rm -rf /var/lib/apt/lists/*
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+WORKDIR /app
+COPY pyproject.toml README.md ./
+COPY src ./src
+COPY configs ./configs
+RUN uv venv --python 3.12 && uv sync --extra local --no-dev
+ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1
+
+ENTRYPOINT ["gauntlet"]
+CMD ["--help"]
