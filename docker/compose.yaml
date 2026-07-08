@@ -1,0 +1,29 @@
+# docker compose profiles for trial-by-doc.
+#   docker compose -f docker/compose.yaml --profile gpu run gauntlet-gpu run --profile smoke
+#   docker compose -f docker/compose.yaml --profile cpu run gauntlet-cpu run -m mistral_ocr -b olmocr_bench
+services:
+  gauntlet-gpu:
+    profiles: [gpu]
+    build: { context: .., dockerfile: docker/Dockerfile.gpu }
+    image: tbdoc:gpu
+    env_file: [../.env]
+    environment: { HF_HOME: /hf }
+    volumes:
+      - ${HF_HOME:-~/.cache/huggingface}:/hf
+      - ../benchmarks:/app/benchmarks
+      - ../results:/app/results
+      - /var/run/docker.sock:/var/run/docker.sock   # sibling scorer containers
+    deploy:
+      resources:
+        reservations:
+          devices: [{ driver: nvidia, count: all, capabilities: [gpu] }]
+
+  gauntlet-cpu:
+    profiles: [cpu]
+    build: { context: .., dockerfile: docker/Dockerfile.cpu }
+    image: tbdoc:cpu
+    env_file: [../.env]
+    volumes:
+      - ../benchmarks:/app/benchmarks
+      - ../results:/app/results
+      - /var/run/docker.sock:/var/run/docker.sock
