@@ -121,25 +121,14 @@ def field_aware_exact_match(prediction: str, golds: list[str]) -> float:
     Structured gold (key=value): every gold field must be present in the prediction and match by
     boolean-aliased / numerically-tolerant value compare (order-insensitive; extra prediction fields
     are ignored). Non-structured gold: fall back to a whole-string canonical/numeric compare.
-    Mixed (one structured, one not): check if the unstructured value matches any value in the structured.
     """
     p_fields = _parse_fields(prediction)
     for g in golds:
         g_fields = _parse_fields(g)
         if g_fields and p_fields:
-            # Both structured: compare field-by-field
             if all(k in p_fields and _values_match(p_fields[k], g_fields[k]) for k in g_fields):
                 return 1.0
-        elif g_fields and not p_fields:
-            # Gold structured, prediction not: check if prediction matches any gold value
-            if any(_values_match(prediction, v) for v in g_fields.values()):
-                return 1.0
-        elif not g_fields and p_fields:
-            # Prediction structured, gold not: check if any prediction value matches gold
-            if any(_values_match(v, g) for v in p_fields.values()):
-                return 1.0
-        elif _values_match(prediction, g):
-            # Neither structured: whole-string compare
+        elif _values_match(prediction, g):  # gold (or prediction) not key=value -> whole-string compare
             return 1.0
     return 0.0
 

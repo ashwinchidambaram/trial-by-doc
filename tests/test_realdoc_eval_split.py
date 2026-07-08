@@ -27,7 +27,8 @@ def test_derived_item_excluded_from_b1_primary():
 
 def test_b2_uses_reader_when_present():
     ba = RealDocQA("realdoc_qa")
-    reader = FunctionExtractor(lambda md, q: "8500", identity="fake-reader")
+    # the real reader answers in the gold's key=value format (response_format hint); mirror that
+    reader = FunctionExtractor(lambda md, q: "amount=8500", identity="fake-reader")
     m = ba.evaluate(_sample("amount=8500"), _pred("Amount: 8500"), extractor=reader)
     assert m["b2"] == 1.0
     assert m["reader"] == "fake-reader"
