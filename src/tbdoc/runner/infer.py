@@ -84,16 +84,28 @@ def run_infer(*, models: list[str], benches: list[str],
         try:
             for b in benches:
                 ba = bench_factory(b)
+                memo: dict[int, dict] = {}  # same page image (multi-question docs) -> OCR once
                 for s in todo[b]:
                     try:
                         if ba.unit == "document":
-                            seg = adapter.segment(s.pages, boundary_judge=boundary_judge)
-                            store.record(m, b, s.id, kind="segmentation",
-                                         prediction=seg.to_dict())
+                            if "segmentation" in adapter.capabilities:
+                                seg = adapter.segment(s.pages)
+                                store.record(m, b, s.id, kind="segmentation",
+                                             prediction=seg.to_dict())
+                            else:
+                                # judge-composed path: OCR pages now; the frozen judge
+                                # composes boundaries in the SCORE phase (GPU-sequenced).
+                                docs = adapter.predict_document(s.pages)
+                                store.record(m, b, s.id, kind="page_docs",
+                                             prediction=[d.to_dict() for d in docs])
                         else:
-                            pred = adapter.predict(s.image)
+                            key = id(s.image)
+                            pred_d = memo.get(key)
+                            if pred_d is None:
+                                pred_d = adapter.predict(s.image).to_dict()
+                                memo[key] = pred_d
                             store.record(m, b, s.id, kind="structured_doc",
-                                         prediction=pred.to_dict())
+                                         prediction=pred_d)
                     except Exception as e:
                         n_err += 1
                         store.record(m, b, s.id, kind="error", prediction=None,

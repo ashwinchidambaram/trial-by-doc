@@ -48,9 +48,14 @@ def run(models, benches, profile, max_samples, run_id, phase, rescore, no_llm_in
     from tbdoc.runner.matrix import run_matrix
     prof = _profile(profile)
     model_keys = [m.strip() for m in models.split(",")] if models else prof["models"]
-    bench_keys = [b.strip() for b in benches.split(",")] if benches else prof["benchmarks"]
+    prof_benches = prof["benchmarks"]
+    bench_caps = prof_benches if isinstance(prof_benches, dict) else {}
+    if benches:
+        bench_keys = [b.strip() for b in benches.split(",")]
+    else:
+        bench_keys = list(prof_benches)
     if max_samples is None:
-        max_samples = prof.get("max_samples")
+        max_samples = bench_caps or prof.get("max_samples")
     reg = _registry()
     benches_meta = {b: reg.benchmarks.get(b, {}) for b in bench_keys}
     if no_llm_instruments:
@@ -89,26 +94,30 @@ def run(models, benches, profile, max_samples, run_id, phase, rescore, no_llm_in
             from tbdoc.instruments.vllm_extractor import VLLMExtractor
             extractor = VLLMExtractor()
             click.echo(f"[instruments] frozen extractor {extractor.identity} for: {', '.join(needs)}")
+    judge = None
+    if not no_llm_instruments and any(
+            reg.benchmarks.get(b, {}).get("tier") == "C" for b in bench_keys):
+        from tbdoc.instruments.boundary_judge import BoundaryJudge
+        from tbdoc.instruments.vllm_extractor import VLLMExtractor
+        if extractor is None:
+            extractor = VLLMExtractor()   # same pin; engine shared with the judge
+        judge = BoundaryJudge((reg.instruments or {}).get("boundary_judge") or {},
+                              shared_extractor=extractor)
+        click.echo(f"[instruments] boundary_judge {judge.identity()} (engine shared w/ extractor)")
     try:
         summary = run_matrix(
             models=model_keys, benches=bench_keys,
             model_factory=reg.model, bench_factory=reg.bench,
             results_dir=(_matrix_cfg().get("run") or {}).get("results_dir", "results/runs"),
             run_id=run_id, max_samples=max_samples, phases=phases, rescore=rescore,
-            boundary_judge=None if no_llm_instruments else _boundary_judge(reg),
-            extractor=extractor, hardware=hw, instruments_meta=reg.instruments)
+            boundary_judge=judge, extractor=extractor,
+            hardware=hw, instruments_meta=reg.instruments)
     finally:
+        if judge is not None:
+            judge.unload()
         if extractor is not None:
             extractor.unload()
     click.echo(json.dumps(summary, indent=2))
-
-
-def _boundary_judge(reg: Registry):
-    bj = (reg.instruments or {}).get("boundary_judge") or {}
-    if not bj.get("chosen"):
-        return None
-    from tbdoc.instruments.boundary_judge import BoundaryJudge  # M3
-    return BoundaryJudge(bj)
 
 
 @main.command("validate-adapter")
@@ -201,7 +210,8 @@ def _estimate(reg: Registry, model_keys: list[str], bench_keys: list[str],
     for b in bench_keys:
         ba = reg.bench(b)
         n = sum(1 for _ in ba.load())
-        n_pages += min(n, max_samples) if max_samples else n
+        cap = max_samples.get(b) if isinstance(max_samples, dict) else max_samples
+        n_pages += min(n, cap) if cap else n
     out: dict[str, float] = {}
     for m in model_keys:
         e = reg.models.get(m) or {}

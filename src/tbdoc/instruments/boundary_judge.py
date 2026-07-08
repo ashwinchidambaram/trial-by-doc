@@ -27,11 +27,14 @@ _TAIL, _HEAD = 2400, 2400  # chars of context from page i's end and page i+1's s
 
 
 class BoundaryJudge:
-    def __init__(self, entry: dict | None = None):
+    def __init__(self, entry: dict | None = None, shared_extractor=None):
         e = entry or {}
         self.repo = e.get("chosen") or _REPO
         self.revision = e.get("revision") or _REVISION
         self.prompt_version = e.get("prompt_version") or PROMPT_VERSION
+        # Same frozen pin as the Tier-B extractor -> share ONE vLLM engine (a second
+        # 7B alongside it would OOM the GPU). Verified at load.
+        self._shared = shared_extractor
         self._llm = None
         self._sp = None
 
@@ -40,12 +43,20 @@ class BoundaryJudge:
                 "prompt_version": self.prompt_version}
 
     def load(self) -> None:
-        from tbdoc.core.cuda_env import ensure_cuda_home
-        ensure_cuda_home()
-        from vllm import LLM, SamplingParams
-        self._llm = LLM(model=self.repo, revision=self.revision, dtype="bfloat16",
-                        gpu_memory_utilization=0.90, max_model_len=8192,
-                        enforce_eager=True, seed=0)
+        from vllm import SamplingParams
+        if self._shared is not None:
+            if (self._shared.repo, str(self._shared.revision)) != (self.repo, str(self.revision)):
+                raise RuntimeError("boundary_judge/extractor pin mismatch — cannot share engine")
+            if self._shared._llm is None:
+                self._shared.load()
+            self._llm = self._shared._llm
+        else:
+            from tbdoc.core.cuda_env import ensure_cuda_home
+            ensure_cuda_home()
+            from vllm import LLM
+            self._llm = LLM(model=self.repo, revision=self.revision, dtype="bfloat16",
+                            gpu_memory_utilization=0.90, max_model_len=8192,
+                            enforce_eager=True, seed=0)
         self._sp = SamplingParams(temperature=0.0, max_tokens=4)
 
     def _decide(self, prev_md: str, next_md: str) -> bool:
@@ -68,6 +79,9 @@ class BoundaryJudge:
     def unload(self) -> None:
         import contextlib
         import gc
+        if self._shared is not None:      # engine belongs to the extractor
+            self._llm = self._sp = None
+            return
         self._llm = self._sp = None
         gc.collect()
         with contextlib.suppress(Exception):

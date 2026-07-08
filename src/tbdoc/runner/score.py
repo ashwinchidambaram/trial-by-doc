@@ -13,13 +13,19 @@ from tbdoc.core.structured_doc import Segmentation, StructuredDoc
 from tbdoc.runner.infer import PredictionStore
 
 
-def _rebuild(rec: dict) -> Any:
+def _rebuild(rec: dict, boundary_judge: Any | None = None) -> Any:
     if rec["kind"] == "structured_doc":
         return StructuredDoc.from_dict(rec["prediction"])
     if rec["kind"] == "segmentation":
         d = rec["prediction"]
         return Segmentation(boundaries=d["boundaries"], method=d.get("method", "native"),
                             raw=d.get("raw") or {})
+    if rec["kind"] == "page_docs":
+        if boundary_judge is None:
+            return None  # can't compose without the instrument (--no-llm-instruments)
+        mds = [(d.get("markdown") or "") for d in rec["prediction"]]
+        return Segmentation(boundaries=boundary_judge.boundaries(mds),
+                            method="judge_composed", raw={"judge": boundary_judge.identity()})
     return None  # error row
 
 
@@ -28,7 +34,8 @@ def run_score(*, models: list[str], benches: list[str],
               preds: PredictionStore, store: CheckpointStore,
               bench_samples: dict[str, list],
               model_fingerprints: dict[str, dict] | None = None,
-              extractor: Any | None = None, rescore: bool = False,
+              extractor: Any | None = None, boundary_judge: Any | None = None,
+              rescore: bool = False,
               hardware: dict | None = None,
               log: Callable[[str], None] = print) -> dict:
     n_scored = n_err = 0
@@ -45,7 +52,7 @@ def run_score(*, models: list[str], benches: list[str],
             sample_pred, sample_err = [], []
             for s in pending:
                 rec = cell[str(s.id)]
-                p = _rebuild(rec)
+                p = _rebuild(rec, boundary_judge=boundary_judge)
                 (sample_err if p is None else sample_pred).append((s, rec.get("error"), p))
             # propagate inference errors as error rows (never a silent gap)
             for s, err, _ in sample_err:

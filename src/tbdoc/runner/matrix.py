@@ -25,7 +25,7 @@ def new_run_id() -> str:
 def run_matrix(*, models: list[str], benches: list[str],
                model_factory: Callable[[str], Any], bench_factory: Callable[[str], Any],
                results_dir: str | Path = "results/runs", run_id: str | None = None,
-               max_samples: int | None = None, phases: tuple[str, ...] = ("infer", "score"),
+               max_samples: int | dict | None = None, phases: tuple[str, ...] = ("infer", "score"),
                extractor: Any | None = None, boundary_judge: Any | None = None,
                hardware: dict | None = None, rescore: bool = False,
                instruments_meta: dict | None = None,
@@ -39,8 +39,9 @@ def run_matrix(*, models: list[str], benches: list[str],
     bench_samples: dict[str, list] = {}
     for b in benches:
         samples = list(bench_adapters[b].load())
-        if max_samples is not None:
-            samples = samples[:max_samples]
+        cap = max_samples.get(b) if isinstance(max_samples, dict) else max_samples
+        if cap is not None:
+            samples = samples[:cap]
         bench_samples[b] = samples
 
     # Manifest first — provenance before any compute/spend.
@@ -67,5 +68,6 @@ def run_matrix(*, models: list[str], benches: list[str],
                                      bench_factory=lambda b: bench_adapters[b],
                                      preds=preds, store=store, bench_samples=bench_samples,
                                      model_fingerprints=model_fps, extractor=extractor,
+                                     boundary_judge=boundary_judge,
                                      rescore=rescore, hardware=hardware, log=log)
     return summary

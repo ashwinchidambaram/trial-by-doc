@@ -170,7 +170,8 @@ instruments:
     license: apache-2.0
     sampling: { temperature: 0, seed: 0, repetition_penalty: 1.05, max_answer_tokens: 64 }
     max_model_len: 32768
-  boundary_judge:            # Tier C (M3) — model+prompt pinned when wired
-    chosen: null
-    prompt_version: null
+  boundary_judge:            # Tier C — SHARES the extractor's engine (same pin)
+    chosen: Qwen/Qwen2.5-7B-Instruct
+    revision: a09a35458c70
+    prompt_version: v1
 
