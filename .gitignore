@@ -1,0 +1,21 @@
+# env / secrets
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+uv.lock.bak
+
+# benchmark data (downloaded via `gauntlet download`, pinned revisions in configs)
+benchmarks/official/*/data/
+benchmarks/custom/*/data/
+benchmarks/_scorers/*/.venv/
+
+# results: raw predictions are big; scoreboards/manifests ARE committed per published run
+results/runs/*/predictions/
+results/runs/*/raw/
+results/**/*.log
+
+# HF / model caches
+.cache/
+*.safetensors
