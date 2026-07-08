@@ -174,4 +174,21 @@ instruments:
     chosen: Qwen/Qwen2.5-7B-Instruct
     revision: a09a35458c70
     prompt_version: v1
+  reader:                       # Tier-B B.2 comprehension (pluggable; B.1 needs none)
+    default_local:              # small model — NEVER the 7B (that's the Tier C judge)
+      repo: Qwen/Qwen2.5-3B-Instruct
+      revision: VERIFY_AT_WIRE_IN     # resolve + pin the HF revision hash at download
+    backends:
+      haiku45:
+        backend: anthropic
+        api_model_id: claude-haiku-4-5-20251001   # verify live at wire-in
+        secrets: [ANTHROPIC_API_KEY]
+        pricing: { per_mtok_in_usd: 1.0, per_mtok_out_usd: 5.0, as_of: "2026-07-08",
+                   source: "https://platform.claude.com/docs/en/about-claude/pricing" }
+      gpt5mini:
+        backend: openai
+        api_model_id: gpt-5-mini                   # verify live at wire-in
+        secrets: [OPENAI_API_KEY]
+        pricing: { per_mtok_in_usd: 0.25, per_mtok_out_usd: 2.0, as_of: "2026-07-08",
+                   source: "https://developers.openai.com/api/docs/pricing" }
 
