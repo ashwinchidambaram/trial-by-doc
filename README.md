@@ -1,4 +1,4 @@
-# you-shall-not-parse 🧙
+# trial-by-doc 🧙
 
 **An OCR / document-intelligence model gauntlet.** Wire in any model — local
 open-weights, commercial doc-AI APIs, or frontier VLMs — and run it through a
@@ -15,8 +15,8 @@ three-tier benchmark gauntlet with **deterministic, automatic scoring**:
 ## Quickstart (preview)
 
 ```bash
-git clone https://github.com/ashwinchidambaram/you-shall-not-parse
-cd you-shall-not-parse && uv sync --extra local   # or --extra api
+git clone https://github.com/ashwinchidambaram/trial-by-doc
+cd trial-by-doc && uv sync --extra local   # or --extra api
 gauntlet list models
 gauntlet run --profile smoke
 gauntlet scoreboard

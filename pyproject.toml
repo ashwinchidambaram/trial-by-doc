@@ -1,7 +1,7 @@
 [project]
-name = "ysnp"
+name = "tbdoc"
 version = "0.1.0"
-description = "you-shall-not-parse — an OCR / document-intelligence model gauntlet: wire in any model, run the benchmarks, get a deterministic scoreboard."
+description = "trial-by-doc — an OCR / document-intelligence model gauntlet: wire in any model, run the benchmarks, get a deterministic scoreboard."
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
@@ -34,17 +34,17 @@ api = [
     "google-cloud-documentai",
 ]
 dev = ["pytest>=8", "pytest-timeout"]
-all = ["ysnp[local,api,dev]"]
+all = ["tbdoc[local,api,dev]"]
 
 [project.scripts]
-gauntlet = "ysnp.cli:main"
+gauntlet = "tbdoc.cli:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/ysnp"]
+packages = ["src/tbdoc"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,4 +1,4 @@
-# CLAUDE.md — Standing rules for you-shall-not-parse
+# CLAUDE.md — Standing rules for trial-by-doc
 
 ## Prime directive: verify, never assume
 Never state a model repo ID, license, revision hash, API price, recommended setting, or
@@ -35,7 +35,7 @@ subclass + one `configs/models.yaml` entry. Three orthogonal tiers:
 uv-managed, Python 3.12. RTX 5090 (Blackwell sm_120), driver 595.71.05, torch
 2.11.0+cu130, vLLM 0.22.1 prebuilt, transformers 5.11. Never install xformers.
 vLLM 0.22: `VLLM_ATTENTION_BACKEND` env is a NO-OP — pass `attention_backend=` to LLM()
-(we read `YSNP_ATTN_BACKEND`). FlashAttention 2 default; `enforce_eager=True` on this
+(we read `TBDOC_ATTN_BACKEND`). FlashAttention 2 default; `enforce_eager=True` on this
 host. CUDA 13.3 toolkit at ~/cuda-13.3 for JIT builds (core/cuda_env wiring, config-
 gated — host-specific). vLLM runs models in a subprocess → measure VRAM via nvidia-smi.
 
