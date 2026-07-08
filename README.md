@@ -20,7 +20,29 @@ identical for every model) and the scoreboard marks where they're used.
 > Interim engineering-run numbers live in `findings/`.
 
 <!-- SCOREBOARD:BEGIN -->
-_(pending v1 run)_
+> ⏳ **INTERIM — v1 run in progress** (3 of 8 models scored; Tier A only. Tier B/C
+> and the remaining 5 models land as the run completes.)
+
+**Tier A — parse fidelity** (higher is better; mean over stratified pages, n per cell):
+
+| Model | olmOCR-Bench | OmniDocBench |
+|---|---|---|
+| olmocr2 | **0.836** (n=100) | **0.828** (n=96) |
+| qwen25vl | 0.702 (n=100) | 0.736 (n=96) |
+| got2 | 0.304 (n=100) | 0.638 (n=96) |
+| _dots_ocr, paddleocr_vl, deepseek_ocr, granite_docling, lightonocr_ | _inferring…_ | _inferring…_ |
+
+olmocr_bench = official unit-test pass rate (uncapped render tests). OmniDocBench =
+1 − overall edit distance (CDM excluded); 4 pages/model have no scoreable elements
+(excluded, hence n=96). 0 scoring errors across 600 records.
+
+**Early read**: olmocr2 leads every olmOCR-Bench category (except old_scans, tied)
+and every test type — the purpose-built OCR model is the parser to beat. qwen25vl
+matches it on tables (0.94) but trails on layout/reading-order and shows
+repetition-loop degeneration on a few dense historical pages. got2 (580M) handles
+plain text but emits **no table structure** (0/103 table unit tests) — a
+capability/format limit of the small specialist, not a scorer artifact. Ranking
+tracks the prior baseline; per-model detail in `findings/`.
 <!-- SCOREBOARD:END -->
 
 ## Benchmarks
