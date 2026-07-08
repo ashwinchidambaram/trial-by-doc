@@ -77,13 +77,24 @@ interface (`answer(markdown, question) -> str`), selected in config:
 |---|---|---|---|
 | API (Anthropic) | Claude Haiku 4.5 | `ANTHROPIC_API_KEY` | recommended default |
 | API (OpenAI) | GPT-5 mini | `OPENAI_API_KEY` | second reader (owner will provide key) |
-| Local (vLLM) | **any instruction-tuned model** (default: frozen Qwen2.5-7B `@a09a35458c70`) | none | fallback when no key |
+| Local (vLLM) | **any small instruction-tuned model** (default: Qwen2.5-3B-Instruct) | none | fallback when no key |
 
-The local reader is **not fixed to Qwen** — the interface is `answer(markdown, question) -> str`,
-so any vLLM-servable instruction model qualifies. Qwen2.5-7B is only the *default* because it's
-the pinned instrument already shared with the Tier C boundary judge (zero extra VRAM). The reader
-config takes a model id + revision, so Gemma 4, Llama, Phi, or a smaller Qwen can be dropped in.
-Comprehension is text-only, so multimodal readers (e.g. Gemma 4) are served via their text path.
+**B.2 uses only small local models — never the 7B** (owner decision 2026-07-08). The 7B is the
+"known-capable" reference; the interesting question is where comprehension breaks *below* it, so
+B.2's readers stay in the small regime. The default key-less fallback is therefore
+**Qwen2.5-3B-Instruct** (same stack as our existing Qwen2.5-7B ⇒ known to serve on vLLM 0.22.1 /
+sm_120; safer default than Gemma 4, whose serving support is unverified). The pinned Qwen2.5-7B
+`@a09a35458c70` **remains in the harness for the Tier C boundary judge — untouched there**; it is
+simply no longer used for B.2.
+
+The local reader is **not fixed to one model** — the interface is `answer(markdown, question) -> str`,
+so any vLLM-servable instruction model qualifies (config takes model id + revision). Comprehension
+is text-only, so multimodal readers (e.g. Gemma 4) are served via their text path.
+
+*Note:* with B.2 on a 3B and Tier C on the 7B, a key-less full run loads two local instruments in
+separate scoring passes (not simultaneously — the two-phase design sequences them). Accepted cost
+of honoring "B.2 = small models only." If the study finds 3B sits below the comprehension floor,
+that is reported as a caveat; **B.1 is deterministic and unaffected either way.**
 
 - Exact API model IDs and pricing are **verified live at wire-in** (house rule — not from memory):
   Haiku `claude-haiku-4-5-*`, GPT-5-mini id confirmed against the OpenAI models list. Local reader
@@ -105,11 +116,11 @@ local reader is now a configurable list, we can measure *at what point a reader 
 a fair instrument* — i.e. where a low B.2 score reflects the reader's failure, not the OCR's. Clean
 two-axis design (vary one thing at a time):
 
-- **Size axis (family held constant):** Qwen2.5-Instruct `0.5B → 1.5B → 3B → 7B`. Isolates the
-  parameter count at which comprehension breaks down. Same family ⇒ a score drop is attributable
-  to size, not architecture.
-- **Family axis (size held ≈ constant):** Gemma-4-E4B-it and/or a Llama-3.x small vs Qwen at
-  ~4–8B. Isolates whether family matters at a fixed size.
+- **Size axis (family held constant):** Qwen2.5-Instruct `0.5B → 1.5B → 3B` (**no 7B** — owner
+  decision; the floor is expected below 7B). Isolates the parameter count at which comprehension
+  breaks down. Same family ⇒ a score drop is attributable to size, not architecture.
+- **Family axis (size held ≈ small):** Gemma-4-E4B-it and/or a Llama-3.x small (~1–4B) vs Qwen at
+  a comparable small size. Isolates whether family matters, staying in the small regime.
 
 Mechanics: each ladder rung is one extra B.2 scoring pass over the **predictions already on disk**
 (no re-inference) — load reader → answer 100 questions × N OCR models → score. Sequential local
@@ -143,7 +154,9 @@ A dedicated subsection so no reader is caught off guard:
   into a pluggable reader (Anthropic / OpenAI / local); configs gain reader selection; scoreboard
   + README gain B.1/B.2 columns and the explainer.
 - **Reproducibility:** B.1 is fully deterministic. B.2 rows are provenance-stamped with reader
-  identity + API version + date; the local-Qwen backend remains the reproducible default path.
+  identity + API version + date; the local small-model backend (default Qwen2.5-3B, pinned
+  revision) remains the reproducible, key-less default path. Tier C's pinned Qwen2.5-7B judge is
+  unchanged.
 
 ## 7. Testing / validation plan
 
