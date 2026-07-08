@@ -68,7 +68,20 @@ def run_infer(*, models: list[str], benches: list[str],
             log(f"[infer] {m}: all cells complete, skipping load")
             continue
         adapter = model_factory(m)
-        with adapter:
+        try:
+            adapter.__enter__()
+        except Exception as e:
+            # Model failed to LOAD (missing API key, OOM, bad revision): error-row every
+            # pending cell so the gap is visible, then continue with the next model.
+            for b in benches:
+                for s in todo[b]:
+                    store.record(m, b, s.id, kind="error", prediction=None,
+                                 error=f"load failed: {type(e).__name__}: {e}")
+                    n_err += 1
+                    n_pred += 1
+            log(f"[infer] {m}: LOAD FAILED ({type(e).__name__}: {e}) — cells recorded as errors")
+            continue
+        try:
             for b in benches:
                 ba = bench_factory(b)
                 for s in todo[b]:
@@ -87,4 +100,6 @@ def run_infer(*, models: list[str], benches: list[str],
                                      error=f"{type(e).__name__}: {e}")
                     n_pred += 1
                 log(f"[infer] {m} × {b}: {len(todo[b])} new predictions")
+        finally:
+            adapter.__exit__(None, None, None)
     return {"predicted": n_pred, "errors": n_err}

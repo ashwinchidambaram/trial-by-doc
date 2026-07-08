@@ -44,7 +44,7 @@ def main():
               help="strictly LLM-free measurement path (Tier A + native segmenters only)")
 def run(models, benches, profile, max_samples, run_id, phase, rescore, no_llm_instruments):
     """Run the matrix (infer -> score), resumable."""
-    from tbdoc.core.hardware import fingerprint as hw_fingerprint
+    from tbdoc.core.hardware import capture_hardware_metadata as hw_fingerprint
     from tbdoc.runner.matrix import run_matrix
     prof = _profile(profile)
     model_keys = [m.strip() for m in models.split(",")] if models else prof["models"]

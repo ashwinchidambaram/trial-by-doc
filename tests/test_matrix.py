@@ -89,3 +89,19 @@ def test_document_unit_dispatches_segment(tmp_path):
     assert s["score"]["scored"] == 1
     rec = json.loads((tmp_path / "t5" / "raw" / "seg" / "segb.jsonl").read_text())
     assert rec["metrics"]["primary"] == 1.0
+
+
+def test_load_failure_error_rows_not_crash(tmp_path, dummy_factories):
+    _, bf = dummy_factories
+
+    class Unloadable(DummyModel):
+        def load(self):
+            raise RuntimeError("missing required secrets: FAKE_KEY")
+
+    s = run_matrix(models=["broken", "m1"], benches=["b1"],
+                   model_factory=lambda k: Unloadable(k) if k == "broken" else DummyModel(k),
+                   bench_factory=bf, results_dir=tmp_path, run_id="t6", log=lambda *_: None)
+    assert s["infer"]["errors"] == 4          # broken model: all 4 cells error rows
+    assert s["score"]["scored"] == 4          # m1 still ran fully
+    board = (tmp_path / "t6" / "scoreboard.csv").read_text()
+    assert "broken" in board and "m1" in board
