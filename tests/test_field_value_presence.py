@@ -35,3 +35,18 @@ def test_surface_value_is_extractive():
 def test_long_freetext_gold_not_extractive():
     long = "x" * 100
     assert is_extractive_gold("Summarize the letter", [f"summary={long}"]) is False
+
+
+def test_placeholder_gold_not_extractive():
+    # anonymization/template tokens can't be reproduced by any OCR model -> excluded from B.1
+    assert is_extractive_gold("What is the study number?", ["study_no=«ID»"]) is False
+    assert is_extractive_gold("Approved on?", ["document_approved_on=«ApproveDate»"]) is False
+    assert is_extractive_gold("Name?", ["name=<full_name>"]) is False
+
+def test_mixed_placeholder_item_excluded():
+    # if any field is a placeholder, the item is not a reliable extraction target
+    assert is_extractive_gold("q", ["study_no=«ID»; site=Boston"]) is False
+
+def test_real_value_still_extractive_after_placeholder_guard():
+    assert is_extractive_gold("Amount paid?", ["amount=8500"]) is True
+    assert is_extractive_gold("Email?", ["lender_email=joe@x.com"]) is True

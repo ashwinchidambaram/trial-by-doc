@@ -140,13 +140,21 @@ def field_aware_exact_match(prediction: str, golds: list[str]) -> float:
 import re as _re
 
 _DERIVED_PAT = _re.compile(r"\b(how many|number of|count of|how much .*in total|total number)\b", _re.I)
+# Anonymization / template placeholders in the GOLD (e.g. RealDoc's «ID», «ApproveDate», <name>,
+# {{field}}) are NOT reliable extraction targets — no OCR model can reproduce a redaction token, so
+# they'd unfairly floor B.1 for every model. Items whose gold carries one are excluded from B.1.
+_PLACEHOLDER_PAT = _re.compile(r"«[^»]*»|‹[^›]*›|<[^>]{0,40}>|\{\{.*?\}\}")
 
 
 def _surface_token(v: str) -> bool:
-    """A value that could plausibly appear verbatim on a page: numeric, or a short string (<=64)."""
-    if _as_number(v) is not None:
+    """A value that could plausibly appear verbatim on a page: numeric, or a short string (<=64),
+    and NOT an anonymization/template placeholder token."""
+    t = str(v).strip()
+    if _PLACEHOLDER_PAT.search(t):
+        return False
+    if _as_number(t) is not None:
         return True
-    return 0 < len(str(v).strip()) <= 64
+    return 0 < len(t) <= 64
 
 
 def is_extractive_gold(question: str, golds: list[str]) -> bool:

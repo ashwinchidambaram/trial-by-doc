@@ -26,3 +26,5 @@ FINAL WHOLE-BRANCH REVIEW (opus): Ready to merge = YES. No Critical/Important bl
   1 conscious sign-off: Tier B + Tier C in one score run now co-loads 3B+7B (intended; ~unmeasured VRAM — check on first combined run).
   4 Minors: all defer-safe (import placement; sample:Any + empty-answer display; unused secrets param/pytest import; thin fixtures + no GPU test for judge-independence).
 MERGE GATE (not code): hold until v1 inference completes (resume must not pick up changed evaluate code) + wire-in (Qwen2.5-3B revision hash, exact API ids/pricing).
+
+WIRE-IN (commit after 6250b37): default reader 3B->1.5B (3B is qwen-research/non-commercial; 1.5B Apache-2.0 SHA 989aa79); OpenAI id gpt-5-mini->gpt-5.4-mini ($0.75/$4.50). Haiku id unchanged. 36 pass. Branch now fully runnable (no VERIFY_AT_WIRE_IN left in reader path).
