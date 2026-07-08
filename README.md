@@ -68,6 +68,25 @@ models lands when they're scored. `gauntlet scoreboard --perf` regenerates this.
 | [RealDoc-Bench QA](https://huggingface.co/datasets/Extend-AI/RealDoc-Bench) | B | official | **Field extraction** from business docs (finance, medical, mortgage, supply-chain): markdown → frozen extractor → exact-match/ANLS | The closest proxy for "extract data from PDFs without mistakes" — the production task itself |
 | [merged_forms](benchmarks/custom/merged_forms/VALIDATION.md) | C | **custom** | **Document segmentation**: streams of 3–4 concatenated NIST SD2 tax submissions — same form faces, different filled data; boundaries only detectable by content | The hard production case: splitting merged PDFs of look-alike forms. No public benchmark covers it (we verified) |
 
+#### How Tier B works — extraction (B.1) vs comprehension (B.2)
+
+Tier B is split so the signal you care about is isolated:
+
+- **B.1 — extraction fidelity (primary, deterministic).** For each field question we check
+  whether the *gold value* appears, unmangled, in the model's OCR markdown — with **no LLM in
+  the loop**. This is the "does it capture the values without messing them up?" signal. It is
+  scored only on the *extractive* subset (answers that are literally on the page); the
+  `coverage` column shows how many items that is. Reproducible; needs no API key.
+- **B.2 — comprehension (secondary).** A separate *reader* model answers the question from the
+  markdown, scored deterministically (field-aware exact-match + ANLS). **The reader is a swappable
+  instrument, never the model under test** — it defaults to a small local model (Qwen2.5-3B) and
+  can be set to Claude Haiku 4.5 or GPT-5 mini. Because a capable reader can paper over OCR slips,
+  **B.2 is confounded by the reader by design** — trust B.1 for extraction quality; read B.2 as a
+  directional "does this feed a downstream QA step" signal. Each B.2 number is stamped with which
+  reader produced it.
+
+Run `gauntlet scoreboard --tier-b` for the B.1/coverage/B.2 breakdown.
+
 Tier C publishes three **trivial-baseline floor rows** (every-page-boundary,
 no-boundary, pixel-diff) — a real model must beat all three; pixel-diff doubles as
 the seam-artifact canary for the synthesized data.
