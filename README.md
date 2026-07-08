@@ -79,8 +79,8 @@ Tier B is split so the signal you care about is isolated:
   `coverage` column shows how many items that is. Reproducible; needs no API key.
 - **B.2 — comprehension (secondary).** A separate *reader* model answers the question from the
   markdown, scored deterministically (field-aware exact-match + ANLS). **The reader is a swappable
-  instrument, never the model under test** — it defaults to a small local model (Qwen2.5-3B) and
-  can be set to Claude Haiku 4.5 or GPT-5 mini. Because a capable reader can paper over OCR slips,
+  instrument, never the model under test** — it defaults to a small local model (Qwen2.5-1.5B,
+  Apache-2.0) and can be set to Claude Haiku 4.5 or GPT-5.4-mini. Because a capable reader can paper over OCR slips,
   **B.2 is confounded by the reader by design** — trust B.1 for extraction quality; read B.2 as a
   directional "does this feed a downstream QA step" signal. Each B.2 number is stamped with which
   reader produced it.

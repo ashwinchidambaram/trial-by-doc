@@ -1,7 +1,7 @@
 """Pluggable Tier-B B.2 comprehension reader: markdown+question -> answer.
 
 Satisfies the Extractor Protocol (.identity + .answer). Backends: local vLLM small model
-(default Qwen2.5-3B — never the 7B, which stays the Tier C judge), Anthropic, OpenAI. API
+(default Qwen2.5-1.5B, Apache-2.0 — never the 7B, which stays the Tier C judge), Anthropic, OpenAI. API
 readers are text-only and fall back to the local default when their key is absent, so
 key-less clones still run. Deterministic where the backend allows (temperature=0)."""
 from __future__ import annotations
@@ -74,7 +74,7 @@ class OpenAIReader:
 def _build_local(cfg: dict) -> Any:
     from tbdoc.instruments.vllm_extractor import VLLMExtractor
     loc = (cfg or {}).get("default_local") or {}
-    repo = loc.get("repo", "Qwen/Qwen2.5-3B-Instruct")
+    repo = loc.get("repo", "Qwen/Qwen2.5-1.5B-Instruct")
     return VLLMExtractor(repo=repo, revision=loc.get("revision"))
 
 

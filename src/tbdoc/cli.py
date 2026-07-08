@@ -86,7 +86,7 @@ def run(models, benches, profile, max_samples, run_id, phase, rescore, no_llm_in
         hw = hw_fingerprint()
     except Exception:
         hw = None
-    # Tier-B B.2 reader — pluggable; may be a small LOCAL model (Qwen-3B) or an API reader.
+    # Tier-B B.2 reader — pluggable; may be a small LOCAL model (Qwen2.5-1.5B) or an API reader.
     extractor = None
     if "score" in phases and not no_llm_instruments:
         needs = [b for b in bench_keys
