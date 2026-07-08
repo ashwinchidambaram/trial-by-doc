@@ -100,8 +100,15 @@ class CheckpointStore:
                         pass
 
     # ---- aggregates ---------------------------------------------------------
+    def latest_cell_records(self, model: str, bench: str) -> list[dict]:
+        """Last record per sample wins (a --rescore APPENDS; the JSONL is append-only)."""
+        by_id: dict[str, dict] = {}
+        for r in self.cell_records(model, bench):
+            by_id[str(r.get("sample_id"))] = r
+        return list(by_id.values())
+
     def _cell_primary_mean(self, model: str, bench: str) -> float | None:
-        vals = [r["metrics"].get("primary") for r in self.cell_records(model, bench)
+        vals = [r["metrics"].get("primary") for r in self.latest_cell_records(model, bench)
                 if r.get("error") is None and isinstance(r.get("metrics"), dict)
                 and isinstance(r["metrics"].get("primary"), (int, float))]
         return round(sum(vals) / len(vals), 4) if vals else None

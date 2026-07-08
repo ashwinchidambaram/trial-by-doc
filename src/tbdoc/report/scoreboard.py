@@ -16,12 +16,15 @@ def _collect(run_dir: Path):
     cells: dict[tuple[str, str], list[float]] = defaultdict(list)
     cats: dict[tuple[str, str, str], list[float]] = defaultdict(list)
     models, benches = [], []
+    latest: dict[tuple[str, str, str], dict] = {}   # last record per sample wins (--rescore appends)
     for r in store.iter_records():
         m, b = r["model"], r["bench"]
         if m not in models:
             models.append(m)
         if b not in benches:
             benches.append(b)
+        latest[(m, b, str(r.get("sample_id")))] = r
+    for (m, b, _sid), r in latest.items():
         v = (r.get("metrics") or {}).get("primary")
         if isinstance(v, (int, float)) and r.get("error") is None:
             cells[(m, b)].append(v)

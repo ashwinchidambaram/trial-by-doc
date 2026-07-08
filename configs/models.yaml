@@ -148,18 +148,6 @@ models:
     commercial_use: true
     specialties: "frontier VLM baseline (vision chat -> markdown)"
 
-# Frozen measuring instruments (never vary per model; pin-assert in code).
-instruments:
-  extractor:
-    chosen: Qwen/Qwen2.5-7B-Instruct
-    revision: a09a35458c70
-    license: apache-2.0
-    sampling: { temperature: 0, seed: 0, repetition_penalty: 1.05, max_answer_tokens: 64 }
-    max_model_len: 32768
-  boundary_judge:            # Tier C (M3) — model+prompt pinned when wired
-    chosen: null
-    prompt_version: null
-
   # ---- Tier-C trivial baselines (scoreboard floor; no GPU/API/LLM) ----------
   baseline_every_page:
     kind: baseline
@@ -173,3 +161,16 @@ instruments:
     kind: baseline
     adapter: "tbdoc.models.local.baselines:PixelDiff"
     specialties: "floor + seam-artifact canary: visual page-delta threshold"
+
+# Frozen measuring instruments (never vary per model; pin-assert in code).
+instruments:
+  extractor:
+    chosen: Qwen/Qwen2.5-7B-Instruct
+    revision: a09a35458c70
+    license: apache-2.0
+    sampling: { temperature: 0, seed: 0, repetition_penalty: 1.05, max_answer_tokens: 64 }
+    max_model_len: 32768
+  boundary_judge:            # Tier C (M3) — model+prompt pinned when wired
+    chosen: null
+    prompt_version: null
+

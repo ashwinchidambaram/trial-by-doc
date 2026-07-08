@@ -16,6 +16,21 @@ benchmarks:
       image: tbdoc-scorer-olmocr:v1   # falls back to isolated venv (render excluded)
 
 
+  omnidocbench:
+    adapter: "tbdoc.benches.official.omnidocbench:OmniDocBench"
+    tier: A
+    unit: page
+    provenance: official
+    source:
+      hf_repo: opendatalab/OmniDocBench
+      revision: d386947f              # "add v1.6" (2026-04-10); scorer code pinned in
+                                      # benchmarks/_scorers/omnidocbench/requirements.txt
+      license: unspecified            # VERIFIED 2026-07-07 — no license tag/field on the HF
+                                      # dataset card; the eval-code repo is Apache-2.0
+    scorer:
+      kind: venv                      # official end2end pipeline (quick_match, Edit_dist+TEDS);
+                                      # CDM excluded (needs TeX Live container) — flagged in output
+
   realdoc_qa:
     adapter: "tbdoc.benches.official.realdoc_qa:RealDocQA"
     tier: B
