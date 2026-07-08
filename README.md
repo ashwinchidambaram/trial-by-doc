@@ -38,9 +38,33 @@ the seam-artifact canary for the synthesized data.
 
 ### Example documents
 
-> 🚧 Gallery lands with the v1 run: 2–4 thumbnail pages per benchmark/category
-> (including the scanned-document cases) plus one page-image → parsed-markdown
-> side-by-side per tier, in `docs/examples/`.
+What the gauntlet actually feeds the models (thumbnails in [`docs/examples/`](docs/examples/);
+sources permit redistribution with attribution — OmniDocBench pages are
+[browsable upstream](https://huggingface.co/datasets/opendatalab/OmniDocBench) instead,
+its card carries no license tag):
+
+**olmOCR-Bench** — seven categories, including the scanned-document cases:
+
+| old scans | scanned math | tables | multi-column |
+|---|---|---|---|
+| ![old scan](docs/examples/olmocr_old_scans.jpg) | ![old scan math](docs/examples/olmocr_old_scans_math.jpg) | ![tables](docs/examples/olmocr_tables.jpg) | ![multi-column](docs/examples/olmocr_multi_column.jpg) |
+
+(also: `arxiv_math`, `headers_footers`, `long_tiny_text` in the same folder)
+
+**RealDoc-Bench QA** — the business documents Tier B extracts fields from:
+
+| finance | medical | mortgage | supply chain |
+|---|---|---|---|
+| ![finance](docs/examples/realdoc_finance.jpg) | ![medical](docs/examples/realdoc_medical_healthcare.jpg) | ![mortgage](docs/examples/realdoc_mortgage.jpg) | ![supply chain](docs/examples/realdoc_supply_chain.jpg) |
+
+**merged_forms (Tier C)** — four consecutive stream pages spanning a document
+boundary; note the form faces look alike and only the filled content changes:
+
+| page 6 | page 7 | **page 8 — new document starts** | page 9 |
+|---|---|---|---|
+| ![p6](docs/examples/mergedforms_p06.jpg) | ![p7](docs/examples/mergedforms_p07.jpg) | ![p8 boundary](docs/examples/mergedforms_p08_BOUNDARY.jpg) | ![p9](docs/examples/mergedforms_p09.jpg) |
+
+> A page-image → parsed-markdown side-by-side per tier lands with the v1 scores.
 
 ## Models
 
