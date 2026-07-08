@@ -14,8 +14,10 @@ profiles:
   # v1 baseline: 8 local + 2 cheap APIs (keys required) + Tier-C floor baselines.
   # Per-bench caps sized for one RTX 5090 (stratified loaders make each cap representative).
   full:
+    # v1 scored roster: 8 local models. API lanes (mistral_ocr, gemini_flash_lite)
+    # DEFERRED by owner 2026-07-07 (no keys yet) — add them back here when keys land.
     models: [olmocr2, qwen25vl, got2, dots_ocr, paddleocr_vl, deepseek_ocr,
-             granite_docling, lightonocr, mistral_ocr, gemini_flash_lite]
+             granite_docling, lightonocr]
     benchmarks:
       olmocr_bench: 100        # pages (stratified over 7 categories)
       omnidocbench: 100        # pages (stratified over 10 data sources)
