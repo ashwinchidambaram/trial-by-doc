@@ -15,9 +15,8 @@ identical for every model) and the scoreboard marks where they're used.
 
 ## Scores
 
-> 🚧 **v1 baseline run in progress.** This section is auto-generated from
-> `results/runs/<id>/` by `gauntlet scoreboard --format md` when the run completes.
-> Interim engineering-run numbers live in `findings/`.
+> These numbers come from the `v1-baseline` run and are reproducible from its per-sample
+> records; regenerate the table any time with `gauntlet scoreboard --run-id v1-baseline`.
 
 <!-- SCOREBOARD:BEGIN -->
 > ✅ **v1 baseline — all 9 local models scored across all four tiers** (deterministic

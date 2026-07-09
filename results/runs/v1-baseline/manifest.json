@@ -1,102 +1,39 @@
 {
   "run_id": "v1-baseline",
-  "created_at": "2026-07-08T07:39:25",
+  "created_at": "2026-07-09T01:52:45",
   "harness": {
-    "git_sha": "823a72bc78b434a6447ca6b514b0136f2eca97ba",
+    "git_sha": "1be65f9541a72106d4a67b61596928fab64c816c",
     "git_dirty": true,
     "python": "3.12.13",
     "argv": [
-      "/home/ashwinc/dev/projects/trial-by-doc/.venv/bin/gauntlet",
+      ".venv/bin/gauntlet",
       "run",
       "--profile",
       "full",
+      "--phase",
+      "score",
       "--run-id",
-      "v1-baseline"
+      "v1-baseline",
+      "-m",
+      "gemma4",
+      "-b",
+      "merged_forms"
     ]
   },
   "configs": {
     "benchmarks.yaml": "f435d46bfc2007a6",
     "matrix.yaml": "865520713f4ae57c",
-    "models.yaml": "e93a78b903325c42"
+    "models.yaml": "c9654d6018d4d683"
   },
   "models": {
-    "olmocr2": {
-      "key": "olmocr2",
-      "repo_id": "allenai/olmOCR-2-7B-1025",
-      "revision": "e52d6f090b7a9007afffbbd6ce510876222fea93",
-      "backend": "vllm"
-    },
-    "qwen25vl": {
-      "key": "qwen25vl",
-      "repo_id": "Qwen/Qwen2.5-VL-7B-Instruct",
-      "revision": "cc594898137f460bfe9f0759e9844b3ce807cfb5",
-      "backend": "vllm"
-    },
-    "got2": {
-      "key": "got2",
-      "repo_id": "stepfun-ai/GOT-OCR-2.0-hf",
-      "revision": "d3017ef2c2c1395888c8d635c5e0508bcb0ac78d",
-      "backend": "transformers"
-    },
-    "dots_ocr": {
-      "key": "dots_ocr",
-      "repo_id": "rednote-hilab/dots.ocr",
-      "revision": "c0111ce6bc07803dbc267932ffef0ae3a51dc951",
-      "backend": "vllm"
-    },
-    "paddleocr_vl": {
-      "key": "paddleocr_vl",
-      "repo_id": "PaddlePaddle/PaddleOCR-VL",
-      "revision": "baee27eebcbf26cdeab160116679d765f13a3f27",
-      "backend": "vllm"
-    },
-    "deepseek_ocr": {
-      "key": "deepseek_ocr",
-      "repo_id": "deepseek-ai/DeepSeek-OCR",
-      "revision": "9f30c71f441d010e5429c532364a86705536c53a",
-      "backend": "vllm"
-    },
-    "granite_docling": {
-      "key": "granite_docling",
-      "repo_id": "ibm-granite/granite-docling-258M",
-      "revision": "982fe3b40f2fa73c365bdb1bcacf6c81b7184bfe",
-      "backend": "transformers"
-    },
-    "lightonocr": {
-      "key": "lightonocr",
-      "repo_id": "lightonai/LightOnOCR-1B-1025",
-      "revision": "a8a4a065974c82d6c707ca13132bc19f857625fc",
+    "gemma4": {
+      "key": "gemma4",
+      "repo_id": "google/gemma-4-E4B-it",
+      "revision": "fee6332c1abaafb77f6f9624236c63aa2f1d0187",
       "backend": "vllm"
     }
   },
   "benchmarks": {
-    "olmocr_bench": {
-      "key": "olmocr_bench",
-      "tier": "A",
-      "unit": "page",
-      "provenance": "official",
-      "revision": "54a96a6f",
-      "license": "odc-by",
-      "scorer": "container"
-    },
-    "omnidocbench": {
-      "key": "omnidocbench",
-      "tier": "A",
-      "unit": "page",
-      "provenance": "official",
-      "revision": "d386947f",
-      "license": "unspecified",
-      "scorer": "venv"
-    },
-    "realdoc_qa": {
-      "key": "realdoc_qa",
-      "tier": "B",
-      "unit": "page",
-      "provenance": "official",
-      "revision": "906170ab",
-      "license": "cc-by-4.0",
-      "scorer": "native"
-    },
     "merged_forms": {
       "key": "merged_forms",
       "tier": "C",
@@ -124,10 +61,45 @@
       "chosen": "Qwen/Qwen2.5-7B-Instruct",
       "revision": "a09a35458c70",
       "prompt_version": "v1"
+    },
+    "reader": {
+      "default_local": {
+        "repo": "Qwen/Qwen2.5-1.5B-Instruct",
+        "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+        "license": "apache-2.0"
+      },
+      "backends": {
+        "haiku45": {
+          "backend": "anthropic",
+          "api_model_id": "claude-haiku-4-5-20251001",
+          "secrets": [
+            "ANTHROPIC_API_KEY"
+          ],
+          "pricing": {
+            "per_mtok_in_usd": 1.0,
+            "per_mtok_out_usd": 5.0,
+            "as_of": "2026-07-08",
+            "source": "https://platform.claude.com/docs/en/about-claude/pricing"
+          }
+        },
+        "gpt5mini": {
+          "backend": "openai",
+          "api_model_id": "gpt-5.4-mini",
+          "secrets": [
+            "OPENAI_API_KEY"
+          ],
+          "pricing": {
+            "per_mtok_in_usd": 0.75,
+            "per_mtok_out_usd": 4.5,
+            "as_of": "2026-07-08",
+            "source": "https://developers.openai.com/api/docs/pricing"
+          }
+        }
+      }
     }
   },
   "hardware": {
-    "captured_at": "2026-07-08T07:34:10",
+    "captured_at": "2026-07-09T01:52:33",
     "gpu": {
       "available": true,
       "name": "NVIDIA GeForce RTX 5090",

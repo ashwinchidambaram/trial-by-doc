@@ -1,63 +1,23 @@
 {
-  "updated_at": "2026-07-08T06:46:07",
+  "updated_at": "2026-07-09T01:53:43",
   "totals": {
-    "done": 600,
-    "total": 600,
+    "done": 15,
+    "total": 15,
     "pct": 100.0
   },
   "current": null,
   "cells": [
     {
-      "model": "olmocr2",
-      "bench": "olmocr_bench",
-      "done": 100,
-      "total": 100,
-      "primary_mean": 0.8362,
-      "state": "done"
-    },
-    {
-      "model": "olmocr2",
-      "bench": "omnidocbench",
-      "done": 100,
-      "total": 100,
-      "primary_mean": 0.8282,
-      "state": "done"
-    },
-    {
-      "model": "qwen25vl",
-      "bench": "olmocr_bench",
-      "done": 100,
-      "total": 100,
-      "primary_mean": 0.7015,
-      "state": "done"
-    },
-    {
-      "model": "qwen25vl",
-      "bench": "omnidocbench",
-      "done": 100,
-      "total": 100,
-      "primary_mean": 0.7358,
-      "state": "done"
-    },
-    {
-      "model": "got2",
-      "bench": "olmocr_bench",
-      "done": 100,
-      "total": 100,
-      "primary_mean": 0.3042,
-      "state": "done"
-    },
-    {
-      "model": "got2",
-      "bench": "omnidocbench",
-      "done": 100,
-      "total": 100,
-      "primary_mean": 0.6382,
+      "model": "gemma4",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.1566,
       "state": "done"
     }
   ],
   "hardware": {
-    "captured_at": "2026-07-08T06:09:35",
+    "captured_at": "2026-07-09T01:52:33",
     "gpu": {
       "available": true,
       "name": "NVIDIA GeForce RTX 5090",
