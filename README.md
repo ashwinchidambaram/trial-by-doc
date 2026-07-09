@@ -83,9 +83,10 @@ B.2 100 · segmentation 15 streams. **granite Tier-C is N/A** — its transforme
 dominated by the KV-cache pool (gpu_memory_utilization=0.9 on a 32 GB card), **not** the model's
 own weights. got2 and granite run on the transformers backend (no big KV pool), so their VRAM is
 the true model footprint; granite's mean/p90 blow-up is that backend not resizing oversized pages.
-**Pending:** batched-throughput numbers, per-page $/page for the scored API lane, and the
-Azure Foundry Managed-Compute self-host cost column (see **Gaps**). `gauntlet scoreboard --perf`
-regenerates this.
+Batched throughput (vLLM continuous batching, N=24) and the **Azure Foundry Managed-Compute
+self-host cost column** are in the [Models](#models) section — batching buys ~7–10× over these
+single-stream numbers. Still pending: per-page $/page for the scored API lane (**Gaps**).
+`gauntlet scoreboard --perf` regenerates the latency table.
 <!-- SCOREBOARD:END -->
 
 ## Benchmarks
@@ -175,9 +176,32 @@ you rely on them — licenses move).
 2026-07-08, `google/gemma-4-E4B-it` @ `fee6332`) — a departure from the custom *Gemma Terms of
 Use* that governed earlier Gemma releases. Confirm against the model card before you rely on it.
 
-**Self-host cost** (measured VRAM + $/page from measured throughput) is stamped per
-row in the results and summarized here after the v1 run. API rows carry the exact
-resolved model version + called-on date (remote models drift; we stamp it honestly).
+**Self-host cost — Azure AI Foundry Managed Compute** (per-GPU-VM-hour billing; the service
+that hosts arbitrary open-weights models, *not* Azure Document Intelligence). Per model we pick
+the smallest GPU SKU that fits its parameter footprint, then compute cost = SKU $/hr ÷ pages/hr.
+We publish **both** a single-stream figure (conservative) and a batched figure (vLLM continuous
+batching, measured N=24). Prices are on-demand, region-dependent, **verified 2026-07-08** via
+Vantage/CloudPrice: **T4-16GB ≈ $0.53/hr** (≤3B models), **A100-80GB ≈ $3.67/hr** (7–8B models).
+
+| Model | SKU | $/1k pages (single-stream) | $/1k pages (batched) |
+|---|---|---|---|
+| paddleocr_vl | T4-16GB | $0.52 | $0.13 |
+| lightonocr | T4-16GB | $0.63 | $0.18 |
+| got2 | T4-16GB | $0.78 | — (transformers backend) |
+| granite_docling | T4-16GB | $0.81 | — (transformers backend) |
+| dots_ocr | T4-16GB | $0.87 | $0.11 |
+| deepseek_ocr | T4-16GB | $0.97 | $0.11 |
+| qwen25vl | A100-80GB | $7.85 | $1.38 |
+| olmocr2 | A100-80GB | $8.67 | $1.19 |
+| gemma4 | A100-80GB | $10.60 | $1.08 |
+
+> ⚠️ **Read these as a same-hardware relative comparison, not an Azure invoice.** Throughput is
+> measured on our **RTX 5090**; a T4 or A100 runs slower, so real Azure $/page will be **higher** —
+> these are optimistic floors that correctly rank models by cost-efficiency and show the ~7–10×
+> gain from batching and the ~10× gap between T4-class (≤3B) and A100-class (7–8B) hosting.
+> got2/granite run the transformers backend (no vLLM continuous batching), so only single-stream is
+> given. Re-pin SKU prices + region before quoting. API rows carry the exact resolved model version
+> + called-on date (remote models drift; we stamp it honestly).
 
 ## What the harness actually is
 
@@ -248,10 +272,9 @@ rare token ties.
 
 Honest limitations, current as of the v1 baseline:
 
-- **Landing next (not yet in the table above)**: the two scored API lanes (Mistral OCR,
-  Gemini Flash-Lite); batched-throughput numbers and per-page $/page; and the Azure Foundry
-  Managed-Compute self-host cost column. The 9-model, 4-tier local scoreboard above is complete
-  and stable; these are additive.
+- **Landing next**: the two scored API lanes (Mistral OCR, Gemini Flash-Lite) and their
+  per-page $/page. The 9-model, 4-tier local scoreboard, latency table, and Azure self-host
+  cost column above are complete and stable; the API lanes are additive.
 - **DocVQA / DocBench not included**: DocVQA's visual-spatial questions measure the
   extractor, not the OCR (deferred with cause); DocBench requires an LLM judge —
   excluded by the no-judge rule.

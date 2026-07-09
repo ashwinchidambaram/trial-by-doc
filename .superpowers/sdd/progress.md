@@ -35,3 +35,8 @@ WIRE-IN (commit after 6250b37): default reader 3B->1.5B (3B is qwen-research/non
 - Tier B (realdoc_qa) B.1/B.2: all-8 rescored with 1.5B reader. B.1 (primary) olmocr2 0.689 leads; B.2 ANLS qwen25vl 0.555 leads. scored=800 errors=0.
 - tier-b-split merged to main (39 tests pass). granite skip records written.
 - NEXT: Gemma-4 (E4B-it, Gemma4ForConditionalGeneration, vision, 4.5B eff — license needs precise verify) adapter #9 → throughput+Azure cost → README → owner verification.
+
+## Batched throughput + Azure Foundry cost (task #11, done)
+- Batched throughput measured (vLLM continuous batching, N=24, one process/model): deepseek 4947, dots 4753, paddleocr 3977, gemma4 3392, olmocr2 3074, lightonocr 2899, qwen25vl 2660 pages/hr. ~7-10x over single-stream. got2/granite (transformers backend) = single-stream only.
+- Azure Foundry Managed Compute cost column added: SKU by param footprint (T4-16GB $0.53/hr <=3B; A100-80GB $3.67/hr 7-8B); $/1k pages single-stream + batched. CAVEAT documented: throughput is RTX 5090's, so figures are same-hardware relative floors (Azure GPU slower -> real cost higher).
+- NOTE: batched script must run ONE model per process — in-process vLLM engine teardown leaks VRAM (RuntimeError on 2nd model).
