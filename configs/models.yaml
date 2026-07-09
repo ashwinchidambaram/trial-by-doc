@@ -106,6 +106,34 @@ models:
     commercial_use: true
     specialties: "multimodal (text+image+audio); OCR, doc/PDF parsing, handwriting, charts"
 
+  # florence2 (microsoft/Florence-2-base @ 5ca5edf5bd017b9919c05d08aebef5e4c7ac3bac, MIT, verified
+  # live 2026-07-09) is BLOCKED on this stack: its pre-transformers-v5 remote code hits a cascade of
+  # incompatibilities ending in a FATAL one inside the model's own generation loop —
+  # `TypeError: 'EncoderDecoderCache' object is not subscriptable` (legacy tuple-cache API vs v5's
+  # Cache object). See src/tbdoc/models/local/florence2.py docstring for the full 6-item cascade.
+  # Adapter code kept (unregistered) for provenance/revival; deliberately NO entry here so it can't
+  # enter a run. Revisit only if microsoft ports Florence-2 to native v5 transformers.
+
+  kosmos25:
+    kind: local
+    adapter: "tbdoc.models.local.kosmos25:Kosmos25Adapter"
+    repo_id: microsoft/kosmos-2.5
+    revision: ec3c8051b697166514a31d646cfa36d6ef4c93d7   # verified live 2026-07-09 (HF API)
+    backend: transformers
+    params: 1.3B
+    license: mit                                          # verified live 2026-07-09 (HF API tag: license:mit)
+    commercial_use: true
+    specialties: "dense document OCR -> markdown (<md> task); native transformers>=4.56, no trust_remote_code; card warns of hallucination risk"
+
+  # phi4mm (microsoft/Phi-4-multimodal-instruct @ 93f923e1a7727d1c4f446756212d9d3e8fcc5d81, MIT,
+  # verified live 2026-07-09) is BLOCKED on this stack's transformers 5.11: its pre-v5 remote code has
+  # TWO v5 incompatibilities. (1) config.json pins `_attn_implementation: flash_attention_2` which v5
+  # rejects — FIXED in the adapter (force sdpa in the config → Siglip vision tower uses eager). (2) the
+  # audio ConformerEncoder calls `int(out_length)` on a tensor in __init__ → `Tensor.item() cannot be
+  # called on meta tensors` under v5 meta-device init; built unconditionally even for image-only use;
+  # only workaround is monkeypatching remote code (won't ship). Adapter kept (unregistered) for revival;
+  # NO entry here so it can't enter a run. Revisit if MS ports Phi-4-mm to native v5. See phi4mm.py.
+
   # ---- APIs: v1-scored pair -------------------------------------------------
   mistral_ocr:
     kind: api
@@ -199,10 +227,11 @@ models:
     params: "n/a"
     license: apache-2.0
     commercial_use: true
-    device: cpu   # default cpu = guaranteed contender (verified 5/5 preds, 0 errors on
-                  # olmocr_bench Tier-A smoke). EasyOCR (CRAFT+CRNN) is slow on CPU for
-                  # dense pages; the perf harness overrides device to gpu for the
-                  # CPU-vs-GPU latency comparison (accuracy is device-invariant).
+    device: gpu   # accuracy-run device = gpu: EasyOCR (CRAFT+CRNN) is impractical on CPU
+                  # (~84 s/page, minutes on dense merged_forms pages) so the scored A4 run
+                  # would crawl on cpu. Accuracy is device-invariant, so gpu changes only
+                  # speed, not scores. The perf harness overrides device to measure BOTH
+                  # cpu and gpu latency for the CPU-vs-GPU cost table (findings/ws1).
     longest_side: 2600
     specialties: "modern classic OCR (JaidedAI EasyOCR, PyTorch CRAFT+CRNN); line-level boxes; device knob (cpu default, gpu via torch CUDA) for CPU-vs-GPU perf comparison"
 

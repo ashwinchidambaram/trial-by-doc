@@ -285,6 +285,15 @@ wheels = [
 ]
 
 [[package]]
+name = "backoff"
+version = "2.2.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/47/d7/5bbeb12c44d7c4f2fb5b56abce497eb5ed9f34d85701de869acedd602619/backoff-2.2.1.tar.gz", hash = "sha256:03f829f5bb1923180821643f8753b0502c3b682293992485b0eef2807afa5cba", size = 17001, upload-time = "2022-10-05T19:19:32.061Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/df/73/b6e24bd22e6720ca8ee9a85a0c4a2971af8497d8f3193fa05390cbd46e09/backoff-2.2.1-py3-none-any.whl", hash = "sha256:63579f9a0628e06278f7e47b7d7d5b6ce20dc65c5e96a6f3ca99a6adca0396e8", size = 15148, upload-time = "2022-10-05T19:19:30.546Z" },
+]
+
+[[package]]
 name = "blake3"
 version = "1.0.9"
 source = { registry = "https://pypi.org/simple" }
@@ -3283,6 +3292,28 @@ wheels = [
 ]
 
 [[package]]
+name = "peft"
+version = "0.19.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "accelerate" },
+    { name = "huggingface-hub" },
+    { name = "numpy", version = "2.3.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
+    { name = "packaging" },
+    { name = "psutil" },
+    { name = "pyyaml" },
+    { name = "safetensors" },
+    { name = "torch" },
+    { name = "tqdm" },
+    { name = "transformers" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/86/cf/037f1e3d5186496c05513a6754639e2dab3038a05f384284d49a9bd06a2d/peft-0.19.1.tar.gz", hash = "sha256:0d97542fe96dcdaa20d3b81c06f26f988618f416a73544ab23c3618ccb674a40", size = 763738, upload-time = "2026-04-16T15:46:45.105Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e8/b6/f54d676ed93cc2dd2234c3b172ea9c8c3d7d29361e66b1b23dec57a67465/peft-0.19.1-py3-none-any.whl", hash = "sha256:2113f72a81621b5913ef28f9022204c742df111890c5f49d812716a4a301e356", size = 680692, upload-time = "2026-04-16T15:46:42.886Z" },
+]
+
+[[package]]
 name = "pillow"
 version = "12.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -5080,16 +5111,19 @@ all = [
     { name = "accelerate" },
     { name = "anthropic" },
     { name = "azure-ai-documentintelligence" },
+    { name = "backoff" },
     { name = "boto3" },
     { name = "docling-core" },
     { name = "google-cloud-documentai" },
     { name = "google-genai" },
     { name = "mistralai" },
     { name = "openai" },
+    { name = "peft" },
     { name = "pypdfium2" },
     { name = "pytest" },
     { name = "pytest-timeout" },
     { name = "ruff" },
+    { name = "timm" },
     { name = "torch" },
     { name = "transformers" },
     { name = "vllm" },
@@ -5110,8 +5144,11 @@ dev = [
 ]
 local = [
     { name = "accelerate" },
+    { name = "backoff" },
     { name = "docling-core" },
+    { name = "peft" },
     { name = "pypdfium2" },
+    { name = "timm" },
     { name = "torch" },
     { name = "transformers" },
     { name = "vllm" },
@@ -5122,6 +5159,7 @@ requires-dist = [
     { name = "accelerate", marker = "extra == 'local'" },
     { name = "anthropic", marker = "extra == 'api'" },
     { name = "azure-ai-documentintelligence", marker = "extra == 'api'" },
+    { name = "backoff", marker = "extra == 'local'", specifier = ">=2.2.1" },
     { name = "boto3", marker = "extra == 'api'" },
     { name = "click", specifier = ">=8.1" },
     { name = "docling-core", marker = "extra == 'local'" },
@@ -5131,6 +5169,7 @@ requires-dist = [
     { name = "huggingface-hub", specifier = ">=0.30" },
     { name = "mistralai", marker = "extra == 'api'" },
     { name = "openai", marker = "extra == 'api'" },
+    { name = "peft", marker = "extra == 'local'", specifier = ">=0.19.1" },
     { name = "pillow", specifier = ">=10" },
     { name = "pymupdf", specifier = ">=1.24" },
     { name = "pypdfium2", marker = "extra == 'local'" },
@@ -5143,6 +5182,7 @@ requires-dist = [
     { name = "rapidocr-onnxruntime", specifier = ">=1.4.4" },
     { name = "ruff", marker = "extra == 'dev'" },
     { name = "tbdoc", extras = ["local", "api", "dev"], marker = "extra == 'all'" },
+    { name = "timm", marker = "extra == 'local'", specifier = ">=1.0.27" },
     { name = "torch", marker = "extra == 'local'", specifier = ">=2.11" },
     { name = "transformers", marker = "extra == 'local'", specifier = ">=5.11,<5.12" },
     { name = "vllm", marker = "extra == 'local'", specifier = ">=0.22,<0.23" },
@@ -5241,6 +5281,22 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/90/db/4dd76da8c8585c605639a21bc098d504e317fe324a72f01ce3c7370250b4/tilelang-0.1.9-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:00ed594fdeb229c5505b9ffa895c3c5daeb28641c78f783fa1f724cf1e08cecd", size = 36599020, upload-time = "2026-04-22T09:14:39.366Z" },
     { url = "https://files.pythonhosted.org/packages/f7/8a/1cbeee79d62abaa02441c2d00621554e41aa62dbf3b94a4feb3867184b01/tilelang-0.1.9-cp38-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:4bbccfe9035aed775ffafb6dc25a5994504b24e2c5d95d0f39643edfafa7bf12", size = 45419374, upload-time = "2026-04-22T09:15:56.014Z" },
     { url = "https://files.pythonhosted.org/packages/c6/a7/f4bfb86f87e107703146e703204cec2c0eae2492b633e0052b0ace3febb6/tilelang-0.1.9-cp38-abi3-manylinux_2_34_aarch64.whl", hash = "sha256:77ab0ee2f40f66ea015b6b21426d482751e28cbc635ef9d1198cbd6502454a7c", size = 42110365, upload-time = "2026-04-22T09:17:18.292Z" },
+]
+
+[[package]]
+name = "timm"
+version = "1.0.27"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "huggingface-hub" },
+    { name = "pyyaml" },
+    { name = "safetensors" },
+    { name = "torch" },
+    { name = "torchvision" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/08/54/ece85b0eef3700c90db8271a43669b05a0ebbe2edb1962329c34374a297e/timm-1.0.27.tar.gz", hash = "sha256:315dfe63186ca9fb7ff941268941231fd5be259f2b4bb4afa28560ae1015cb9a", size = 2439861, upload-time = "2026-05-08T19:38:36.844Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1f/2e/26bab7686ff4aed48f8f5f6c23e2aa37b7a37ddd9effe3aa61e908fd518f/timm-1.0.27-py3-none-any.whl", hash = "sha256:5ff07c9ddf53cbada88eab1c93ff175c64cab683b5a2fddf863bcee985926f89", size = 2589280, upload-time = "2026-05-08T19:38:35.034Z" },
 ]
 
 [[package]]
