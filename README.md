@@ -20,43 +20,68 @@ identical for every model) and the scoreboard marks where they're used.
 > Interim engineering-run numbers live in `findings/`.
 
 <!-- SCOREBOARD:BEGIN -->
-> ⏳ **INTERIM — v1 run in progress** (3 of 8 models scored; Tier A only. Tier B/C
-> and the remaining 5 models land as the run completes.)
+> ✅ **v1 baseline — all 8 local models scored across all four tiers** (deterministic
+> scoring only; 0 scoring errors). Numbers below are aggregated from the `v1-baseline`
+> run's per-sample records in `results/runs/v1-baseline/raw/`. Gemma-4 (contender #9) and
+> the two scored API lanes (Mistral OCR, Gemini Flash-Lite) land next — see **Gaps**.
 
-**Tier A — parse fidelity** (higher is better; mean over stratified pages, n per cell):
+**How to read this:** every score is **higher-is-better, 0–1**, a mean over the valid
+samples in that cell (n noted below). Each tier measures a different production capability;
+no LLM-as-judge is used anywhere — the two LLM *instruments* (Tier-B reader, Tier-C boundary
+judge) are frozen, pinned, temp-0, and identical for every model, so differences reflect the
+**model under test**, not the instrument.
 
-| Model | olmOCR-Bench | OmniDocBench |
-|---|---|---|
-| olmocr2 | **0.836** (n=100) | **0.828** (n=96) |
-| qwen25vl | 0.702 (n=100) | 0.736 (n=96) |
-| got2 | 0.304 (n=100) | 0.638 (n=96) |
-| _dots_ocr, paddleocr_vl, deepseek_ocr, granite_docling, lightonocr_ | _inferring…_ | _inferring…_ |
+| Model | A · olmOCR-Bench | A · OmniDocBench | B.1 · extraction recall | B.2 · comprehension ANLS | C · segmentation |
+|---|---|---|---|---|---|
+| olmocr2 | **0.836** | 0.828 | **0.689** | 0.494 | 0.070 |
+| dots_ocr | 0.734 | **0.897** | 0.549 | 0.484 | 0.006 |
+| deepseek_ocr | 0.704 | 0.820 | 0.469 | 0.477 | 0.051 |
+| qwen25vl | 0.702 | 0.736 | 0.637 | **0.555** | 0.018 |
+| lightonocr | 0.675 | 0.726 | 0.658 | 0.522 | **0.142** |
+| paddleocr_vl | 0.345 | 0.660 | 0.542 | 0.496 | 0.063 |
+| got2 | 0.304 | 0.638 | 0.175 | 0.369 | 0.040 |
+| granite_docling | 0.179 | 0.103 | 0.035 | 0.210 | _N/A_ |
 
-olmocr_bench = official unit-test pass rate (uncapped render tests). OmniDocBench =
-1 − overall edit distance (CDM excluded); 4 pages/model have no scoreable elements
-(excluded, hence n=96). 0 scoring errors across 600 records.
+_n per cell: olmOCR-Bench 100 · OmniDocBench 96 (4 pages have no scoreable elements under the
+official pipeline, excluded uniformly for all models) · B.1 90 (the extractive-answer subset) ·
+B.2 100 · segmentation 15 streams. **granite Tier-C is N/A** — its transformers backend OOMs on a
+145-megapixel page; scoring only the streams it finished would flatter it, so we report N/A
+([why](findings/granite-mergedforms-tierC-NA.md))._
 
-**Early read**: olmocr2 leads every olmOCR-Bench category (except old_scans, tied)
-and every test type — the purpose-built OCR model is the parser to beat. qwen25vl
-matches it on tables (0.94) but trails on layout/reading-order and shows
-repetition-loop degeneration on a few dense historical pages. got2 (580M) handles
-plain text but emits **no table structure** (0/103 table unit tests) — a
-capability/format limit of the small specialist, not a scorer artifact. Ranking
-tracks the prior baseline; per-model detail in `findings/`.
+**What each column means**
+- **A · olmOCR-Bench** — official per-page unit-test pass rate (text/order/math/table). "Did you transcribe it correctly?"
+- **A · OmniDocBench** — 1 − overall edit distance (text+formula+table+reading-order; formula-CDM excluded, needs a TeX toolchain). Full-page parse fidelity.
+- **B.1 · extraction recall** — deterministic: does the *gold field value* appear, unmangled, in the model's markdown? **No LLM.** The production-critical "capture the value without corrupting it" signal.
+- **B.2 · comprehension ANLS** — a frozen small reader (Qwen2.5-1.5B) answers each field question from the markdown; scored by ANLS. Secondary, and confounded by the reader.
+- **C · segmentation** — boundary F1 on merged streams of look-alike NIST tax forms; boundaries composed from per-page OCR by the frozen 7B boundary judge.
 
-**Performance — time per page** (local models; median/mean/p90 seconds, from telemetry):
+**What the numbers say**
+- **olmocr2 is the parser to beat** — top olmOCR-Bench (0.836) and top extraction recall (0.689). If the job is "read the page and don't lose the field values," it leads.
+- **dots_ocr wins full-page fidelity** (OmniDocBench 0.897) — its layout+table strength shows on the edit-distance metric even though it trails olmocr2 on the unit-test bench.
+- **B.1 vs B.2 disagree, on purpose.** olmocr2 tops raw extraction (B.1) but **qwen25vl** tops comprehension (B.2) — a capable reader can "understand around" slightly worse OCR. Watch B.1 for extraction reliability, B.2 for QA usability.
+- **Segmentation is hard for everyone** (all ≤ 0.14). Splitting merged look-alike forms by content change barely works with page-OCR→judge composition; **lightonocr** leads but the absolute ceiling is low — a genuine open problem, not a scorer artifact.
+- **granite_docling trails across the board** here; it's a DocTags-specialist whose strengths aren't what these general parse/extract metrics reward.
+
+**Performance — time per page** (local models; from per-sample telemetry on olmOCR-Bench, n=100):
 
 | model | median s/page | mean s/page | p90 s/page | peak VRAM* |
 |---|---|---|---|---|
-| got2 (580M) | 3.4 | 4.1 | 9.1 | 3.5 GB |
-| dots_ocr (1.7B) | 6.5 | 17.2 | 78.4 | 31.1 GB |
-| qwen25vl (7B) | 10.8 | 14.2 | 41.3 | 28.8 GB |
-| olmocr2 (7B) | 13.7 | 15.8 | 41.0 | 28.8 GB |
+| paddleocr_vl (0.9B) | 3.5 | 4.9 | 9.0 | 30.0 GB |
+| lightonocr (1B) | 4.3 | 5.0 | 8.8 | 29.6 GB |
+| got2 (580M) | 5.3 | 6.1 | 12.5 | 3.6 GB |
+| granite_docling (258M) | 5.5 | 40.7 | 145.3 | 1.0 GB |
+| dots_ocr (1.7B) | 5.9 | 7.9 | 11.3 | 31.8 GB |
+| deepseek_ocr (3B) | 6.6 | 9.7 | 19.4 | 30.6 GB |
+| qwen25vl (7B) | 7.7 | 9.3 | 18.0 | 29.5 GB |
+| olmocr2 (7B) | 8.5 | 10.2 | 18.0 | 29.5 GB |
 
-\*peak VRAM = whole-GPU (nvidia-smi) during the vLLM serve, i.e. the KV-cache pool
-(gpu_memory_utilization=0.9 on a 32GB card), NOT the model's own footprint. dots_ocr's
-long p90 is dense layout-JSON pages hitting the 16k-token cap. Per-page $/page for API
-models lands when they're scored. `gauntlet scoreboard --perf` regenerates this.
+\*peak VRAM = whole-GPU (nvidia-smi) during the vLLM serve — for the vLLM models this is
+dominated by the KV-cache pool (gpu_memory_utilization=0.9 on a 32 GB card), **not** the model's
+own weights. got2 and granite run on the transformers backend (no big KV pool), so their VRAM is
+the true model footprint; granite's mean/p90 blow-up is that backend not resizing oversized pages.
+**Pending:** batched-throughput numbers, per-page $/page for the scored API lane, and the
+Azure Foundry Managed-Compute self-host cost column (see **Gaps**). `gauntlet scoreboard --perf`
+regenerates this.
 <!-- SCOREBOARD:END -->
 
 ## Benchmarks
@@ -214,6 +239,10 @@ rare token ties.
 
 Honest limitations, current as of the v1 baseline:
 
+- **Landing next (not yet in the table above)**: Gemma-4 (google/gemma-4-E4B-it) as
+  contender #9; batched-throughput numbers and per-page $/page; and the Azure Foundry
+  Managed-Compute self-host cost column. The 8-model, 4-tier scoreboard above is complete
+  and stable; these are additive.
 - **DocVQA / DocBench not included**: DocVQA's visual-spatial questions measure the
   extractor, not the OCR (deferred with cause); DocBench requires an LLM judge —
   excluded by the no-judge rule.
