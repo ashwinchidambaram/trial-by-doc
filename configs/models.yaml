@@ -173,6 +173,39 @@ models:
     # version + install method; docs/superpowers/specs/2026-07-09-roster-expansion-design.md
     # for the design.
 
+  rapidocr:
+    kind: cpu
+    adapter: "tbdoc.models.local.rapidocr:RapidOCRAdapter"
+    params: "n/a"
+    license: apache-2.0
+    commercial_use: true
+    device: cpu
+    longest_side: 2600
+    specialties: "modern classic OCR (ONNXRuntime, PP-OCR-derived detector+recognizer); CPU-only — onnxruntime-gpu has no prebuilt wheel for this box's cu130/sm_120 (Blackwell) stack (verified 2026-07-09)"
+
+  doctr:
+    kind: cpu
+    adapter: "tbdoc.models.local.doctr:DocTRAdapter"
+    params: "n/a"
+    license: apache-2.0
+    commercial_use: true
+    device: cpu
+    longest_side: 2600
+    specialties: "modern classic OCR (Mindee docTR, PyTorch two-stage det+reco); word-level boxes; device knob (cpu default, gpu via torch CUDA) for CPU-vs-GPU perf comparison"
+
+  easyocr:
+    kind: cpu
+    adapter: "tbdoc.models.local.easyocr_engine:EasyOCRAdapter"
+    params: "n/a"
+    license: apache-2.0
+    commercial_use: true
+    device: cpu   # default cpu = guaranteed contender (verified 5/5 preds, 0 errors on
+                  # olmocr_bench Tier-A smoke). EasyOCR (CRAFT+CRNN) is slow on CPU for
+                  # dense pages; the perf harness overrides device to gpu for the
+                  # CPU-vs-GPU latency comparison (accuracy is device-invariant).
+    longest_side: 2600
+    specialties: "modern classic OCR (JaidedAI EasyOCR, PyTorch CRAFT+CRNN); line-level boxes; device knob (cpu default, gpu via torch CUDA) for CPU-vs-GPU perf comparison"
+
   # ---- Tier-C trivial baselines (scoreboard floor; no GPU/API/LLM) ----------
   baseline_every_page:
     kind: baseline

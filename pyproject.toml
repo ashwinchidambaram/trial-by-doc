@@ -13,6 +13,9 @@ dependencies = [
     "python-dotenv>=1",
     "pymupdf>=1.24",
     "pytesseract>=0.3.13",
+    "rapidocr-onnxruntime>=1.4.4",
+    "python-doctr>=1.0.1",
+    "easyocr>=1.7.2",
 ]
 
 [project.optional-dependencies]
