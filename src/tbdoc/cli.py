@@ -263,6 +263,22 @@ def estimate_cost(models, benches, max_samples):
     click.echo(f"{'TOTAL':20s}        ${sum(est.values()):.4f}")
 
 
+@main.command("verify-env")
+@click.option("--strict", is_flag=True, help="also treat WARN as failure (nonzero exit)")
+def verify_env(strict):
+    """Fresh-clone preflight: GPU, version pins, CPU, scorers, datasets, secrets (presence-only)."""
+    from tbdoc.core.preflight import run_preflight
+    report = run_preflight()
+    for line in report.lines():
+        click.echo(line)
+    counts = report.counts()
+    click.echo(f"\n{counts['PASS']} PASS, {counts['WARN']} WARN, {counts['FAIL']} FAIL"
+               + (" (--strict: WARN counts as failure)" if strict else ""))
+    code = report.exit_code(strict=strict)
+    if code:
+        sys.exit(code)
+
+
 def _latest_run(run_id: str | None) -> Path:
     root = Path((_matrix_cfg().get("run") or {}).get("results_dir", "results/runs"))
     if run_id:
