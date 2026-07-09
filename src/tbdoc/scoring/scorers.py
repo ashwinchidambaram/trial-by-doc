@@ -131,3 +131,86 @@ def field_aware_exact_match(prediction: str, golds: list[str]) -> float:
         elif _values_match(prediction, g):  # gold (or prediction) not key=value -> whole-string compare
             return 1.0
     return 0.0
+
+
+# ---- B.1 extraction fidelity (deterministic; no LLM) -------------------------------------------
+# "Did the OCR reproduce the gold field VALUES on the page?" Reuses the field parsing + tolerant
+# value matching from field_aware_exact_match, but searches the markdown instead of an answer.
+
+import re as _re
+
+_DERIVED_PAT = _re.compile(r"\b(how many|number of|count of|how much .*in total|total number)\b", _re.I)
+# Anonymization / template placeholders in the GOLD (e.g. RealDoc's «ID», «ApproveDate», <name>,
+# {{field}}) are NOT reliable extraction targets — no OCR model can reproduce a redaction token, so
+# they'd unfairly floor B.1 for every model. Items whose gold carries one are excluded from B.1.
+_PLACEHOLDER_PAT = _re.compile(r"«[^»]*»|‹[^›]*›|<[^>]{0,40}>|\{\{.*?\}\}")
+
+
+def _surface_token(v: str) -> bool:
+    """A value that could plausibly appear verbatim on a page: numeric, or a short string (<=64),
+    and NOT an anonymization/template placeholder token."""
+    t = str(v).strip()
+    if _PLACEHOLDER_PAT.search(t):
+        return False
+    if _as_number(t) is not None:
+        return True
+    return 0 < len(t) <= 64
+
+
+def is_extractive_gold(question: str, golds: list[str]) -> bool:
+    """True if this item's answer is a surface token on the page (vs derived/reasoned)."""
+    if _DERIVED_PAT.search(question or ""):
+        return False
+    for g in golds:
+        fields = _parse_fields(g)
+        vals = list(fields.values()) if fields else [g]
+        if vals and all(_surface_token(v) for v in vals):
+            return True
+    return False
+
+
+def _value_in_markdown(value: str, markdown: str, anls_threshold: float) -> bool:
+    """Is `value` present in `markdown`? Numeric: any numeric token matches (tolerant).
+    Boolean (true/false): any markdown token canonicalizes to the same boolean (credits a
+    correctly-transcribed checkbox glyph like [X]/[ ]). String: canonical substring, else best
+    sliding-window ANLS >= threshold."""
+    md = markdown or ""
+    n = _as_number(value)
+    if n is not None:
+        for tok in _re.findall(r"-?\$?\d[\d,]*\.?\d*%?", md):
+            if _values_match(tok, value):
+                return True
+        return False
+    cv = _canon_value(value)
+    if cv in ("true", "false"):
+        # tokenize incl. checkbox glyphs, then canonicalize each token to its boolean (if any)
+        for tok in _re.findall(r"\[[ xX✓✔]\]|\([ xX]\)|☑|☐|[^\s]+", md):
+            if _canon_value(tok) == cv:
+                return True
+        return False
+    if not cv:
+        return True
+    md_norm = " ".join(md.lower().split())
+    if cv in md_norm:
+        return True
+    w = len(cv)
+    step = max(1, w // 2)
+    starts = set(range(0, max(1, len(md_norm) - w + 1), step))
+    starts.add(max(0, len(md_norm) - w))
+    for i in sorted(starts):
+        if anls(md_norm[i:i + w], [cv], threshold=anls_threshold) >= anls_threshold:
+            return True
+    return False
+
+
+def field_value_presence(markdown: str, golds: list[str], anls_threshold: float = 0.8) -> float:
+    """Fraction of gold field VALUES found in the markdown (best over the gold variants)."""
+    best = 0.0
+    for g in golds:
+        fields = _parse_fields(g)
+        vals = list(fields.values()) if fields else [g]
+        if not vals:
+            continue
+        hits = sum(1 for v in vals if _value_in_markdown(v, markdown, anls_threshold))
+        best = max(best, hits / len(vals))
+    return best

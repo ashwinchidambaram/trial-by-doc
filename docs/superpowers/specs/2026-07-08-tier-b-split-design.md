@@ -77,7 +77,13 @@ interface (`answer(markdown, question) -> str`), selected in config:
 |---|---|---|---|
 | API (Anthropic) | Claude Haiku 4.5 | `ANTHROPIC_API_KEY` | recommended default |
 | API (OpenAI) | GPT-5 mini | `OPENAI_API_KEY` | second reader (owner will provide key) |
-| Local (vLLM) | **any small instruction-tuned model** (default: Qwen2.5-3B-Instruct) | none | fallback when no key |
+| Local (vLLM) | **any small instruction-tuned model** (default: Qwen2.5-1.5B-Instruct, Apache-2.0) | none | fallback when no key |
+
+> **Wire-in correction (2026-07-08):** the default was moved from Qwen2.5-**3B** to **1.5B**. Live
+> HF check found the 3B is `qwen-research` (non-commercial) licensed, while 1.5B (SHA `989aa79…`) and
+> 0.5B are Apache-2.0. Since the harness targets a *production/commercial* decision, the key-less
+> default must be commercial-OK; the 3B is relegated to a labeled Plan-2 ladder rung. Also corrected
+> the OpenAI reader id `gpt-5-mini` → `gpt-5.4-mini` ($0.75/$4.50 per MTok, verified live).
 
 **B.2 uses only small local models — never the 7B** (owner decision 2026-07-08). The 7B is the
 "known-capable" reference; the interesting question is where comprehension breaks *below* it, so

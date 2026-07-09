@@ -65,6 +65,15 @@ Living document: what building this taught us, and what's worth doing next.
   positions our custom Tier C against a citable public benchmark.
 - **Multi-page Tier B** (all-pages-OCR → concat → extract) — would re-admit DocVQA
   multi-page and mirror real pipelines.
+- **Tier B full-page fidelity (old "B"):** already delivered by Tier A (olmocr_bench edit-distance
+  + omnidocbench TEDS against real gold markdown); not rebuilt on the RealDoc corpus (no gold
+  transcriptions there).
+- **Tier B structured KV extraction (`tierB_kie`, v2):** the most production-shaped lane — key→value
+  field extraction scored by field F1. Needs a KIE dataset (CORD CC BY 4.0 + our existing NIST
+  forms) and a structure-native scoring path (to avoid reintroducing an extractor LLM). Deferred
+  from v1.
+- **Multi-reader B.2 (Plan 2):** run Haiku + GPT-5 mini in one pass with reader-tagged columns, an
+  auto reader-sensitivity table, and the comprehension-floor ladder (Qwen2.5 0.5/1.5/3B + Gemma-4-E4B).
 
 ### Models
 - **API fleet scoring** when keys land: mistral_ocr + gemini_flash_lite are wired

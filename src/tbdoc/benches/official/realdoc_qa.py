@@ -71,16 +71,24 @@ class RealDocQA(BenchAdapter):
                              pages=[img], question=(f"{q}\n{fmt}" if fmt else q),
                              category=doc_domain[src], meta={"source_file": src})
 
-    def evaluate(self, sample: Sample, prediction: Any, extractor: Any | None = None) -> dict:
-        if extractor is None:
-            return {"primary": None, "error": "Tier B requires the frozen extractor "
-                    "(run without --no-llm-instruments)"}
-        answer = extractor.answer(prediction.markdown, sample.question or "")
+    def evaluate(self, sample: Any, prediction: Any, extractor: Any | None = None) -> dict:
+        from tbdoc.scoring.scorers import field_value_presence, is_extractive_gold
         golds = sample.gold or [""]
-        em = field_aware_exact_match(answer, golds)
-        a = anls(answer, golds)
-        return {"primary": em, "anls": a, "answer": answer[:200],
-                "extractor": getattr(extractor, "identity", "?")}
+        md = getattr(prediction, "markdown", "") or ""
+        extractive = is_extractive_gold(sample.question or "", golds)
+        b1 = field_value_presence(md, golds) if extractive else None
+        # B.2 comprehension — only when a reader instrument is supplied (secondary signal)
+        b2 = b2_anls = answer = reader_id = None
+        if extractor is not None:
+            answer = extractor.answer(md, sample.question or "")
+            b2 = field_aware_exact_match(answer, golds)
+            b2_anls = anls(answer, golds)
+            reader_id = getattr(extractor, "identity", "?")
+        return {"primary": b1,            # B.1 is the headline; None -> excluded from the mean
+                "b1": b1, "extractive": extractive,
+                "b2": b2, "b2_anls": b2_anls, "reader": reader_id,
+                "answer": (answer[:200] if answer else None),
+                "category": sample.category}
 
     def categories(self) -> list[str]:
         return ["finance", "medical_healthcare", "mortgage", "supply_chain"]

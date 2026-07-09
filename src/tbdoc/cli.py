@@ -42,7 +42,9 @@ def main():
 @click.option("--rescore", is_flag=True, help="re-score even already-scored samples")
 @click.option("--no-llm-instruments", is_flag=True,
               help="strictly LLM-free measurement path (Tier A + native segmenters only)")
-def run(models, benches, profile, max_samples, run_id, phase, rescore, no_llm_instruments):
+@click.option("--reader", default="local", show_default=True,
+              help="Tier-B B.2 comprehension reader: local | haiku45 | gpt5mini")
+def run(models, benches, profile, max_samples, run_id, phase, rescore, no_llm_instruments, reader):
     """Run the matrix (infer -> score), resumable."""
     from tbdoc.core.hardware import capture_hardware_metadata as hw_fingerprint
     from tbdoc.runner.matrix import run_matrix
@@ -84,26 +86,25 @@ def run(models, benches, profile, max_samples, run_id, phase, rescore, no_llm_in
         hw = hw_fingerprint()
     except Exception:
         hw = None
-    # Tier B needs the frozen extractor during the SCORE phase (own GPU pass, after
-    # OCR models have unloaded). Lazy: constructed only if a selected bench needs it.
+    # Tier-B B.2 reader — pluggable; may be a small LOCAL model (Qwen2.5-1.5B) or an API reader.
     extractor = None
     if "score" in phases and not no_llm_instruments:
         needs = [b for b in bench_keys
                  if (reg.benchmarks.get(b, {}).get("scorer") or {}).get("instrument") == "extractor"]
         if needs:
-            from tbdoc.instruments.vllm_extractor import VLLMExtractor
-            extractor = VLLMExtractor()
-            click.echo(f"[instruments] frozen extractor {extractor.identity} for: {', '.join(needs)}")
+            from tbdoc.instruments.reader import build_reader
+            extractor = build_reader(reader, (reg.instruments or {}).get("reader") or {})
+            click.echo(f"[instruments] B.2 reader {extractor.identity} for: {', '.join(needs)}")
     judge = None
+    judge_engine = None
     if not no_llm_instruments and any(
             reg.benchmarks.get(b, {}).get("tier") == "C" for b in bench_keys):
         from tbdoc.instruments.boundary_judge import BoundaryJudge
         from tbdoc.instruments.vllm_extractor import VLLMExtractor
-        if extractor is None:
-            extractor = VLLMExtractor()   # same pin; engine shared with the judge
+        judge_engine = VLLMExtractor()   # pinned 7B — the Tier C judge's own engine
         judge = BoundaryJudge((reg.instruments or {}).get("boundary_judge") or {},
-                              shared_extractor=extractor)
-        click.echo(f"[instruments] boundary_judge {judge.identity()} (engine shared w/ extractor)")
+                              shared_extractor=judge_engine)
+        click.echo(f"[instruments] boundary_judge {judge.identity()} (own pinned 7B engine)")
     try:
         summary = run_matrix(
             models=model_keys, benches=bench_keys,
@@ -115,8 +116,10 @@ def run(models, benches, profile, max_samples, run_id, phase, rescore, no_llm_in
     finally:
         if judge is not None:
             judge.unload()
-        if extractor is not None:
-            extractor.unload()
+        if judge_engine is not None:
+            judge_engine.unload()
+        if extractor is not None and hasattr(extractor, "unload"):
+            extractor.unload()   # API readers have no unload(); guard it
     click.echo(json.dumps(summary, indent=2))
 
 
@@ -140,9 +143,13 @@ def validate_adapter(model_key, pages):
 @click.option("--by", type=click.Choice(["bench", "tier", "category", "provenance"]), default="bench")
 @click.option("--readme-inject", is_flag=True, help="write the scores into README.md's scoreboard block")
 @click.option("--perf", is_flag=True, help="show per-page latency / VRAM / cost instead")
-def scoreboard(run_id, fmt, by, readme_inject, perf):
+@click.option("--tier-b", is_flag=True, help="show Tier-B scores (B.1 + coverage + B.2 + reader)")
+def scoreboard(run_id, fmt, by, readme_inject, perf, tier_b):
     """Print the scoreboard for a run."""
-    from tbdoc.report.scoreboard import inject_readme, render, render_perf
+    from tbdoc.report.scoreboard import inject_readme, render, render_perf, render_tier_b
+    if tier_b:
+        click.echo(render_tier_b(_latest_run(run_id)))
+        return
     if perf:
         click.echo(render_perf(_latest_run(run_id)))
         return

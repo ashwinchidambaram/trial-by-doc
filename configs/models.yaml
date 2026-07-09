@@ -174,4 +174,24 @@ instruments:
     chosen: Qwen/Qwen2.5-7B-Instruct
     revision: a09a35458c70
     prompt_version: v1
+  reader:                       # Tier-B B.2 comprehension (pluggable; B.1 needs none)
+    default_local:              # small model — NEVER the 7B (that's the Tier C judge)
+      # Qwen2.5-1.5B is Apache-2.0 (commercial-OK); the 3B is qwen-research (non-commercial),
+      # so 1.5B is the default a fresh clone runs. 3B stays a Plan-2 ladder rung only, labeled.
+      repo: Qwen/Qwen2.5-1.5B-Instruct
+      revision: 989aa7980e4cf806f80c7fef2b1adb7bc71aa306   # verified live 2026-07-08 (Apache-2.0)
+      license: apache-2.0
+    backends:
+      haiku45:
+        backend: anthropic
+        api_model_id: claude-haiku-4-5-20251001   # verified 2026-07-08 (in use by anthropic_vision)
+        secrets: [ANTHROPIC_API_KEY]
+        pricing: { per_mtok_in_usd: 1.0, per_mtok_out_usd: 5.0, as_of: "2026-07-08",
+                   source: "https://platform.claude.com/docs/en/about-claude/pricing" }
+      gpt5mini:
+        backend: openai
+        api_model_id: gpt-5.4-mini                 # verified live 2026-07-08 (was gpt-5-mini; renamed)
+        secrets: [OPENAI_API_KEY]
+        pricing: { per_mtok_in_usd: 0.75, per_mtok_out_usd: 4.50, as_of: "2026-07-08",
+                   source: "https://developers.openai.com/api/docs/pricing" }
 
