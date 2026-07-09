@@ -227,12 +227,25 @@ _EST_IN_TOK, _EST_OUT_TOK = 2000, 1000
 def _estimate(reg: Registry, model_keys: list[str], bench_keys: list[str],
               max_samples: int | None) -> dict[str, float]:
     """{model_key: estimated_usd} for API models (0.0 for local)."""
+    # Local models cost nothing, so a local-only run needs no page count at all.
+    # Counting via `ba.load()` enumerates (and, for some benches, decodes) EVERY
+    # sample — e.g. all 1651 omnidocbench pages — which made local runs appear to
+    # hang at startup for minutes. Skip it entirely unless an API model is present.
+    if not any((reg.models.get(m) or {}).get("kind") == "api" for m in model_keys):
+        return {m: 0.0 for m in model_keys}
     n_pages = 0
     for b in bench_keys:
         ba = reg.bench(b)
-        n = sum(1 for _ in ba.load())
         cap = max_samples.get(b) if isinstance(max_samples, dict) else max_samples
-        n_pages += min(n, cap) if cap else n
+        if cap:                       # only count up to the cap; don't walk the whole dataset
+            c = 0
+            for _ in ba.load():
+                c += 1
+                if c >= cap:
+                    break
+            n_pages += c
+        else:
+            n_pages += sum(1 for _ in ba.load())
     out: dict[str, float] = {}
     for m in model_keys:
         e = reg.models.get(m) or {}
