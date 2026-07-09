@@ -41,8 +41,10 @@ api = [
     "azure-ai-documentintelligence",
     "google-cloud-documentai",
 ]
-dev = ["pytest>=8", "pytest-timeout", "ruff"]
-all = ["tbdoc[local,api,dev]"]
+# Local read-only results dashboard (`gauntlet ui`, C3a) — no GPU/model deps.
+ui = ["fastapi>=0.110", "uvicorn>=0.30"]
+dev = ["pytest>=8", "pytest-timeout", "ruff", "httpx"]
+all = ["tbdoc[local,api,dev,ui]"]
 
 [project.scripts]
 gauntlet = "tbdoc.cli:main"

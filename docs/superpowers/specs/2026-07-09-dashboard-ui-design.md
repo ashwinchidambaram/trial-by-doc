@@ -93,11 +93,18 @@ re-implementation of gold parsing or metric math.
   `gauntlet scoreboard`), joined with `Registry.benchmarks` for tier/provenance/license labels.
 - `GET /api/benchmarks` → one entry per registered bench: `{key, tier, unit, provenance, license,
   revision, sample_count, description, gallery_allowed}`. `sample_count` = count from
-  `BenchAdapter.load()` capped at a small preview limit for speed on the 1651-page benches (full count
-  reported separately as `total_hint` from `benchmarks.yaml`/known dataset size where cheap; otherwise
-  the capped count is labeled `~`). `gallery_allowed` = license is on a redistribution allowlist
-  (`odc-by`, `cc-by-4.0`, `cc0`, `mit`, `apache-2.0`, `public-domain`); anything `unspecified` or
-  absent is **not** allowed — matches the brief's "if unsure, don't expose the image, metadata only."
+  `BenchAdapter.load()` capped at a small preview limit (20, in-route) for speed on the 1651-page
+  benches; the capped count carries `sample_count_exact: false` so the frontend can show it as a `≥`
+  floor rather than a full dataset size. **Measured cost** (2026-07-09, this host): even at cap=20 this
+  route takes ~15-20s wall-clock, because it calls each bench's OWN `load()` — which, for
+  `olmocr_bench`/`realdoc_qa*`, PDF-renders every preview page via PyMuPDF, and for
+  `realdoc_qa_scanned_*` additionally runs the seeded degrade() pipeline per page — there is no
+  cheaper path that still "reuses the bench's own loader" per the brief's constraint. The frontend
+  shows a loading placeholder while this resolves; a future optimization (out of scope for C3a) would
+  be a one-time on-disk sample-count cache keyed by bench+config hash. `gallery_allowed` = license is
+  on a redistribution allowlist (`odc-by`, `cc-by-4.0`, `cc0`, `mit`, `apache-2.0`, `public-domain`);
+  anything `unspecified` or absent is **not** allowed — matches the brief's "if unsure, don't expose
+  the image, metadata only."
 - `GET /api/benchmarks/{bench}/gallery?n=6` → license-gated only: `403` with `{"reason": "license
   <value> not on the redistribution allowlist"}` if `gallery_allowed` is false; else up to `n`
   `{sample_id, category, thumbnail_url}` where `thumbnail_url` points at `/api/page-image`.

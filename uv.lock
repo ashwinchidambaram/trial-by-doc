@@ -5114,8 +5114,10 @@ all = [
     { name = "backoff" },
     { name = "boto3" },
     { name = "docling-core" },
+    { name = "fastapi" },
     { name = "google-cloud-documentai" },
     { name = "google-genai" },
+    { name = "httpx" },
     { name = "mistralai" },
     { name = "openai" },
     { name = "peft" },
@@ -5126,6 +5128,7 @@ all = [
     { name = "timm" },
     { name = "torch" },
     { name = "transformers" },
+    { name = "uvicorn" },
     { name = "vllm" },
 ]
 api = [
@@ -5138,6 +5141,7 @@ api = [
     { name = "openai" },
 ]
 dev = [
+    { name = "httpx" },
     { name = "pytest" },
     { name = "pytest-timeout" },
     { name = "ruff" },
@@ -5153,6 +5157,10 @@ local = [
     { name = "transformers" },
     { name = "vllm" },
 ]
+ui = [
+    { name = "fastapi" },
+    { name = "uvicorn" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -5164,8 +5172,10 @@ requires-dist = [
     { name = "click", specifier = ">=8.1" },
     { name = "docling-core", marker = "extra == 'local'" },
     { name = "easyocr", specifier = ">=1.7.2" },
+    { name = "fastapi", marker = "extra == 'ui'", specifier = ">=0.110" },
     { name = "google-cloud-documentai", marker = "extra == 'api'" },
     { name = "google-genai", marker = "extra == 'api'" },
+    { name = "httpx", marker = "extra == 'dev'" },
     { name = "huggingface-hub", specifier = ">=0.30" },
     { name = "mistralai", marker = "extra == 'api'" },
     { name = "openai", marker = "extra == 'api'" },
@@ -5181,13 +5191,14 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6" },
     { name = "rapidocr-onnxruntime", specifier = ">=1.4.4" },
     { name = "ruff", marker = "extra == 'dev'" },
-    { name = "tbdoc", extras = ["local", "api", "dev"], marker = "extra == 'all'" },
+    { name = "tbdoc", extras = ["local", "api", "dev", "ui"], marker = "extra == 'all'" },
     { name = "timm", marker = "extra == 'local'", specifier = ">=1.0.27" },
     { name = "torch", marker = "extra == 'local'", specifier = ">=2.11" },
     { name = "transformers", marker = "extra == 'local'", specifier = ">=5.11,<5.12" },
+    { name = "uvicorn", marker = "extra == 'ui'", specifier = ">=0.30" },
     { name = "vllm", marker = "extra == 'local'", specifier = ">=0.22,<0.23" },
 ]
-provides-extras = ["local", "api", "dev", "all"]
+provides-extras = ["local", "api", "ui", "dev", "all"]
 
 [[package]]
 name = "tenacity"

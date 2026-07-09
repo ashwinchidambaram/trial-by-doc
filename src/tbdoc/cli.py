@@ -278,6 +278,35 @@ def estimate_cost(models, benches, max_samples):
     click.echo(f"{'TOTAL':20s}        ${sum(est.values()):.4f}")
 
 
+@main.command()
+@click.option("--run-id", default=None, help="default: most-recently-modified scored run")
+@click.option("--host", default="127.0.0.1", show_default=True,
+              help="localhost only — this is a read-only local dev tool, never expose it")
+@click.option("--port", default=8000, show_default=True, type=int)
+@click.option("--no-browser", is_flag=True, help="don't auto-open a browser tab")
+def ui(run_id, host, port, no_browser):
+    """Launch the read-only results dashboard (C3a): leaderboard, bench explorer, per-example review."""
+    if host not in ("127.0.0.1", "localhost", "::1"):
+        raise click.ClickException(
+            f"refusing to bind {host!r} — this is a read-only local dev tool (localhost only)")
+    import uvicorn
+
+    from tbdoc.ui.app import create_app
+    results_dir = (_matrix_cfg().get("run") or {}).get("results_dir", "results/runs")
+    app = create_app(results_dir=results_dir, config_dir=str(_registry().config_dir))
+    if run_id:
+        from pathlib import Path as _Path
+        if not (_Path(results_dir) / run_id / "raw").is_dir():
+            raise click.ClickException(f"no scored run '{run_id}' under {results_dir}")
+    url = f"http://{host}:{port}/" + (f"#/?run_id={run_id}" if run_id else "")
+    click.echo(f"gauntlet ui: {url}  (results_dir={results_dir}, Ctrl-C to stop)")
+    if not no_browser:
+        import threading
+        import webbrowser
+        threading.Timer(0.8, lambda: webbrowser.open(url)).start()
+    uvicorn.run(app, host=host, port=port, log_level="warning")
+
+
 @main.command("verify-env")
 @click.option("--strict", is_flag=True, help="also treat WARN as failure (nonzero exit)")
 def verify_env(strict):
