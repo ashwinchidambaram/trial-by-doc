@@ -1,36 +1,67 @@
 {
   "run_id": "v1-baseline",
-  "created_at": "2026-07-09T01:52:45",
+  "created_at": "2026-07-09T13:13:50",
   "harness": {
-    "git_sha": "1be65f9541a72106d4a67b61596928fab64c816c",
+    "git_sha": "a57ace26b1b66025c08548a31fff974b06fc794f",
     "git_dirty": true,
     "python": "3.12.13",
     "argv": [
-      ".venv/bin/gauntlet",
+      "/home/ashwinc/dev/projects/trial-by-doc/.venv/bin/gauntlet",
       "run",
       "--profile",
       "full",
-      "--phase",
-      "score",
-      "--run-id",
-      "v1-baseline",
       "-m",
-      "gemma4",
+      "tesseract,rapidocr,doctr,easyocr,kosmos25",
       "-b",
-      "merged_forms"
+      "merged_forms",
+      "--run-id",
+      "v1-baseline"
     ]
   },
   "configs": {
     "benchmarks.yaml": "f435d46bfc2007a6",
     "matrix.yaml": "865520713f4ae57c",
-    "models.yaml": "c9654d6018d4d683"
+    "models.yaml": "6a545f9d47e99327"
   },
   "models": {
-    "gemma4": {
-      "key": "gemma4",
-      "repo_id": "google/gemma-4-E4B-it",
-      "revision": "fee6332c1abaafb77f6f9624236c63aa2f1d0187",
-      "backend": "vllm"
+    "tesseract": {
+      "key": "tesseract",
+      "backend": "tesseract",
+      "engine": "tesseract",
+      "engine_version": "n/a",
+      "revision": "n/a"
+    },
+    "rapidocr": {
+      "key": "rapidocr",
+      "backend": "rapidocr",
+      "engine": "rapidocr-onnxruntime",
+      "engine_version": "n/a",
+      "revision": "n/a"
+    },
+    "doctr": {
+      "key": "doctr",
+      "backend": "doctr",
+      "engine": "doctr",
+      "engine_version": "n/a",
+      "det_arch": "fast_base",
+      "reco_arch": "crnn_vgg16_bn",
+      "device": "n/a",
+      "revision": "n/a"
+    },
+    "easyocr": {
+      "key": "easyocr",
+      "backend": "easyocr",
+      "engine": "easyocr",
+      "engine_version": "n/a",
+      "lang": "en",
+      "device": "n/a",
+      "revision": "n/a"
+    },
+    "kosmos25": {
+      "key": "kosmos25",
+      "repo_id": "microsoft/kosmos-2.5",
+      "revision": "ec3c8051b697166514a31d646cfa36d6ef4c93d7",
+      "backend": "transformers"
     }
   },
   "benchmarks": {
@@ -99,7 +130,7 @@
     }
   },
   "hardware": {
-    "captured_at": "2026-07-09T01:52:33",
+    "captured_at": "2026-07-09T13:13:38",
     "gpu": {
       "available": true,
       "name": "NVIDIA GeForce RTX 5090",

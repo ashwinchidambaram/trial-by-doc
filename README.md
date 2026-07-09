@@ -19,73 +19,76 @@ identical for every model) and the scoreboard marks where they're used.
 > records; regenerate the table any time with `gauntlet scoreboard --run-id v1-baseline`.
 
 <!-- SCOREBOARD:BEGIN -->
-> ✅ **v1 baseline — all 9 local models scored across all four tiers** (deterministic
-> scoring only; 0 scoring errors, 2694 scored samples). Numbers below are aggregated from the
-> `v1-baseline` run's per-sample records in `results/runs/v1-baseline/raw/` (cross-checked with
-> `gauntlet scoreboard --run-id v1-baseline`). The two scored API lanes (Mistral OCR, Gemini
-> Flash-Lite) land next — see **Gaps**.
-
-**How to read this:** every score is **higher-is-better, 0–1**, a mean over the valid
-samples in that cell (n noted below). Each tier measures a different production capability;
-no LLM-as-judge is used anywhere — the two LLM *instruments* (Tier-B reader, Tier-C boundary
-judge) are frozen, pinned, temp-0, and identical for every model, so differences reflect the
-**model under test**, not the instrument.
-
-| Model | A · olmOCR-Bench | A · OmniDocBench | B.1 · extraction recall | B.2 · comprehension ANLS | C · segmentation |
-|---|---|---|---|---|---|
-| olmocr2 | **0.836** | 0.828 | **0.689** | 0.494 | 0.070 |
-| dots_ocr | 0.734 | **0.897** | 0.549 | 0.484 | 0.006 |
-| deepseek_ocr | 0.704 | 0.820 | 0.469 | 0.477 | 0.051 |
-| qwen25vl | 0.702 | 0.736 | 0.637 | **0.555** | 0.018 |
-| lightonocr | 0.675 | 0.726 | 0.658 | 0.522 | 0.142 |
-| gemma4 | 0.414 | 0.706 | 0.564 | 0.380 | **0.157** |
-| paddleocr_vl | 0.345 | 0.660 | 0.542 | 0.496 | 0.063 |
-| got2 | 0.304 | 0.638 | 0.175 | 0.369 | 0.040 |
-| granite_docling | 0.179 | 0.103 | 0.035 | 0.210 | _N/A_ |
-
-_n per cell: olmOCR-Bench 100 · OmniDocBench 96 (4 pages have no scoreable elements under the
-official pipeline, excluded uniformly for all models) · B.1 90 (the extractive-answer subset) ·
-B.2 100 · segmentation 15 streams. **granite Tier-C is N/A** — its transformers backend OOMs on a
-145-megapixel page; scoring only the streams it finished would flatter it, so we report N/A
-([why](findings/granite-mergedforms-tierC-NA.md))._
-
-**What each column means**
-- **A · olmOCR-Bench** — official per-page unit-test pass rate (text/order/math/table). "Did you transcribe it correctly?"
-- **A · OmniDocBench** — 1 − overall edit distance (text+formula+table+reading-order; formula-CDM excluded, needs a TeX toolchain). Full-page parse fidelity.
-- **B.1 · extraction recall** — deterministic: does the *gold field value* appear, unmangled, in the model's markdown? **No LLM.** The production-critical "capture the value without corrupting it" signal.
-- **B.2 · comprehension ANLS** — a frozen small reader (Qwen2.5-1.5B) answers each field question from the markdown; scored by ANLS. Secondary, and confounded by the reader.
-- **C · segmentation** — boundary F1 on merged streams of look-alike NIST tax forms; boundaries composed from per-page OCR by the frozen 7B boundary judge.
-
-**What the numbers say**
-- **olmocr2 is the parser to beat** — top olmOCR-Bench (0.836) and top extraction recall (0.689). If the job is "read the page and don't lose the field values," it leads.
-- **dots_ocr wins full-page fidelity** (OmniDocBench 0.897) — its layout+table strength shows on the edit-distance metric even though it trails olmocr2 on the unit-test bench.
-- **B.1 vs B.2 disagree, on purpose.** olmocr2 tops raw extraction (B.1) but **qwen25vl** tops comprehension (B.2) — a capable reader can "understand around" slightly worse OCR. Watch B.1 for extraction reliability, B.2 for QA usability.
-- **Segmentation is hard for everyone** (all ≤ 0.16). Splitting merged look-alike forms by content change barely works with page-OCR→judge composition; **gemma4** edges ahead (0.157) with lightonocr close behind (0.142), but the absolute ceiling is low — a genuine open problem, not a scorer artifact.
-- **gemma4 (Google's general multimodal model) is a jack-of-all-trades** — mid-pack on raw parse fidelity (below the OCR specialists) but it **tops segmentation** and holds respectable extraction recall (0.564). A generalist that trades peak OCR accuracy for broad capability; also the slowest local model (see below).
-- **granite_docling trails across the board** here; it's a DocTags-specialist whose strengths aren't what these general parse/extract metrics reward.
-
-**Performance — time per page** (local models; from per-sample telemetry on olmOCR-Bench, n=100):
-
-| model | median s/page | mean s/page | p90 s/page | peak VRAM* |
+| model | realdoc_qa | omnidocbench | olmocr_bench | merged_forms |
 |---|---|---|---|---|
-| paddleocr_vl (0.9B) | 3.5 | 4.9 | 9.0 | 30.0 GB |
-| lightonocr (1B) | 4.3 | 5.0 | 8.8 | 29.6 GB |
-| got2 (580M) | 5.3 | 6.1 | 12.5 | 3.6 GB |
-| granite_docling (258M) | 5.5 | 40.7 | 145.3 | 1.0 GB |
-| dots_ocr (1.7B) | 5.9 | 7.9 | 11.3 | 31.8 GB |
-| deepseek_ocr (3B) | 6.6 | 9.7 | 19.4 | 30.6 GB |
-| qwen25vl (7B) | 7.7 | 9.3 | 18.0 | 29.5 GB |
-| olmocr2 (7B) | 8.5 | 10.2 | 18.0 | 29.5 GB |
-| gemma4 (8B) | 10.4 | 11.6 | 20.3 | 30.5 GB |
+| deepseek_ocr | 0.469 | 0.820 | 0.704 | 0.051 |
+| easyocr | 0.583 | 0.483 | 0.162 | 0.397 |
+| tesseract | 0.580 | 0.507 | 0.296 | 0.330 |
+| lightonocr | 0.658 | 0.726 | 0.675 | 0.142 |
+| paddleocr_vl | 0.542 | 0.660 | 0.345 | 0.063 |
+| rapidocr | 0.499 | 0.642 | 0.163 | 0.258 |
+| doctr | 0.682 | 0.511 | 0.185 | 0.336 |
+| qwen25vl | 0.637 | 0.736 | 0.701 | 0.018 |
+| granite_docling | 0.035 | 0.103 | 0.179 | — |
+| gemma4 | 0.564 | 0.706 | 0.414 | 0.157 |
+| olmocr2 | 0.689 | 0.828 | 0.836 | 0.070 |
+| dots_ocr | 0.549 | 0.897 | 0.734 | 0.006 |
+| got2 | 0.175 | 0.638 | 0.304 | 0.040 |
+| kosmos25 | 0.565 | 0.539 | 0.259 | 0.204 |
 
-\*peak VRAM = whole-GPU (nvidia-smi) during the vLLM serve — for the vLLM models this is
-dominated by the KV-cache pool (gpu_memory_utilization=0.9 on a 32 GB card), **not** the model's
-own weights. got2 and granite run on the transformers backend (no big KV pool), so their VRAM is
-the true model footprint; granite's mean/p90 blow-up is that backend not resizing oversized pages.
-Batched throughput (vLLM continuous batching, N=24) and the **Azure Foundry Managed-Compute
-self-host cost column** are in the [Models](#models) section — batching buys ~7–10× over these
-single-stream numbers. Still pending: per-page $/page for the scored API lane (**Gaps**).
-`gauntlet scoreboard --perf` regenerates the latency table.
+_4199 scored samples · run: v1-baseline_
+
+### Tier-B — extraction (B.1) vs comprehension (B.2)
+
+| model | B.1 extract | coverage | B.2 comp | reader |
+|---|---|---|---|---|
+| deepseek_ocr | 0.469 | 90/100 | 0.080 | Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306 |
+| easyocr | 0.583 | 90/100 | 0.090 | Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306 |
+| tesseract | 0.580 | 90/100 | 0.110 | Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306 |
+| lightonocr | 0.658 | 90/100 | 0.130 | Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306 |
+| paddleocr_vl | 0.542 | 90/100 | 0.090 | Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306 |
+| rapidocr | 0.499 | 90/100 | 0.060 | Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306 |
+| doctr | 0.682 | 90/100 | 0.100 | Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306 |
+| qwen25vl | 0.637 | 90/100 | 0.140 | Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306 |
+| granite_docling | 0.035 | 90/100 | 0.000 | Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306 |
+| gemma4 | 0.564 | 90/100 | 0.050 | Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306 |
+| olmocr2 | 0.689 | 90/100 | 0.130 | Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306 |
+| dots_ocr | 0.549 | 90/100 | 0.130 | Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306 |
+| got2 | 0.175 | 90/100 | 0.010 | Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306 |
+| kosmos25 | 0.565 | 90/100 | 0.070 | Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306 |
+
+### Performance — time per page, VRAM, $/page (per-sample telemetry)
+
+| model | median s/page | mean s/page | p90 s/page | peak VRAM | $/page |
+|---|---|---|---|---|---|
+| deepseek_ocr | 10.13 | 18.96 | 47.9 | 29.9 GB | — |
+| easyocr | 2.2 | 2.17 | 3.32 | 5.7 GB | — |
+| tesseract | 1.93 | 1.93 | 2.73 | — (API) | — |
+| lightonocr | 5.57 | 6.42 | 10.07 | 29.0 GB | — |
+| paddleocr_vl | 6.15 | 9.49 | 17.79 | 29.3 GB | — |
+| rapidocr | 2.21 | 2.19 | 2.73 | — (API) | — |
+| doctr | 1.82 | 1.72 | 2.61 | — (API) | — |
+| qwen25vl | 10.78 | 14.19 | 41.26 | 28.8 GB | — |
+| granite_docling | 5.14 | 36.01 | 96.78 | 1.0 GB | — |
+| gemma4 | 14.03 | 15.6 | 22.73 | 29.8 GB | — |
+| olmocr2 | 13.69 | 15.8 | 40.95 | 28.8 GB | — |
+| dots_ocr | 7.91 | 20.77 | 78.51 | 31.1 GB | — |
+| got2 | 3.39 | 4.14 | 9.09 | 3.5 GB | — |
+| kosmos25 | 4.71 | 4.95 | 8.92 | 6.8 GB | — |
+
+### Cost — classic OCR engines, CPU-VM vs GPU-VM
+
+| engine | device | SKU | pages/hr | $/1k pages |
+|---|---|---|---|---|
+| tesseract | CPU-VM | AWS EC2 c6i.xlarge (4 vCPU, 8 GiB, no GPU) | 3006 | $0.057 |
+| rapidocr | CPU-VM | AWS EC2 c6i.xlarge (4 vCPU, 8 GiB, no GPU) | 1214 | $0.140 |
+| doctr | CPU-VM | AWS EC2 c6i.xlarge (4 vCPU, 8 GiB, no GPU) | 983 | $0.173 |
+| doctr | GPU-VM | AWS EC2 g5.xlarge (1x NVIDIA A10G, 24 GiB) | 24328 | $0.041 |
+| easyocr | CPU-VM | AWS EC2 c6i.xlarge (4 vCPU, 8 GiB, no GPU) | 43 | $3.953 |
+| easyocr | GPU-VM | AWS EC2 g5.xlarge (1x NVIDIA A10G, 24 GiB) | 2300 | $0.437 |
+
+> ⚠️ **Read as a same-hardware relative comparison, not a cloud invoice** (same caveat as the Azure Foundry table above). Throughput is single-stream on our **RTX 5090** ([findings/ws1-cpu-engines.md](findings/ws1-cpu-engines.md)); a real cloud CPU-VM or GPU-VM is slower, so actual $/page will be **higher** — these are optimistic floors. Batched throughput would lower $/page further (not measured for classic engines). SKU prices verified **2026-07-09** via Vantage (on-demand, us-east-1, Linux): [AWS EC2 c6i.xlarge (4 vCPU, 8 GiB, no GPU)](https://instances.vantage.sh/aws/ec2/c6i.xlarge) $0.17/hr · [AWS EC2 g5.xlarge (1x NVIDIA A10G, 24 GiB)](https://instances.vantage.sh/aws/ec2/g5.xlarge) $1.006/hr. Re-pin SKU prices + region before quoting.
+
 <!-- SCOREBOARD:END -->
 
 ## Benchmarks

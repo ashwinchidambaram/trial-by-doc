@@ -1,10 +1,6 @@
-model,realdoc_qa,omnidocbench,olmocr_bench,merged_forms
-deepseek_ocr,0.469,0.820,0.704,0.051
-lightonocr,0.658,0.726,0.675,0.142
-paddleocr_vl,0.542,0.660,0.345,0.063
-qwen25vl,0.637,0.736,0.701,0.018
-granite_docling,0.035,0.103,0.179,—
-gemma4,0.564,0.706,0.414,0.157
-olmocr2,0.689,0.828,0.836,0.070
-dots_ocr,0.549,0.897,0.734,0.006
-got2,0.175,0.638,0.304,0.040
+model,merged_forms
+tesseract,0.3298
+rapidocr,0.2579
+doctr,0.3361
+easyocr,0.3967
+kosmos25,0.2039

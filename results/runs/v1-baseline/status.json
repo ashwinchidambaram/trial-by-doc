@@ -1,23 +1,55 @@
 {
-  "updated_at": "2026-07-09T01:53:43",
+  "updated_at": "2026-07-09T14:40:37",
   "totals": {
-    "done": 15,
-    "total": 15,
+    "done": 75,
+    "total": 75,
     "pct": 100.0
   },
   "current": null,
   "cells": [
     {
-      "model": "gemma4",
+      "model": "tesseract",
       "bench": "merged_forms",
       "done": 15,
       "total": 15,
-      "primary_mean": 0.1566,
+      "primary_mean": 0.3298,
+      "state": "done"
+    },
+    {
+      "model": "rapidocr",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.2579,
+      "state": "done"
+    },
+    {
+      "model": "doctr",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.3361,
+      "state": "done"
+    },
+    {
+      "model": "easyocr",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.3967,
+      "state": "done"
+    },
+    {
+      "model": "kosmos25",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.2039,
       "state": "done"
     }
   ],
   "hardware": {
-    "captured_at": "2026-07-09T01:52:33",
+    "captured_at": "2026-07-09T13:13:38",
     "gpu": {
       "available": true,
       "name": "NVIDIA GeForce RTX 5090",
