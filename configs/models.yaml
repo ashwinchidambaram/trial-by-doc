@@ -95,6 +95,17 @@ models:
     commercial_use: true
     specialties: "distilled OCR; #1 ANLS + math in prior baseline; image-only prompt"
 
+  gemma4:
+    kind: local
+    adapter: "tbdoc.models.local.gemma4:Gemma4Adapter"
+    repo_id: google/gemma-4-E4B-it
+    revision: fee6332c1abaafb77f6f9624236c63aa2f1d0187   # verified live 2026-07-08 (HF API)
+    backend: vllm
+    params: 4.5B-eff   # 4.5B effective (8B with embeddings)
+    license: apache-2.0                                   # verified live 2026-07-08 (card + API); note: departs from prior Gemma custom terms
+    commercial_use: true
+    specialties: "multimodal (text+image+audio); OCR, doc/PDF parsing, handwriting, charts"
+
   # ---- APIs: v1-scored pair -------------------------------------------------
   mistral_ocr:
     kind: api

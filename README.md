@@ -20,10 +20,11 @@ identical for every model) and the scoreboard marks where they're used.
 > Interim engineering-run numbers live in `findings/`.
 
 <!-- SCOREBOARD:BEGIN -->
-> ✅ **v1 baseline — all 8 local models scored across all four tiers** (deterministic
-> scoring only; 0 scoring errors). Numbers below are aggregated from the `v1-baseline`
-> run's per-sample records in `results/runs/v1-baseline/raw/`. Gemma-4 (contender #9) and
-> the two scored API lanes (Mistral OCR, Gemini Flash-Lite) land next — see **Gaps**.
+> ✅ **v1 baseline — all 9 local models scored across all four tiers** (deterministic
+> scoring only; 0 scoring errors, 2694 scored samples). Numbers below are aggregated from the
+> `v1-baseline` run's per-sample records in `results/runs/v1-baseline/raw/` (cross-checked with
+> `gauntlet scoreboard --run-id v1-baseline`). The two scored API lanes (Mistral OCR, Gemini
+> Flash-Lite) land next — see **Gaps**.
 
 **How to read this:** every score is **higher-is-better, 0–1**, a mean over the valid
 samples in that cell (n noted below). Each tier measures a different production capability;
@@ -37,7 +38,8 @@ judge) are frozen, pinned, temp-0, and identical for every model, so differences
 | dots_ocr | 0.734 | **0.897** | 0.549 | 0.484 | 0.006 |
 | deepseek_ocr | 0.704 | 0.820 | 0.469 | 0.477 | 0.051 |
 | qwen25vl | 0.702 | 0.736 | 0.637 | **0.555** | 0.018 |
-| lightonocr | 0.675 | 0.726 | 0.658 | 0.522 | **0.142** |
+| lightonocr | 0.675 | 0.726 | 0.658 | 0.522 | 0.142 |
+| gemma4 | 0.414 | 0.706 | 0.564 | 0.380 | **0.157** |
 | paddleocr_vl | 0.345 | 0.660 | 0.542 | 0.496 | 0.063 |
 | got2 | 0.304 | 0.638 | 0.175 | 0.369 | 0.040 |
 | granite_docling | 0.179 | 0.103 | 0.035 | 0.210 | _N/A_ |
@@ -59,7 +61,8 @@ B.2 100 · segmentation 15 streams. **granite Tier-C is N/A** — its transforme
 - **olmocr2 is the parser to beat** — top olmOCR-Bench (0.836) and top extraction recall (0.689). If the job is "read the page and don't lose the field values," it leads.
 - **dots_ocr wins full-page fidelity** (OmniDocBench 0.897) — its layout+table strength shows on the edit-distance metric even though it trails olmocr2 on the unit-test bench.
 - **B.1 vs B.2 disagree, on purpose.** olmocr2 tops raw extraction (B.1) but **qwen25vl** tops comprehension (B.2) — a capable reader can "understand around" slightly worse OCR. Watch B.1 for extraction reliability, B.2 for QA usability.
-- **Segmentation is hard for everyone** (all ≤ 0.14). Splitting merged look-alike forms by content change barely works with page-OCR→judge composition; **lightonocr** leads but the absolute ceiling is low — a genuine open problem, not a scorer artifact.
+- **Segmentation is hard for everyone** (all ≤ 0.16). Splitting merged look-alike forms by content change barely works with page-OCR→judge composition; **gemma4** edges ahead (0.157) with lightonocr close behind (0.142), but the absolute ceiling is low — a genuine open problem, not a scorer artifact.
+- **gemma4 (Google's general multimodal model) is a jack-of-all-trades** — mid-pack on raw parse fidelity (below the OCR specialists) but it **tops segmentation** and holds respectable extraction recall (0.564). A generalist that trades peak OCR accuracy for broad capability; also the slowest local model (see below).
 - **granite_docling trails across the board** here; it's a DocTags-specialist whose strengths aren't what these general parse/extract metrics reward.
 
 **Performance — time per page** (local models; from per-sample telemetry on olmOCR-Bench, n=100):
@@ -74,6 +77,7 @@ B.2 100 · segmentation 15 streams. **granite Tier-C is N/A** — its transforme
 | deepseek_ocr (3B) | 6.6 | 9.7 | 19.4 | 30.6 GB |
 | qwen25vl (7B) | 7.7 | 9.3 | 18.0 | 29.5 GB |
 | olmocr2 (7B) | 8.5 | 10.2 | 18.0 | 29.5 GB |
+| gemma4 (8B) | 10.4 | 11.6 | 20.3 | 30.5 GB |
 
 \*peak VRAM = whole-GPU (nvidia-smi) during the vLLM serve — for the vLLM models this is
 dominated by the KV-cache pool (gpu_memory_utilization=0.9 on a 32 GB card), **not** the model's
@@ -162,9 +166,14 @@ you rely on them — licenses move).
 | [DeepSeek-OCR](https://huggingface.co/deepseek-ai/DeepSeek-OCR) | 3B | vLLM (local) | MIT | ✅ | markdown + grounding boxes |
 | [granite-docling](https://huggingface.co/ibm-granite/granite-docling-258M) | 258M | transformers (local) | Apache-2.0 | ✅ | DocTags → markdown, tiny |
 | [LightOnOCR](https://huggingface.co/lightonai/LightOnOCR-1B-1025) | 1B | vLLM (local) | Apache-2.0 | ✅ | distilled OCR, math |
+| [Gemma-4-E4B-it](https://huggingface.co/google/gemma-4-E4B-it) | 4.5B-eff | vLLM (local) | Apache-2.0† | ✅ | general multimodal; OCR, doc/PDF parsing, handwriting, charts |
 | Mistral OCR | API | Mistral API | API terms | ✅ | purpose-built OCR API, native markdown ($0.004/page, verified 2026-07-07) |
 | Gemini Flash-Lite | API | Google API | API terms | ✅ | cheapest credible VLM baseline (~$0.0005/page est.) |
 | Claude / GPT vision | API | Anthropic / OpenAI | API terms | ✅ | adapters built; scored runs deferred |
+
+† Gemma-4 ships under **Apache-2.0** per its HF model card and API metadata (verified live
+2026-07-08, `google/gemma-4-E4B-it` @ `fee6332`) — a departure from the custom *Gemma Terms of
+Use* that governed earlier Gemma releases. Confirm against the model card before you rely on it.
 
 **Self-host cost** (measured VRAM + $/page from measured throughput) is stamped per
 row in the results and summarized here after the v1 run. API rows carry the exact
@@ -239,9 +248,9 @@ rare token ties.
 
 Honest limitations, current as of the v1 baseline:
 
-- **Landing next (not yet in the table above)**: Gemma-4 (google/gemma-4-E4B-it) as
-  contender #9; batched-throughput numbers and per-page $/page; and the Azure Foundry
-  Managed-Compute self-host cost column. The 8-model, 4-tier scoreboard above is complete
+- **Landing next (not yet in the table above)**: the two scored API lanes (Mistral OCR,
+  Gemini Flash-Lite); batched-throughput numbers and per-page $/page; and the Azure Foundry
+  Managed-Compute self-host cost column. The 9-model, 4-tier local scoreboard above is complete
   and stable; these are additive.
 - **DocVQA / DocBench not included**: DocVQA's visual-spatial questions measure the
   extractor, not the OCR (deferred with cause); DocBench requires an LLM judge —

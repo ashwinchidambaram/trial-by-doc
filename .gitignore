@@ -21,3 +21,4 @@ results/**/*.log
 *.safetensors
 benchmarks/custom/*/raw/
 benchmarks/**/*.zip
+results/*.out

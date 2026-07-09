@@ -28,3 +28,10 @@ FINAL WHOLE-BRANCH REVIEW (opus): Ready to merge = YES. No Critical/Important bl
 MERGE GATE (not code): hold until v1 inference completes (resume must not pick up changed evaluate code) + wire-in (Qwen2.5-3B revision hash, exact API ids/pricing).
 
 WIRE-IN (commit after 6250b37): default reader 3B->1.5B (3B is qwen-research/non-commercial; 1.5B Apache-2.0 SHA 989aa79); OpenAI id gpt-5-mini->gpt-5.4-mini ($0.75/$4.50). Haiku id unchanged. 36 pass. Branch now fully runnable (no VERIFY_AT_WIRE_IN left in reader path).
+
+## v1-baseline finalization (post-merge, 2026-07-08 continued)
+- Tier A (olmocr_bench, omnidocbench): 8/8 models scored. omnidocbench 96/100 valid (4 uniform official-scorer exclusions, cdm/no-matched-element — not a bug).
+- Tier C (merged_forms): FIXED — finalize used --no-llm-instruments which disabled boundary_judge → all-error rows. Re-scored 7 models WITH judge (Qwen2.5-7B pin), 15/15 valid each. granite N/A (skip records written 010-014). lightonocr 0.142 leads.
+- Tier B (realdoc_qa) B.1/B.2: all-8 rescored with 1.5B reader. B.1 (primary) olmocr2 0.689 leads; B.2 ANLS qwen25vl 0.555 leads. scored=800 errors=0.
+- tier-b-split merged to main (39 tests pass). granite skip records written.
+- NEXT: Gemma-4 (E4B-it, Gemma4ForConditionalGeneration, vision, 4.5B eff — license needs precise verify) adapter #9 → throughput+Azure cost → README → owner verification.
