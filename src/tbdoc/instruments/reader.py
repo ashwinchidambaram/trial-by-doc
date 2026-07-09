@@ -1,11 +1,15 @@
 """Pluggable Tier-B B.2 comprehension reader: markdown+question -> answer.
 
 Satisfies the Extractor Protocol (.identity + .answer). Backends: local vLLM small model
-(default Qwen2.5-1.5B, Apache-2.0 — never the 7B, which stays the Tier C judge), Anthropic, OpenAI. API
-readers are text-only and fall back to the local default when their key is absent, so
-key-less clones still run. Deterministic where the backend allows (temperature=0)."""
+(default Phi-4-mini-instruct, MIT — never the 7B, which stays the Tier C judge; Qwen2.5-1.5B
+retained as a named local ladder rung, see `local_variants`), Anthropic (direct), OpenAI
+(direct), OpenRouter (OpenAI-compatible gateway; one key serves both Anthropic- and
+OpenAI-family models). API readers are text-only and fall back to the local default when their
+key is absent, so key-less clones still run. Deterministic where the backend allows
+(temperature=0)."""
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from tbdoc.core.ratelimit import RetryableError
@@ -71,19 +75,56 @@ class OpenAIReader:
         return (r.choices[0].message.content or "").strip()
 
 
-def _build_local(cfg: dict) -> Any:
+class OpenRouterReader:
+    """OpenAI-compatible client pointed at OpenRouter's gateway. One key
+    (`OPEN_ROUTER_API_KEY`) reaches both Anthropic- and OpenAI-family models — no batch API,
+    real-time only. Same prompts/sampling/retry contract as `OpenAIReader`."""
+
+    _BASE_URL = "https://openrouter.ai/api/v1"
+
+    def __init__(self, api_model_id: str, secrets: list[str] | None = None, pricing: dict | None = None):
+        self.api_model_id = api_model_id
+        self.identity = f"openrouter:{api_model_id}"
+        self._pricing = pricing or {}
+        self._client = None
+
+    def _c(self):
+        if self._client is None:
+            import openai
+            self._client = openai.OpenAI(base_url=self._BASE_URL, api_key=os.environ["OPEN_ROUTER_API_KEY"])
+        return self._client
+
+    def answer(self, markdown: str, question: str) -> str:
+        import openai
+        try:
+            r = self._c().chat.completions.create(
+                model=self.api_model_id, temperature=0, max_tokens=64,
+                messages=[{"role": "system", "content": _SYSTEM},
+                          {"role": "user", "content": _user(markdown, question)}])
+        except (openai.RateLimitError, openai.APITimeoutError) as e:
+            raise RetryableError(str(e)) from e
+        return (r.choices[0].message.content or "").strip()
+
+
+def _build_local(cfg: dict, variant: dict | None = None) -> Any:
     from tbdoc.instruments.vllm_extractor import VLLMExtractor
-    loc = (cfg or {}).get("default_local") or {}
+    loc = variant if variant is not None else ((cfg or {}).get("default_local") or {})
     repo = loc.get("repo", "Qwen/Qwen2.5-1.5B-Instruct")
     return VLLMExtractor(repo=repo, revision=loc.get("revision"))
 
 
 def build_reader(name: str, cfg: dict) -> Any:
-    """Select a reader by name. 'local' -> the small default. An API backend name ->
-    the API reader if its key is present, else a graceful fallback to the local default."""
+    """Select a reader by name.
+    - 'local' / 'default' / None -> `default_local` (the key-less default rung).
+    - a name in `local_variants` -> that named local rung (e.g. 'local_qwen15').
+    - a name in `backends` -> the API reader if its key is present, else a graceful
+      fallback to the local default (key-less clones still run)."""
     from tbdoc.core.secrets import missing_secrets
     if name in ("local", "default", None):
         return _build_local(cfg)
+    variants = (cfg or {}).get("local_variants") or {}
+    if name in variants:
+        return _build_local(cfg, variants[name])
     b = ((cfg or {}).get("backends") or {}).get(name)
     if not b:
         return _build_local(cfg)
@@ -94,4 +135,6 @@ def build_reader(name: str, cfg: dict) -> Any:
         return AnthropicReader(b["api_model_id"], b.get("secrets"), b.get("pricing"))
     if kind == "openai":
         return OpenAIReader(b["api_model_id"], b.get("secrets"), b.get("pricing"))
+    if kind == "openrouter":
+        return OpenRouterReader(b["api_model_id"], b.get("secrets"), b.get("pricing"))
     return _build_local(cfg)

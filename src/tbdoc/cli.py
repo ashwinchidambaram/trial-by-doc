@@ -43,7 +43,8 @@ def main():
 @click.option("--no-llm-instruments", is_flag=True,
               help="strictly LLM-free measurement path (Tier A + native segmenters only)")
 @click.option("--reader", default="local", show_default=True,
-              help="Tier-B B.2 comprehension reader: local | haiku45 | gpt5mini")
+              help="Tier-B B.2 comprehension reader: local (Phi-4-mini) | local_qwen15 | "
+                   "haiku45 | gpt5mini")
 def run(models, benches, profile, max_samples, run_id, phase, rescore, no_llm_instruments, reader):
     """Run the matrix (infer -> score), resumable."""
     from tbdoc.core.hardware import capture_hardware_metadata as hw_fingerprint
@@ -86,7 +87,8 @@ def run(models, benches, profile, max_samples, run_id, phase, rescore, no_llm_in
         hw = hw_fingerprint()
     except Exception:
         hw = None
-    # Tier-B B.2 reader — pluggable; may be a small LOCAL model (Qwen2.5-1.5B) or an API reader.
+    # Tier-B B.2 reader — pluggable; may be a small LOCAL model (default Phi-4-mini, or the
+    # named 'local_qwen15' rung) or an API reader (direct or via OpenRouter).
     extractor = None
     if "score" in phases and not no_llm_instruments:
         needs = [b for b in bench_keys

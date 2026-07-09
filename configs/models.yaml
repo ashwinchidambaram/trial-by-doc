@@ -263,22 +263,35 @@ instruments:
     prompt_version: v1
   reader:                       # Tier-B B.2 comprehension (pluggable; B.1 needs none)
     default_local:              # small model — NEVER the 7B (that's the Tier C judge)
-      # Qwen2.5-1.5B is Apache-2.0 (commercial-OK); the 3B is qwen-research (non-commercial),
-      # so 1.5B is the default a fresh clone runs. 3B stays a Plan-2 ladder rung only, labeled.
-      repo: Qwen/Qwen2.5-1.5B-Instruct
-      revision: 989aa7980e4cf806f80c7fef2b1adb7bc71aa306   # verified live 2026-07-08 (Apache-2.0)
-      license: apache-2.0
+      # B.2 upgrade (2026-07-09): default moved from Qwen2.5-1.5B to Phi-4-mini-instruct —
+      # natively integrated in transformers 5.11+ (NOT trust_remote_code, so it doesn't hit the
+      # transformers-v5 remote-code breakage that blocked Florence-2/Phi-4-mm), text-only, 3.8B,
+      # vLLM-supported. MIT license. Verified live 2026-07-09 via the HF models API
+      # (https://huggingface.co/api/models/microsoft/Phi-4-mini-instruct).
+      repo: microsoft/Phi-4-mini-instruct
+      revision: cfbefacb99257ffa30c83adab238a50856ac3083   # verified live 2026-07-09 (MIT)
+      license: mit
+    local_variants:              # named local rungs, selectable via `--reader <name>`
+      local_qwen15:               # retained ladder rung — Qwen2.5-1.5B, Apache-2.0
+        repo: Qwen/Qwen2.5-1.5B-Instruct
+        revision: 989aa7980e4cf806f80c7fef2b1adb7bc71aa306   # verified live 2026-07-08 (Apache-2.0)
+        license: apache-2.0
     backends:
+      # 2026-07-09: haiku45/gpt5mini moved from direct provider keys to the OpenRouter gateway
+      # (one key, OPEN_ROUTER_API_KEY, reaches both families; only that key is provisioned in
+      # .env — direct ANTHROPIC_API_KEY/OPENAI_API_KEY are not set, so this is what makes the
+      # paid ladder runnable). Slugs + pricing verified live 2026-07-09 via an unauthenticated
+      # GET https://openrouter.ai/api/v1/models (no completion call made).
       haiku45:
-        backend: anthropic
-        api_model_id: claude-haiku-4-5-20251001   # verified 2026-07-08 (in use by anthropic_vision)
-        secrets: [ANTHROPIC_API_KEY]
-        pricing: { per_mtok_in_usd: 1.0, per_mtok_out_usd: 5.0, as_of: "2026-07-08",
-                   source: "https://platform.claude.com/docs/en/about-claude/pricing" }
+        backend: openrouter
+        api_model_id: anthropic/claude-haiku-4.5   # verified live 2026-07-09 against OpenRouter /models
+        secrets: [OPEN_ROUTER_API_KEY]
+        pricing: { per_mtok_in_usd: 1.0, per_mtok_out_usd: 5.0, as_of: "2026-07-09",
+                   source: "https://openrouter.ai/api/v1/models" }
       gpt5mini:
-        backend: openai
-        api_model_id: gpt-5.4-mini                 # verified live 2026-07-08 (was gpt-5-mini; renamed)
-        secrets: [OPENAI_API_KEY]
-        pricing: { per_mtok_in_usd: 0.75, per_mtok_out_usd: 4.50, as_of: "2026-07-08",
-                   source: "https://developers.openai.com/api/docs/pricing" }
+        backend: openrouter
+        api_model_id: openai/gpt-5.4-mini           # verified live 2026-07-09 against OpenRouter /models
+        secrets: [OPEN_ROUTER_API_KEY]
+        pricing: { per_mtok_in_usd: 0.75, per_mtok_out_usd: 4.50, as_of: "2026-07-09",
+                   source: "https://openrouter.ai/api/v1/models" }
 
