@@ -159,6 +159,20 @@ models:
     commercial_use: true
     specialties: "frontier VLM baseline (vision chat -> markdown)"
 
+  # ---- classic/CPU OCR engines (WS1; roster expansion Part A) ---------------
+  tesseract:
+    kind: cpu
+    adapter: "tbdoc.models.local.tesseract:TesseractAdapter"
+    tesseract_cmd: /home/ashwinc/micromamba/envs/tesseract-ocr/bin/tesseract
+    params: "n/a"
+    license: apache-2.0
+    commercial_use: true
+    specialties: "classic OCR engine; plain text; weak on tables/multi-column"
+    # binary installed via micromamba (conda-forge, no sudo — apt-get was unavailable
+    # without a password) 2026-07-09: tesseract 5.5.2. See findings/ for the verified
+    # version + install method; docs/superpowers/specs/2026-07-09-roster-expansion-design.md
+    # for the design.
+
   # ---- Tier-C trivial baselines (scoreboard floor; no GPU/API/LLM) ----------
   baseline_every_page:
     kind: baseline
