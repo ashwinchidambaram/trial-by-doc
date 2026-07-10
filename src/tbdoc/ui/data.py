@@ -12,6 +12,7 @@ from typing import Any
 
 from tbdoc.core.checkpoint import CheckpointStore
 from tbdoc.report.scoreboard import _collect as _collect_scoreboard
+from tbdoc.report.scoreboard import _is_derived_bench
 
 # License tags this dashboard will redistribute a thumbnail for. Anything else
 # (including "unspecified" / absent) is gated — metadata-only in the explorer gallery.
@@ -28,6 +29,10 @@ def scoreboard_payload(run_dir: Path, registry) -> dict[str, Any]:
     `gauntlet scoreboard` prints), so a UI reload always matches the CLI exactly.
     """
     models, benches, cells, cats = _collect_scoreboard(run_dir)
+    # scanned-degradation variants are a robustness study, not core leaderboard columns —
+    # they surface via the robustness endpoint / the cockpit's robust column, not here
+    # (mirrors report.scoreboard.render). Keeps the leaderboard the canonical tiers.
+    benches = [b for b in benches if not _is_derived_bench(b)]
     bmeta = registry.benchmarks if registry else {}
 
     def mean_n(vals: list[float]) -> dict[str, Any]:
@@ -56,7 +61,7 @@ def scoreboard_payload(run_dir: Path, registry) -> dict[str, Any]:
         "cells": cell_out,
         "categories": cat_out,
         "bench_meta": bench_meta,
-        "n_scored": sum(len(v) for v in cells.values()),
+        "n_scored": sum(len(v) for (m, b), v in cells.items() if b in set(benches)),
     }
 
 

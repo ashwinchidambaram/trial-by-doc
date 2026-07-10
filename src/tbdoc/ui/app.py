@@ -47,10 +47,22 @@ def create_app(results_dir: str | Path = "results/runs",
     registry = Registry(str(config_dir))
     app = FastAPI(title="trial-by-doc dashboard", docs_url="/api/docs")
 
+    @app.middleware("http")
+    async def _no_store_api(request, call_next):
+        # A results dashboard must never serve stale data after a re-run/re-score.
+        resp = await call_next(request)
+        if request.url.path.startswith("/api/"):
+            resp.headers["Cache-Control"] = "no-store"
+        return resp
+
     # ---- pages ---------------------------------------------------------------
     @app.get("/")
     def index():
         return FileResponse(_STATIC_DIR / "index.html")
+
+    @app.get("/favicon.ico")
+    def favicon():
+        return FileResponse(_STATIC_DIR / "ac-monogram-dark.svg", media_type="image/svg+xml")
 
     # ---- API ------------------------------------------------------------------
     @app.get("/api/runs")
