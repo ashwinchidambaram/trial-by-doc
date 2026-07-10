@@ -1,9 +1,11 @@
 # trial-by-doc ⚖️
 
-**An OCR / document-intelligence model gauntlet.** Wire in any model — local
-open-weights, commercial doc-AI APIs, or frontier VLMs — and run it through a
-three-tier benchmark gauntlet with **deterministic, automatic scoring**. Built to
-answer one question honestly: *which model should you trust to parse your documents?*
+**An OCR / document-intelligence model gauntlet.** Wire in any model — a classic
+CPU OCR engine, a local open-weights VLM, a commercial doc-AI API, or a frontier
+VLM — and run it through a three-tier benchmark gauntlet with **deterministic,
+automatic scoring**. Built to answer one question honestly: *which model should you
+trust to parse your documents?* The roster spans the full cost/quality spectrum, from
+a CPU engine that costs cents per thousand pages to a 7B VLM on an A100.
 
 - **Tier A — parse fidelity**: is the OCR output actually correct? (unit tests, edit distance, TEDS)
 - **Tier B — downstream extraction**: is it good enough to extract fields from? (exact match, ANLS)
@@ -111,11 +113,12 @@ Tier B is split so the signal you care about is isolated:
   `coverage` column shows how many items that is. Reproducible; needs no API key.
 - **B.2 — comprehension (secondary).** A separate *reader* model answers the question from the
   markdown, scored deterministically (field-aware exact-match + ANLS). **The reader is a swappable
-  instrument, never the model under test** — it defaults to a small local model (Qwen2.5-1.5B,
-  Apache-2.0) and can be set to Claude Haiku 4.5 or GPT-5.4-mini. Because a capable reader can paper over OCR slips,
-  **B.2 is confounded by the reader by design** — trust B.1 for extraction quality; read B.2 as a
-  directional "does this feed a downstream QA step" signal. Each B.2 number is stamped with which
-  reader produced it.
+  instrument, never the model under test** — it defaults to a small local model (**Phi-4-mini**,
+  `microsoft/Phi-4-mini-instruct`, MIT), with the older Qwen2.5-1.5B kept as a labeled ladder rung,
+  and can be swapped for Claude Haiku 4.5 or GPT-5.4-mini via OpenRouter. Because a capable reader can
+  paper over OCR slips, **B.2 is confounded by the reader by design** — trust B.1 for extraction
+  quality; read B.2 as a directional "does this feed a downstream QA step" signal. Each B.2 number is
+  stamped with which reader produced it — the `v1-baseline` column above was scored with Qwen2.5-1.5B.
 
 Run `gauntlet scoreboard --tier-b` for the B.1/coverage/B.2 breakdown.
 
@@ -170,6 +173,11 @@ you rely on them — licenses move).
 | [granite-docling](https://huggingface.co/ibm-granite/granite-docling-258M) | 258M | transformers (local) | Apache-2.0 | ✅ | DocTags → markdown, tiny |
 | [LightOnOCR](https://huggingface.co/lightonai/LightOnOCR-1B-1025) | 1B | vLLM (local) | Apache-2.0 | ✅ | distilled OCR, math |
 | [Gemma-4-E4B-it](https://huggingface.co/google/gemma-4-E4B-it) | 4.5B-eff | vLLM (local) | Apache-2.0† | ✅ | general multimodal; OCR, doc/PDF parsing, handwriting, charts |
+| [Kosmos-2.5](https://huggingface.co/microsoft/kosmos-2.5) | 1.3B | transformers (local) | MIT | ✅ | dense document OCR → markdown (`<md>` task) |
+| [Tesseract](https://github.com/tesseract-ocr/tesseract) | classic engine | pytesseract (CPU) | Apache-2.0 | ✅ | classic OCR; plain text; weak on tables/multi-column |
+| [docTR](https://github.com/mindee/doctr) | classic engine | PyTorch (CPU/GPU) | Apache-2.0 | ✅ | modern classic OCR (Mindee, det+reco); word-level boxes |
+| [RapidOCR](https://github.com/RapidAI/RapidOCR) | classic engine | ONNXRuntime (CPU) | Apache-2.0 | ✅ | modern classic OCR (PP-OCR-derived); CPU-only on this box |
+| [EasyOCR](https://github.com/JaidedAI/EasyOCR) | classic engine | PyTorch (CPU/GPU) | Apache-2.0 | ✅ | modern classic OCR (JaidedAI, CRAFT+CRNN); line-level boxes |
 | Mistral OCR | API | Mistral API | API terms | ✅ | purpose-built OCR API, native markdown ($0.004/page, verified 2026-07-07) |
 | Gemini Flash-Lite | API | Google API | API terms | ✅ | cheapest credible VLM baseline (~$0.0005/page est.) |
 | Claude / GPT vision | API | Anthropic / OpenAI | API terms | ✅ | adapters built; scored runs deferred |
@@ -275,17 +283,18 @@ rare token ties.
 Honest limitations, current as of the v1 baseline:
 
 - **Landing next**: the two scored API lanes (Mistral OCR, Gemini Flash-Lite) and their
-  per-page $/page. The 9-model, 4-tier local scoreboard, latency table, and Azure self-host
-  cost column above are complete and stable; the API lanes are additive.
+  per-page $/page. The 14-model, 4-tier local scoreboard, the Tier-B/latency/CPU-vs-GPU-cost
+  tables, and the Azure self-host cost column above are complete and stable; the API lanes are additive.
 - **DocVQA / DocBench not included**: DocVQA's visual-spatial questions measure the
   extractor, not the OCR (deferred with cause); DocBench requires an LLM judge —
   excluded by the no-judge rule.
 - **OmniDocBench CDM excluded** (formula render metric needs TeX Live in a container);
   we report the official edit-distance + TEDS set and flag `cdm_excluded` per row.
 - **RealDoc-Layout not wired** (box-emitting models only; optional lane).
-- **API fleet partially scored**: Mistral OCR + Gemini Flash-Lite in v1 (cheapest
-  worth testing, verified pricing); Textract/Azure/Google Doc AI/Claude/GPT adapters
-  ship validated but unscored. Azure DI's self-host container lane is designed, not wired.
+- **API fleet not yet scored**: adapters for Mistral OCR, Gemini Flash-Lite, and
+  Textract/Azure/Google Doc AI/Claude/GPT ship validated but unscored — no API rows are in
+  the v1-baseline scoreboard. Mistral OCR + Gemini Flash-Lite are the cheapest worth testing
+  (pricing verified) and land next. Azure DI's self-host container lane is designed, not wired.
 - **merged_forms is synthesized** (no public dataset covers the similar-forms case —
   verified against the PSS literature and HF). Mitigations: public-domain source
   data, seeded determinism, published floor rows, seam canary, VALIDATION.md. Its
