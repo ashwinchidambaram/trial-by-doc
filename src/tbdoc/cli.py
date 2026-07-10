@@ -43,7 +43,8 @@ def main():
 @click.option("--no-llm-instruments", is_flag=True,
               help="strictly LLM-free measurement path (Tier A + native segmenters only)")
 @click.option("--reader", default="local", show_default=True,
-              help="Tier-B B.2 comprehension reader: local | haiku45 | gpt5mini")
+              help="Tier-B B.2 comprehension reader: local (Phi-4-mini) | local_qwen15 | "
+                   "haiku45 | gpt5mini")
 def run(models, benches, profile, max_samples, run_id, phase, rescore, no_llm_instruments, reader):
     """Run the matrix (infer -> score), resumable."""
     from tbdoc.core.hardware import capture_hardware_metadata as hw_fingerprint
@@ -86,7 +87,8 @@ def run(models, benches, profile, max_samples, run_id, phase, rescore, no_llm_in
         hw = hw_fingerprint()
     except Exception:
         hw = None
-    # Tier-B B.2 reader — pluggable; may be a small LOCAL model (Qwen2.5-1.5B) or an API reader.
+    # Tier-B B.2 reader — pluggable; may be a small LOCAL model (default Phi-4-mini, or the
+    # named 'local_qwen15' rung) or an API reader (direct or via OpenRouter).
     extractor = None
     if "score" in phases and not no_llm_instruments:
         needs = [b for b in bench_keys
@@ -227,12 +229,25 @@ _EST_IN_TOK, _EST_OUT_TOK = 2000, 1000
 def _estimate(reg: Registry, model_keys: list[str], bench_keys: list[str],
               max_samples: int | None) -> dict[str, float]:
     """{model_key: estimated_usd} for API models (0.0 for local)."""
+    # Local models cost nothing, so a local-only run needs no page count at all.
+    # Counting via `ba.load()` enumerates (and, for some benches, decodes) EVERY
+    # sample — e.g. all 1651 omnidocbench pages — which made local runs appear to
+    # hang at startup for minutes. Skip it entirely unless an API model is present.
+    if not any((reg.models.get(m) or {}).get("kind") == "api" for m in model_keys):
+        return {m: 0.0 for m in model_keys}
     n_pages = 0
     for b in bench_keys:
         ba = reg.bench(b)
-        n = sum(1 for _ in ba.load())
         cap = max_samples.get(b) if isinstance(max_samples, dict) else max_samples
-        n_pages += min(n, cap) if cap else n
+        if cap:                       # only count up to the cap; don't walk the whole dataset
+            c = 0
+            for _ in ba.load():
+                c += 1
+                if c >= cap:
+                    break
+            n_pages += c
+        else:
+            n_pages += sum(1 for _ in ba.load())
     out: dict[str, float] = {}
     for m in model_keys:
         e = reg.models.get(m) or {}
@@ -261,6 +276,51 @@ def estimate_cost(models, benches, max_samples):
         kind = (reg.models.get(m) or {}).get("kind", "?")
         click.echo(f"{m:20s} {kind:6s} ${usd:.4f}")
     click.echo(f"{'TOTAL':20s}        ${sum(est.values()):.4f}")
+
+
+@main.command()
+@click.option("--run-id", default=None, help="default: most-recently-modified scored run")
+@click.option("--host", default="127.0.0.1", show_default=True,
+              help="localhost only — this is a read-only local dev tool, never expose it")
+@click.option("--port", default=8000, show_default=True, type=int)
+@click.option("--no-browser", is_flag=True, help="don't auto-open a browser tab")
+def ui(run_id, host, port, no_browser):
+    """Launch the read-only results dashboard (C3a): leaderboard, bench explorer, per-example review."""
+    if host not in ("127.0.0.1", "localhost", "::1"):
+        raise click.ClickException(
+            f"refusing to bind {host!r} — this is a read-only local dev tool (localhost only)")
+    import uvicorn
+
+    from tbdoc.ui.app import create_app
+    results_dir = (_matrix_cfg().get("run") or {}).get("results_dir", "results/runs")
+    app = create_app(results_dir=results_dir, config_dir=str(_registry().config_dir))
+    if run_id:
+        from pathlib import Path as _Path
+        if not (_Path(results_dir) / run_id / "raw").is_dir():
+            raise click.ClickException(f"no scored run '{run_id}' under {results_dir}")
+    url = f"http://{host}:{port}/" + (f"#/?run_id={run_id}" if run_id else "")
+    click.echo(f"gauntlet ui: {url}  (results_dir={results_dir}, Ctrl-C to stop)")
+    if not no_browser:
+        import threading
+        import webbrowser
+        threading.Timer(0.8, lambda: webbrowser.open(url)).start()
+    uvicorn.run(app, host=host, port=port, log_level="warning")
+
+
+@main.command("verify-env")
+@click.option("--strict", is_flag=True, help="also treat WARN as failure (nonzero exit)")
+def verify_env(strict):
+    """Fresh-clone preflight: GPU, version pins, CPU, scorers, datasets, secrets (presence-only)."""
+    from tbdoc.core.preflight import run_preflight
+    report = run_preflight()
+    for line in report.lines():
+        click.echo(line)
+    counts = report.counts()
+    click.echo(f"\n{counts['PASS']} PASS, {counts['WARN']} WARN, {counts['FAIL']} FAIL"
+               + (" (--strict: WARN counts as failure)" if strict else ""))
+    code = report.exit_code(strict=strict)
+    if code:
+        sys.exit(code)
 
 
 def _latest_run(run_id: str | None) -> Path:

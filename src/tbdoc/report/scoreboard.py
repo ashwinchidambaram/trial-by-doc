@@ -37,6 +37,14 @@ def _mean(vals: list[float]) -> str:
     return f"{sum(vals)/len(vals):.3f}" if vals else "—"
 
 
+def _is_derived_bench(b: str) -> bool:
+    """Scanned/degraded variants (e.g. ``realdoc_qa_scanned_heavy``) are a separate
+    robustness study, not core-tier leaderboard columns. Keep them out of the main
+    scoreboard by default — they live in the README's 'Scanned and faxed robustness'
+    section and findings/partd-scanned-robustness.md instead."""
+    return "_scanned_" in b
+
+
 def _perf(run_dir: Path):
     """Per-model performance from prediction telemetry: latency/page, peak VRAM, $/page.
 
@@ -47,6 +55,8 @@ def _perf(run_dir: Path):
     root = Path(run_dir) / "predictions"
     per: dict[str, dict[str, list]] = {}
     for f in root.rglob("*.jsonl"):
+        if _is_derived_bench(f.stem):   # scanned variants aren't part of the core perf characterization
+            continue
         model = f.parent.name
         d = per.setdefault(model, {"lat": [], "vram": [], "cost": []})
         for line in f.read_text().splitlines():
@@ -97,9 +107,12 @@ def render_perf(run_dir: Path, models: list[str] | None = None) -> str:
     return "\n".join(out)
 
 
-def render(run_dir: Path, *, fmt: str = "md", by: str = "bench", registry=None) -> str:
+def render(run_dir: Path, *, fmt: str = "md", by: str = "bench", registry=None,
+           include_derived: bool = False) -> str:
     models, benches, cells, cats = _collect(run_dir)
     bmeta = (registry.benchmarks if registry else {}) or {}
+    if not include_derived:
+        benches = [b for b in benches if not _is_derived_bench(b)]
 
     if by == "category":
         lines = []
@@ -126,7 +139,8 @@ def render(run_dir: Path, *, fmt: str = "md", by: str = "bench", registry=None) 
         return "\n".join(",".join(r) for r in [header, *rows])
     out = ["| " + " | ".join(header) + " |", "|---" * len(header) + "|"]
     out += ["| " + " | ".join(r) + " |" for r in rows]
-    n = sum(len(v) for v in cells.values())
+    shown = set(benches)
+    n = sum(len(v) for (m, b), v in cells.items() if b in shown)
     out.append(f"\n_{n} scored samples · run: {Path(run_dir).name}_")
     return "\n".join(out)
 
@@ -168,13 +182,88 @@ def render_tier_b(run_dir, models=None):
     return "\n".join(out)
 
 
+# --- CPU-vs-GPU cost table (classic OCR engines) -----------------------------------
+# Throughput source: findings/ws1-cpu-engines.md — single-stream, RTX 5090 (this box),
+# 10 pages @ dpi150. These are same-hardware *relative floors*, not cloud-measured
+# throughput (carried forward from that findings file's caveat).
+_CLASSIC_ENGINE_THROUGHPUT: dict[str, dict[str, float | None]] = {
+    # engine key (as used in the model registry): {"cpu_pages_hr", "gpu_pages_hr"}
+    "tesseract": {"cpu_pages_hr": 3006, "gpu_pages_hr": None},   # CPU-native, no GPU path
+    "rapidocr":  {"cpu_pages_hr": 1214, "gpu_pages_hr": None},   # no onnxruntime-gpu wheel for cu130/sm_120
+    "doctr":     {"cpu_pages_hr": 983,  "gpu_pages_hr": 24328},
+    "easyocr":   {"cpu_pages_hr": 43,   "gpu_pages_hr": 2300},
+}
+
+# SKU pricing — verified LIVE 2026-07-09 via Vantage (instances.vantage.sh, on-demand,
+# us-east-1, Linux); same live-pricing convention as the Azure Foundry table below.
+_CPU_VM_SKU = "AWS EC2 c6i.xlarge (4 vCPU, 8 GiB, no GPU)"
+_CPU_VM_USD_PER_HR = 0.17
+_CPU_VM_SOURCE = "https://instances.vantage.sh/aws/ec2/c6i.xlarge"
+
+_GPU_VM_SKU = "AWS EC2 g5.xlarge (1x NVIDIA A10G, 24 GiB)"
+_GPU_VM_USD_PER_HR = 1.006
+_GPU_VM_SOURCE = "https://instances.vantage.sh/aws/ec2/g5.xlarge"
+
+_PRICING_AS_OF = "2026-07-09"
+
+
+def render_cost(models: list[str] | None = None) -> str:
+    """CPU-VM vs GPU-VM $/page for the classic OCR engines (single-stream floors).
+
+    pages/hr comes from findings/ws1-cpu-engines.md; $/page = SKU $/hr ÷ pages/hr — the
+    same methodology as the README's Azure Foundry Managed-Compute cost table. Emits two
+    rows per engine (CPU-VM, GPU-VM) where a GPU path exists.
+    """
+    order = [m for m in (models or _CLASSIC_ENGINE_THROUGHPUT) if m in _CLASSIC_ENGINE_THROUGHPUT]
+    if not order:
+        order = list(_CLASSIC_ENGINE_THROUGHPUT)
+    out = ["| engine | device | SKU | pages/hr | $/1k pages |", "|---|---|---|---|---|"]
+    for eng in order:
+        t = _CLASSIC_ENGINE_THROUGHPUT[eng]
+        cpu_rate = t["cpu_pages_hr"]
+        out.append(f"| {eng} | CPU-VM | {_CPU_VM_SKU} | {cpu_rate} | "
+                    f"${_CPU_VM_USD_PER_HR / cpu_rate * 1000:.3f} |")
+        gpu_rate = t["gpu_pages_hr"]
+        if gpu_rate:
+            out.append(f"| {eng} | GPU-VM | {_GPU_VM_SKU} | {gpu_rate} | "
+                        f"${_GPU_VM_USD_PER_HR / gpu_rate * 1000:.3f} |")
+    out.append(
+        "\n> ⚠️ **Read as a same-hardware relative comparison, not a cloud invoice** (same "
+        "caveat as the Azure Foundry table below). Throughput is single-stream on our "
+        f"**RTX 5090** ([findings/ws1-cpu-engines.md](findings/ws1-cpu-engines.md)); a real "
+        "cloud CPU-VM or GPU-VM is slower, so actual $/page will be **higher** — these are "
+        "optimistic floors. Batched throughput would lower $/page further (not measured for "
+        f"classic engines). SKU prices verified **{_PRICING_AS_OF}** via Vantage (on-demand, "
+        f"us-east-1, Linux): [{_CPU_VM_SKU}]({_CPU_VM_SOURCE}) ${_CPU_VM_USD_PER_HR}/hr · "
+        f"[{_GPU_VM_SKU}]({_GPU_VM_SOURCE}) ${_GPU_VM_USD_PER_HR}/hr. Re-pin SKU prices + "
+        "region before quoting."
+    )
+    return "\n".join(out)
+
+
 README_BEGIN, README_END = "<!-- SCOREBOARD:BEGIN -->", "<!-- SCOREBOARD:END -->"
 
 
 def inject_readme(run_dir: Path, readme_path: Path, *, registry=None,
                   extra_md: str = "") -> None:
-    """Replace the README's scoreboard block with this run's rendered scores."""
-    md = render(run_dir, fmt="md", by="bench", registry=registry)
+    """Replace the README's scoreboard block with this run's rendered scores.
+
+    Assembles all four sub-tables — main scoreboard, Tier-B, perf, CPU-vs-GPU cost —
+    under clear subheadings, then appends any caller-supplied ``extra_md``.
+    """
+    main = render(run_dir, fmt="md", by="bench", registry=registry)
+    tier_b = render_tier_b(run_dir)
+    perf = render_perf(run_dir)
+    cost = render_cost()
+    md = "\n\n".join([
+        main,
+        "### Tier-B — extraction (B.1) vs comprehension (B.2)",
+        tier_b,
+        "### Performance — time per page, VRAM, $/page (per-sample telemetry)",
+        perf,
+        "### Cost — classic OCR engines, CPU-VM vs GPU-VM",
+        cost,
+    ])
     body = f"{README_BEGIN}\n{md}\n{extra_md}\n{README_END}"
     text = readme_path.read_text()
     import re

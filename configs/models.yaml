@@ -106,6 +106,34 @@ models:
     commercial_use: true
     specialties: "multimodal (text+image+audio); OCR, doc/PDF parsing, handwriting, charts"
 
+  # florence2 (microsoft/Florence-2-base @ 5ca5edf5bd017b9919c05d08aebef5e4c7ac3bac, MIT, verified
+  # live 2026-07-09) is BLOCKED on this stack: its pre-transformers-v5 remote code hits a cascade of
+  # incompatibilities ending in a FATAL one inside the model's own generation loop —
+  # `TypeError: 'EncoderDecoderCache' object is not subscriptable` (legacy tuple-cache API vs v5's
+  # Cache object). See src/tbdoc/models/local/florence2.py docstring for the full 6-item cascade.
+  # Adapter code kept (unregistered) for provenance/revival; deliberately NO entry here so it can't
+  # enter a run. Revisit only if microsoft ports Florence-2 to native v5 transformers.
+
+  kosmos25:
+    kind: local
+    adapter: "tbdoc.models.local.kosmos25:Kosmos25Adapter"
+    repo_id: microsoft/kosmos-2.5
+    revision: ec3c8051b697166514a31d646cfa36d6ef4c93d7   # verified live 2026-07-09 (HF API)
+    backend: transformers
+    params: 1.3B
+    license: mit                                          # verified live 2026-07-09 (HF API tag: license:mit)
+    commercial_use: true
+    specialties: "dense document OCR -> markdown (<md> task); native transformers>=4.56, no trust_remote_code; card warns of hallucination risk"
+
+  # phi4mm (microsoft/Phi-4-multimodal-instruct @ 93f923e1a7727d1c4f446756212d9d3e8fcc5d81, MIT,
+  # verified live 2026-07-09) is BLOCKED on this stack's transformers 5.11: its pre-v5 remote code has
+  # TWO v5 incompatibilities. (1) config.json pins `_attn_implementation: flash_attention_2` which v5
+  # rejects — FIXED in the adapter (force sdpa in the config → Siglip vision tower uses eager). (2) the
+  # audio ConformerEncoder calls `int(out_length)` on a tensor in __init__ → `Tensor.item() cannot be
+  # called on meta tensors` under v5 meta-device init; built unconditionally even for image-only use;
+  # only workaround is monkeypatching remote code (won't ship). Adapter kept (unregistered) for revival;
+  # NO entry here so it can't enter a run. Revisit if MS ports Phi-4-mm to native v5. See phi4mm.py.
+
   # ---- APIs: v1-scored pair -------------------------------------------------
   mistral_ocr:
     kind: api
@@ -159,6 +187,54 @@ models:
     commercial_use: true
     specialties: "frontier VLM baseline (vision chat -> markdown)"
 
+  # ---- classic/CPU OCR engines (WS1; roster expansion Part A) ---------------
+  tesseract:
+    kind: cpu
+    adapter: "tbdoc.models.local.tesseract:TesseractAdapter"
+    tesseract_cmd: /home/ashwinc/micromamba/envs/tesseract-ocr/bin/tesseract
+    params: "n/a"
+    license: apache-2.0
+    commercial_use: true
+    specialties: "classic OCR engine; plain text; weak on tables/multi-column"
+    # binary installed via micromamba (conda-forge, no sudo — apt-get was unavailable
+    # without a password) 2026-07-09: tesseract 5.5.2. See findings/ for the verified
+    # version + install method; docs/superpowers/specs/2026-07-09-roster-expansion-design.md
+    # for the design.
+
+  rapidocr:
+    kind: cpu
+    adapter: "tbdoc.models.local.rapidocr:RapidOCRAdapter"
+    params: "n/a"
+    license: apache-2.0
+    commercial_use: true
+    device: cpu
+    longest_side: 2600
+    specialties: "modern classic OCR (ONNXRuntime, PP-OCR-derived detector+recognizer); CPU-only — onnxruntime-gpu has no prebuilt wheel for this box's cu130/sm_120 (Blackwell) stack (verified 2026-07-09)"
+
+  doctr:
+    kind: cpu
+    adapter: "tbdoc.models.local.doctr:DocTRAdapter"
+    params: "n/a"
+    license: apache-2.0
+    commercial_use: true
+    device: cpu
+    longest_side: 2600
+    specialties: "modern classic OCR (Mindee docTR, PyTorch two-stage det+reco); word-level boxes; device knob (cpu default, gpu via torch CUDA) for CPU-vs-GPU perf comparison"
+
+  easyocr:
+    kind: cpu
+    adapter: "tbdoc.models.local.easyocr_engine:EasyOCRAdapter"
+    params: "n/a"
+    license: apache-2.0
+    commercial_use: true
+    device: gpu   # accuracy-run device = gpu: EasyOCR (CRAFT+CRNN) is impractical on CPU
+                  # (~84 s/page, minutes on dense merged_forms pages) so the scored A4 run
+                  # would crawl on cpu. Accuracy is device-invariant, so gpu changes only
+                  # speed, not scores. The perf harness overrides device to measure BOTH
+                  # cpu and gpu latency for the CPU-vs-GPU cost table (findings/ws1).
+    longest_side: 2600
+    specialties: "modern classic OCR (JaidedAI EasyOCR, PyTorch CRAFT+CRNN); line-level boxes; device knob (cpu default, gpu via torch CUDA) for CPU-vs-GPU perf comparison"
+
   # ---- Tier-C trivial baselines (scoreboard floor; no GPU/API/LLM) ----------
   baseline_every_page:
     kind: baseline
@@ -187,22 +263,35 @@ instruments:
     prompt_version: v1
   reader:                       # Tier-B B.2 comprehension (pluggable; B.1 needs none)
     default_local:              # small model — NEVER the 7B (that's the Tier C judge)
-      # Qwen2.5-1.5B is Apache-2.0 (commercial-OK); the 3B is qwen-research (non-commercial),
-      # so 1.5B is the default a fresh clone runs. 3B stays a Plan-2 ladder rung only, labeled.
-      repo: Qwen/Qwen2.5-1.5B-Instruct
-      revision: 989aa7980e4cf806f80c7fef2b1adb7bc71aa306   # verified live 2026-07-08 (Apache-2.0)
-      license: apache-2.0
+      # B.2 upgrade (2026-07-09): default moved from Qwen2.5-1.5B to Phi-4-mini-instruct —
+      # natively integrated in transformers 5.11+ (NOT trust_remote_code, so it doesn't hit the
+      # transformers-v5 remote-code breakage that blocked Florence-2/Phi-4-mm), text-only, 3.8B,
+      # vLLM-supported. MIT license. Verified live 2026-07-09 via the HF models API
+      # (https://huggingface.co/api/models/microsoft/Phi-4-mini-instruct).
+      repo: microsoft/Phi-4-mini-instruct
+      revision: cfbefacb99257ffa30c83adab238a50856ac3083   # verified live 2026-07-09 (MIT)
+      license: mit
+    local_variants:              # named local rungs, selectable via `--reader <name>`
+      local_qwen15:               # retained ladder rung — Qwen2.5-1.5B, Apache-2.0
+        repo: Qwen/Qwen2.5-1.5B-Instruct
+        revision: 989aa7980e4cf806f80c7fef2b1adb7bc71aa306   # verified live 2026-07-08 (Apache-2.0)
+        license: apache-2.0
     backends:
+      # 2026-07-09: haiku45/gpt5mini moved from direct provider keys to the OpenRouter gateway
+      # (one key, OPEN_ROUTER_API_KEY, reaches both families; only that key is provisioned in
+      # .env — direct ANTHROPIC_API_KEY/OPENAI_API_KEY are not set, so this is what makes the
+      # paid ladder runnable). Slugs + pricing verified live 2026-07-09 via an unauthenticated
+      # GET https://openrouter.ai/api/v1/models (no completion call made).
       haiku45:
-        backend: anthropic
-        api_model_id: claude-haiku-4-5-20251001   # verified 2026-07-08 (in use by anthropic_vision)
-        secrets: [ANTHROPIC_API_KEY]
-        pricing: { per_mtok_in_usd: 1.0, per_mtok_out_usd: 5.0, as_of: "2026-07-08",
-                   source: "https://platform.claude.com/docs/en/about-claude/pricing" }
+        backend: openrouter
+        api_model_id: anthropic/claude-haiku-4.5   # verified live 2026-07-09 against OpenRouter /models
+        secrets: [OPEN_ROUTER_API_KEY]
+        pricing: { per_mtok_in_usd: 1.0, per_mtok_out_usd: 5.0, as_of: "2026-07-09",
+                   source: "https://openrouter.ai/api/v1/models" }
       gpt5mini:
-        backend: openai
-        api_model_id: gpt-5.4-mini                 # verified live 2026-07-08 (was gpt-5-mini; renamed)
-        secrets: [OPENAI_API_KEY]
-        pricing: { per_mtok_in_usd: 0.75, per_mtok_out_usd: 4.50, as_of: "2026-07-08",
-                   source: "https://developers.openai.com/api/docs/pricing" }
+        backend: openrouter
+        api_model_id: openai/gpt-5.4-mini           # verified live 2026-07-09 against OpenRouter /models
+        secrets: [OPEN_ROUTER_API_KEY]
+        pricing: { per_mtok_in_usd: 0.75, per_mtok_out_usd: 4.50, as_of: "2026-07-09",
+                   source: "https://openrouter.ai/api/v1/models" }
 

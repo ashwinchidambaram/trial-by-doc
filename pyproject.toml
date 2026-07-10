@@ -12,6 +12,10 @@ dependencies = [
     "huggingface-hub>=0.30",
     "python-dotenv>=1",
     "pymupdf>=1.24",
+    "pytesseract>=0.3.13",
+    "rapidocr-onnxruntime>=1.4.4",
+    "python-doctr>=1.0.1",
+    "easyocr>=1.7.2",
 ]
 
 [project.optional-dependencies]
@@ -23,6 +27,9 @@ local = [
     "accelerate",
     "docling-core",
     "pypdfium2",
+    "peft>=0.19.1",  # Phi-4-multimodal-instruct's remote code loads its baked-in vision LoRA via peft
+    "backoff>=2.2.1",  # imported at module load by Phi-4-multimodal-instruct's speech_conformer_encoder remote code
+    "timm>=1.0.27",  # Florence-2-base's remote code (DaViT vision tower) imports timm.layers directly (Florence-2 currently BLOCKED on transformers 5.11, but kept for revival)
 ]
 # API-backed models — each provider SDK optional; adapters import lazily.
 api = [
@@ -34,8 +41,10 @@ api = [
     "azure-ai-documentintelligence",
     "google-cloud-documentai",
 ]
-dev = ["pytest>=8", "pytest-timeout", "ruff"]
-all = ["tbdoc[local,api,dev]"]
+# Local read-only results dashboard (`gauntlet ui`, C3a) — no GPU/model deps.
+ui = ["fastapi>=0.110", "uvicorn>=0.30"]
+dev = ["pytest>=8", "pytest-timeout", "ruff", "httpx"]
+all = ["tbdoc[local,api,dev,ui]"]
 
 [project.scripts]
 gauntlet = "tbdoc.cli:main"
