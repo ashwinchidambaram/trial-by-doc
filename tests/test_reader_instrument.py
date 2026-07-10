@@ -1,6 +1,4 @@
-import pytest
-from tbdoc.instruments.reader import build_reader, AnthropicReader, OpenAIReader, OpenRouterReader
-
+from tbdoc.instruments.reader import AnthropicReader, OpenAIReader, OpenRouterReader, build_reader
 
 READER_CFG = {
     "default_local": {"repo": "Qwen/Qwen2.5-1.5B-Instruct", "revision": "main"},

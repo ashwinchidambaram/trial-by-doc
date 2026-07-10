@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+
 from tbdoc.benches.official.realdoc_qa import RealDocQA
 from tbdoc.instruments.extractor import FunctionExtractor
 
