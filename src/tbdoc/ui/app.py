@@ -47,10 +47,25 @@ def create_app(results_dir: str | Path = "results/runs",
     registry = Registry(str(config_dir))
     app = FastAPI(title="trial-by-doc dashboard", docs_url="/api/docs")
 
+    @app.middleware("http")
+    async def _no_store_api(request, call_next):
+        # A results dashboard must never serve stale data after a re-run/re-score.
+        resp = await call_next(request)
+        if request.url.path.startswith("/api/"):
+            resp.headers["Cache-Control"] = "no-store"
+        return resp
+
     # ---- pages ---------------------------------------------------------------
     @app.get("/")
     def index():
-        return FileResponse(_STATIC_DIR / "index.html")
+        # The app shell carries all the inlined JS/CSS; never let a browser serve a stale shell
+        # after the dashboard is updated (the vendored assets below stay cacheable by filename).
+        return FileResponse(_STATIC_DIR / "index.html",
+                            headers={"Cache-Control": "no-store"})
+
+    @app.get("/favicon.ico")
+    def favicon():
+        return FileResponse(_STATIC_DIR / "ac-monogram-dark.svg", media_type="image/svg+xml")
 
     # ---- API ------------------------------------------------------------------
     @app.get("/api/runs")
@@ -101,13 +116,34 @@ def create_app(results_dir: str | Path = "results/runs",
                                          f"&sample_id={sid}"})
         return {"bench": bench, "license": src.get("license"), "items": out}
 
+    @app.get("/api/perf")
+    def api_perf(run_id: str | None = None):
+        return uidata.perf_payload(_safe_run_dir(results_dir, run_id))
+
+    @app.get("/api/tier-b")
+    def api_tier_b(run_id: str | None = None):
+        return uidata.tier_b_payload(_safe_run_dir(results_dir, run_id))
+
+    @app.get("/api/cost")
+    def api_cost():
+        return uidata.cost_payload()
+
+    @app.get("/api/robustness")
+    def api_robustness(run_id: str | None = None):
+        return uidata.robustness_payload(_safe_run_dir(results_dir, run_id))
+
+    @app.get("/api/provenance")
+    def api_provenance(run_id: str | None = None):
+        return uidata.provenance_payload(_safe_run_dir(results_dir, run_id))
+
     @app.get("/api/samples")
     def api_samples(run_id: str | None, model: str, bench: str, limit: int = 200):
         run_dir = _safe_run_dir(results_dir, run_id)
         model = _safe_seg(model, "model")
         bench = _safe_seg(bench, "bench")
         return {"model": model, "bench": bench,
-                "sample_ids": uidata.sample_ids(run_dir, model, bench, limit=limit)}
+                "sample_ids": uidata.sample_ids(run_dir, model, bench, limit=limit),
+                "scored": uidata.scored_sample_ids(run_dir, model, bench, limit=limit)}
 
     @app.get("/api/example")
     def api_example(run_id: str | None, model: str, bench: str, sample_id: str):
@@ -119,6 +155,8 @@ def create_app(results_dir: str | Path = "results/runs",
         if pred is None and raw is None:
             raise HTTPException(404, f"no record for model={model!r} bench={bench!r} "
                                       f"sample_id={sample_id!r} in run {run_dir.name!r}")
+        pred_md = ((pred or {}).get("prediction") or {})
+        pred_md = pred_md.get("markdown") if isinstance(pred_md, dict) else None
         meta = registry.benchmarks.get(bench, {})
         src = meta.get("source") or {}
         gold: dict[str, Any] = {"kind": "unknown", "note": "bench not found in registry"}
@@ -133,6 +171,15 @@ def create_app(results_dir: str | Path = "results/runs",
                             "note": f"sample_id {sample_id!r} not found in bench.load()"}
             except Exception as e:
                 gold = {"kind": "unknown", "note": f"gold lookup failed: {e}"}
+        # Scorer-aligned value presence for the QA workbench: highlight the field VALUES the
+        # b1 scorer credits and chip only the ones it counts missing (never the raw key=value
+        # string, which the scorer never looks for). Keeps chip/highlight consistent with b1.
+        # Only for EXTRACTIVE items — non-extractive (reasoning) golds are excluded from b1
+        # (b1=None), so a "missing" chip there would imply a failure the scorer never graded.
+        extractive = ((raw or {}).get("metrics") or {}).get("extractive")
+        gold_match = (uidata.qa_value_presence(pred_md, gold.get("answers") or [])
+                      if gold.get("kind") == "qa" and isinstance(pred_md, str) and extractive
+                      else None)
         return {
             "run_id": run_dir.name, "model": model, "bench": bench, "sample_id": sample_id,
             "category": (raw or {}).get("category"),
@@ -142,6 +189,7 @@ def create_app(results_dir: str | Path = "results/runs",
                           f"&sample_id={sample_id}",
             "prediction": pred,
             "gold": gold,
+            "gold_match": gold_match,
             "metrics": (raw or {}).get("metrics"),
             "telemetry": (raw or {}).get("telemetry"),
             "error": (raw or {}).get("error") or (pred or {}).get("error"),

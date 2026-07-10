@@ -34,6 +34,14 @@ def client():
     return TestClient(app)
 
 
+def test_index_shell_is_no_store(client):
+    # The app shell inlines all JS/CSS; it must not be browser-cached or an updated dashboard
+    # serves stale UI (regression: a cached shell hid a workbench fix during live testing).
+    r = client.get("/")
+    assert r.status_code == 200
+    assert r.headers.get("cache-control") == "no-store"
+
+
 def test_runs_lists_v1_baseline(client):
     r = client.get("/api/runs")
     assert r.status_code == 200
@@ -66,6 +74,50 @@ def test_example_join_realdoc_qa_markdown_and_gold(client):
     assert body["gold"]["answers"]
     assert body["metrics"]["b1"] in (0.0, 1.0)
     assert body["image_url"].startswith("/api/page-image")
+
+
+def test_example_gold_match_agrees_with_b1(client):
+    # The workbench "missing" chip must not contradict the b1 score. finance_q1 is a passing
+    # extractive QA item (b1==1.0): every gold VALUE is present, so gold_match.missing is empty
+    # and the value list is offered for highlight (regression: naive whole "key=value" matching
+    # always reported missing even when the scorer credited the value).
+    r = client.get("/api/example", params={
+        "run_id": "v1-baseline", "model": "olmocr2", "bench": "realdoc_qa",
+        "sample_id": "finance_q1",
+    })
+    assert r.status_code == 200
+    body = r.json()
+    assert body["metrics"]["b1"] == 1.0
+    gm = body["gold_match"]
+    assert gm is not None
+    assert gm["missing"] == []                 # nothing chipped on a passing sample
+    assert gm["values"] and gm["present"] == gm["values"]
+
+
+def test_example_gold_match_reports_missing_on_failure(client):
+    # A b1==0 extractive item must chip every gold value as missing (present split empty).
+    r = client.get("/api/example", params={
+        "run_id": "v1-baseline", "model": "tesseract", "bench": "realdoc_qa",
+        "sample_id": "medical_healthcare_q2",
+    })
+    assert r.status_code == 200
+    body = r.json()
+    assert body["metrics"]["b1"] == 0.0
+    gm = body["gold_match"]
+    assert gm and gm["missing"] and gm["present"] == []
+
+
+def test_example_gold_match_none_for_nonextractive(client):
+    # Non-extractive (reasoning) QA items are excluded from b1 (b1 is None), so there is no
+    # score for the workbench to agree with — gold_match must be None (no misleading chips).
+    r = client.get("/api/example", params={
+        "run_id": "v1-baseline", "model": "olmocr2", "bench": "realdoc_qa",
+        "sample_id": "medical_healthcare_q1",
+    })
+    assert r.status_code == 200
+    body = r.json()
+    assert body["metrics"]["b1"] is None            # not extractive
+    assert body["gold_match"] is None
 
 
 def test_example_join_unknown_sample_404s(client):
@@ -115,6 +167,45 @@ def test_samples_and_example_reject_path_traversal(client):
     ]:
         r = client.get(route, params=params)
         assert r.status_code == 400, f"{route} {params} → {r.status_code}"
+
+
+def test_perf_endpoint_matches_report(client):
+    body = client.get("/api/perf", params={"run_id": "v1-baseline"}).json()
+    row = next(r for r in body if r["model"] == "olmocr2")
+    assert row["median_s"] == 13.69 and row["peak_vram_gb"] == 28.8
+
+
+def test_tier_b_endpoint_has_reader_and_coverage(client):
+    body = client.get("/api/tier-b", params={"run_id": "v1-baseline"}).json()
+    row = next(r for r in body if r["model"] == "olmocr2")
+    assert row["b1"] == 0.689 and row["coverage"]["extractive"] == 90
+    assert "1.5B" in (row["reader"] or "") or row["reader"]
+
+
+def test_robustness_endpoint_curve(client):
+    body = client.get("/api/robustness", params={"run_id": "v1-baseline"}).json()
+    row = next(r for r in body if r["model"] == "tesseract")
+    assert row["clean"] > row["light"] > row["heavy"]      # monotone degradation
+    assert 0 <= row["retained_pct"] <= 100
+
+
+def test_cost_endpoint_has_classic_and_self_host(client):
+    body = client.get("/api/cost").json()
+    assert any(r["engine"] == "tesseract" for r in body["classic"])
+    assert any(r["model"] == "olmocr2" for r in body["self_host"])
+
+
+def test_provenance_endpoint(client):
+    body = client.get("/api/provenance", params={"run_id": "v1-baseline"}).json()
+    assert "hardware" in body and "git_sha" in body
+    assert body["models"]  # per-model revisions present
+
+
+def test_samples_scored_sorts_worst_first(client):
+    body = client.get("/api/samples", params={
+        "run_id": "v1-baseline", "model": "tesseract", "bench": "realdoc_qa"}).json()
+    prims = [s["primary"] for s in body["scored"] if s["primary"] is not None]
+    assert prims == sorted(prims)   # ascending == worst first
 
 
 def test_gallery_gated_for_unspecified_license(client):

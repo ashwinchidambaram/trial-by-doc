@@ -183,28 +183,9 @@ def render_tier_b(run_dir, models=None):
 
 
 # --- CPU-vs-GPU cost table (classic OCR engines) -----------------------------------
-# Throughput source: findings/ws1-cpu-engines.md — single-stream, RTX 5090 (this box),
-# 10 pages @ dpi150. These are same-hardware *relative floors*, not cloud-measured
-# throughput (carried forward from that findings file's caveat).
-_CLASSIC_ENGINE_THROUGHPUT: dict[str, dict[str, float | None]] = {
-    # engine key (as used in the model registry): {"cpu_pages_hr", "gpu_pages_hr"}
-    "tesseract": {"cpu_pages_hr": 3006, "gpu_pages_hr": None},   # CPU-native, no GPU path
-    "rapidocr":  {"cpu_pages_hr": 1214, "gpu_pages_hr": None},   # no onnxruntime-gpu wheel for cu130/sm_120
-    "doctr":     {"cpu_pages_hr": 983,  "gpu_pages_hr": 24328},
-    "easyocr":   {"cpu_pages_hr": 43,   "gpu_pages_hr": 2300},
-}
-
-# SKU pricing — verified LIVE 2026-07-09 via Vantage (instances.vantage.sh, on-demand,
-# us-east-1, Linux); same live-pricing convention as the Azure Foundry table below.
-_CPU_VM_SKU = "AWS EC2 c6i.xlarge (4 vCPU, 8 GiB, no GPU)"
-_CPU_VM_USD_PER_HR = 0.17
-_CPU_VM_SOURCE = "https://instances.vantage.sh/aws/ec2/c6i.xlarge"
-
-_GPU_VM_SKU = "AWS EC2 g5.xlarge (1x NVIDIA A10G, 24 GiB)"
-_GPU_VM_USD_PER_HR = 1.006
-_GPU_VM_SOURCE = "https://instances.vantage.sh/aws/ec2/g5.xlarge"
-
-_PRICING_AS_OF = "2026-07-09"
+# All cost data now lives in report.cost_tables (single source of truth, shared with the
+# README Azure render and the dashboard /api/cost endpoint).
+from tbdoc.report import cost_tables as _cost
 
 
 def render_cost(models: list[str] | None = None) -> str:
@@ -214,28 +195,19 @@ def render_cost(models: list[str] | None = None) -> str:
     same methodology as the README's Azure Foundry Managed-Compute cost table. Emits two
     rows per engine (CPU-VM, GPU-VM) where a GPU path exists.
     """
-    order = [m for m in (models or _CLASSIC_ENGINE_THROUGHPUT) if m in _CLASSIC_ENGINE_THROUGHPUT]
-    if not order:
-        order = list(_CLASSIC_ENGINE_THROUGHPUT)
     out = ["| engine | device | SKU | pages/hr | $/1k pages |", "|---|---|---|---|---|"]
-    for eng in order:
-        t = _CLASSIC_ENGINE_THROUGHPUT[eng]
-        cpu_rate = t["cpu_pages_hr"]
-        out.append(f"| {eng} | CPU-VM | {_CPU_VM_SKU} | {cpu_rate} | "
-                    f"${_CPU_VM_USD_PER_HR / cpu_rate * 1000:.3f} |")
-        gpu_rate = t["gpu_pages_hr"]
-        if gpu_rate:
-            out.append(f"| {eng} | GPU-VM | {_GPU_VM_SKU} | {gpu_rate} | "
-                        f"${_GPU_VM_USD_PER_HR / gpu_rate * 1000:.3f} |")
+    for r in _cost.classic_cost_rows(models):
+        out.append(f"| {r['engine']} | {r['device']} | {r['sku']} | {r['pages_hr']} | "
+                    f"${r['usd_per_1k']:.3f} |")
     out.append(
         "\n> ⚠️ **Read as a same-hardware relative comparison, not a cloud invoice** (same "
         "caveat as the Azure Foundry table below). Throughput is single-stream on our "
         f"**RTX 5090** ([findings/ws1-cpu-engines.md](findings/ws1-cpu-engines.md)); a real "
         "cloud CPU-VM or GPU-VM is slower, so actual $/page will be **higher** — these are "
         "optimistic floors. Batched throughput would lower $/page further (not measured for "
-        f"classic engines). SKU prices verified **{_PRICING_AS_OF}** via Vantage (on-demand, "
-        f"us-east-1, Linux): [{_CPU_VM_SKU}]({_CPU_VM_SOURCE}) ${_CPU_VM_USD_PER_HR}/hr · "
-        f"[{_GPU_VM_SKU}]({_GPU_VM_SOURCE}) ${_GPU_VM_USD_PER_HR}/hr. Re-pin SKU prices + "
+        f"classic engines). SKU prices verified **{_cost.PRICING_AS_OF}** via Vantage (on-demand, "
+        f"us-east-1, Linux): [{_cost.CPU_VM['sku']}]({_cost.CPU_VM['source']}) ${_cost.CPU_VM['usd_per_hr']}/hr · "
+        f"[{_cost.GPU_VM['sku']}]({_cost.GPU_VM['source']}) ${_cost.GPU_VM['usd_per_hr']}/hr. Re-pin SKU prices + "
         "region before quoting."
     )
     return "\n".join(out)

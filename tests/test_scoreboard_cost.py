@@ -1,13 +1,8 @@
 from pathlib import Path
 
 from tbdoc.core.checkpoint import CheckpointStore
-from tbdoc.report.scoreboard import (
-    _CLASSIC_ENGINE_THROUGHPUT,
-    _CPU_VM_USD_PER_HR,
-    _GPU_VM_USD_PER_HR,
-    inject_readme,
-    render_cost,
-)
+from tbdoc.report.cost_tables import CLASSIC_ENGINES, CPU_VM, GPU_VM
+from tbdoc.report.scoreboard import inject_readme, render_cost
 
 
 def test_render_cost_emits_cpu_and_gpu_rows_where_gpu_path_exists():
@@ -22,10 +17,10 @@ def test_render_cost_emits_cpu_and_gpu_rows_where_gpu_path_exists():
 
 def test_render_cost_math_matches_sku_rate_over_throughput():
     out = render_cost(models=["doctr"])
-    cpu_rate = _CLASSIC_ENGINE_THROUGHPUT["doctr"]["cpu_pages_hr"]
-    gpu_rate = _CLASSIC_ENGINE_THROUGHPUT["doctr"]["gpu_pages_hr"]
-    expected_cpu = f"${_CPU_VM_USD_PER_HR / cpu_rate * 1000:.3f}"
-    expected_gpu = f"${_GPU_VM_USD_PER_HR / gpu_rate * 1000:.3f}"
+    cpu_rate = CLASSIC_ENGINES["doctr"]["cpu_pages_hr"]
+    gpu_rate = CLASSIC_ENGINES["doctr"]["gpu_pages_hr"]
+    expected_cpu = f"${CPU_VM['usd_per_hr'] / cpu_rate * 1000:.3f}"
+    expected_gpu = f"${GPU_VM['usd_per_hr'] / gpu_rate * 1000:.3f}"
     assert expected_cpu in out
     assert expected_gpu in out
 

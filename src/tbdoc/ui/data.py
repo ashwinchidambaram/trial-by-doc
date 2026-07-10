@@ -12,6 +12,7 @@ from typing import Any
 
 from tbdoc.core.checkpoint import CheckpointStore
 from tbdoc.report.scoreboard import _collect as _collect_scoreboard
+from tbdoc.report.scoreboard import _is_derived_bench
 
 # License tags this dashboard will redistribute a thumbnail for. Anything else
 # (including "unspecified" / absent) is gated — metadata-only in the explorer gallery.
@@ -28,6 +29,10 @@ def scoreboard_payload(run_dir: Path, registry) -> dict[str, Any]:
     `gauntlet scoreboard` prints), so a UI reload always matches the CLI exactly.
     """
     models, benches, cells, cats = _collect_scoreboard(run_dir)
+    # scanned-degradation variants are a robustness study, not core leaderboard columns —
+    # they surface via the robustness endpoint / the cockpit's robust column, not here
+    # (mirrors report.scoreboard.render). Keeps the leaderboard the canonical tiers.
+    benches = [b for b in benches if not _is_derived_bench(b)]
     bmeta = registry.benchmarks if registry else {}
 
     def mean_n(vals: list[float]) -> dict[str, Any]:
@@ -56,7 +61,7 @@ def scoreboard_payload(run_dir: Path, registry) -> dict[str, Any]:
         "cells": cell_out,
         "categories": cat_out,
         "bench_meta": bench_meta,
-        "n_scored": sum(len(v) for v in cells.values()),
+        "n_scored": sum(len(v) for (m, b), v in cells.items() if b in set(benches)),
     }
 
 
@@ -137,6 +142,136 @@ def list_cells(run_dir: Path) -> list[dict[str, Any]]:
             n = sum(1 for line in jl.read_text().splitlines() if line.strip())
             out.append({"model": model_dir.name, "bench": jl.stem, "n": n})
     return out
+
+
+def perf_payload(run_dir: Path) -> list[dict[str, Any]]:
+    """Per-model latency / VRAM / $per-page, straight from the report layer's `_perf`."""
+    from tbdoc.report.scoreboard import _perf
+    return [{"model": m, **d} for m, d in _perf(run_dir).items()]
+
+
+def tier_b_payload(run_dir: Path) -> list[dict[str, Any]]:
+    """Per-model Tier-B: B.1 (extraction), coverage, B.2 (comprehension), reader identity."""
+    from tbdoc.report.scoreboard import _collect_tier_b
+    out = []
+    for m, d in _collect_tier_b(run_dir).items():
+        b1 = round(sum(d["b1"]) / len(d["b1"]), 3) if d["b1"] else None
+        b2 = round(sum(d["b2"]) / len(d["b2"]), 3) if d["b2"] else None
+        out.append({"model": m, "b1": b1,
+                    "coverage": {"extractive": d["n_extractive"], "total": d["n_total"]},
+                    "b2": b2, "reader": d["reader"]})
+    return out
+
+
+def cost_payload() -> dict[str, Any]:
+    """Classic-engine CPU/GPU rows + per-model self-host rows (single source of truth)."""
+    from tbdoc.report import cost_tables as ct
+    return {"classic": ct.classic_cost_rows(), "self_host": ct.self_host_rows()}
+
+
+def robustness_payload(run_dir: Path) -> list[dict[str, Any]]:
+    """Per-model scan-robustness curve: clean -> light -> heavy B.1, and heavy-retained %.
+
+    clean = realdoc_qa primary; light/heavy = the scanned-variant benches. Only models with
+    scanned data are returned. Matches findings/partd-scanned-robustness.md.
+    """
+    from tbdoc.report.scoreboard import _collect
+    _models, _benches, cells, _cats = _collect(run_dir)
+
+    def cell_mean(model: str, bench: str) -> float | None:
+        vals = cells.get((model, bench), [])
+        return round(sum(vals) / len(vals), 3) if vals else None
+
+    out = []
+    for m in _models:
+        light = cell_mean(m, "realdoc_qa_scanned_light")
+        heavy = cell_mean(m, "realdoc_qa_scanned_heavy")
+        if light is None and heavy is None:
+            continue
+        clean = cell_mean(m, "realdoc_qa")
+        retained = (round(heavy / clean * 100) if clean and heavy is not None and clean > 0
+                    else None)
+        out.append({"model": m, "clean": clean, "light": light, "heavy": heavy,
+                    "retained_pct": retained})
+    return out
+
+
+def qa_value_presence(markdown: str, golds: list[str]) -> dict[str, Any]:
+    """Per-value presence for the BEST gold variant, mirroring `field_value_presence`.
+
+    The B.1 scorer parses a `key=value` gold into fields and checks whether each VALUE
+    (e.g. ``12800``) appears in the OCR markdown — numeric-tolerant, with an ANLS fuzzy
+    fallback. It never looks for the literal ``automobile_premium=12800`` string. This
+    reuses the frozen scorer's own `_parse_fields`/`_value_in_markdown` so the workbench's
+    highlight + "missing" chips agree with the b1 number by construction (no re-derived
+    heuristic that would contradict the score). Returns the value list to highlight plus the
+    present/missing split for the variant the scorer would have credited (highest hit rate).
+    """
+    from tbdoc.scoring.scorers import _parse_fields, _value_in_markdown
+    md = markdown or ""
+    best: tuple[float, list[str], list[str], list[str]] | None = None
+    for g in golds:
+        fields = _parse_fields(g)
+        vals = [v for v in (list(fields.values()) if fields else [g]) if v]
+        if not vals:
+            continue
+        present, missing = [], []
+        for v in vals:
+            (present if _value_in_markdown(v, md, 0.8) else missing).append(v)
+        frac = len(present) / len(vals)
+        if best is None or frac > best[0]:
+            best = (frac, vals, present, missing)
+    if best is None:
+        return {"values": [], "present": [], "missing": []}
+    return {"values": best[1], "present": best[2], "missing": best[3]}
+
+
+def provenance_payload(run_dir: Path) -> dict[str, Any]:
+    """Reproducibility fingerprint from manifest.json for the verify popover."""
+    mf = run_dir / "manifest.json"
+    if not mf.exists():
+        return {}
+    m = json.loads(mf.read_text())
+    harness = m.get("harness") or {}
+    models = m.get("models") or {}
+    return {
+        "run_id": m.get("run_id"),
+        "created_at": m.get("created_at"),
+        "hardware": m.get("hardware") or {},
+        "seeds": m.get("seeds"),
+        "config_hashes": m.get("configs"),
+        "git_sha": harness.get("git_sha"),
+        "git_dirty": harness.get("git_dirty"),
+        "python": harness.get("python"),
+        "models": {k: (v.get("revision") if isinstance(v, dict) else v) for k, v in models.items()},
+    }
+
+
+def scored_sample_ids(run_dir: Path, model: str, bench: str, *, limit: int = 500) -> list[dict[str, Any]]:
+    """Sample ids with their primary score + error, sorted worst-first (None primary last).
+
+    Powers the workbench failure-triage list. Last record per sample_id wins (rescore appends).
+    """
+    path = run_dir / "raw" / model / f"{bench}.jsonl"
+    if not path.exists():
+        return []
+    latest: dict[str, dict] = {}
+    for line in path.read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            rec = json.loads(line)
+        except Exception:
+            continue
+        latest[str(rec.get("sample_id"))] = rec
+    out = []
+    for sid, rec in latest.items():
+        prim = (rec.get("metrics") or {}).get("primary")
+        out.append({"sample_id": sid,
+                    "primary": prim if isinstance(prim, (int, float)) else None,
+                    "error": rec.get("error")})
+    out.sort(key=lambda r: (r["primary"] is None, r["primary"] if r["primary"] is not None else 0.0))
+    return out[:limit]
 
 
 def sample_ids(run_dir: Path, model: str, bench: str, *, limit: int = 500) -> list[str]:
