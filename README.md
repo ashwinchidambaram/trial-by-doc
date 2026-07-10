@@ -15,16 +15,65 @@ No LLM-as-judge anywhere. Every score is a deterministic algorithm; the only LLM
 the measurement path are **frozen instruments** (pinned revision, temp=0, seeded,
 identical for every model) and the scoreboard marks where they're used.
 
-**Contents:** [Scores](#scores) · [Dashboard](#dashboard) · [Benchmarks](#benchmarks) · [Scanned/faxed robustness](#scanned-and-faxed-robustness-tier-b-under-degradation) · [Example documents](#example-documents) · [Models](#models) · [What the harness is](#what-the-harness-actually-is) · [Setup](#setup) · [Hardware](#hardware) · [Gaps](#gaps) · [Credits](#attributions--credits)
+**Contents:** [Benchmarks](#benchmarks) · [Scores](#scores) · [Dashboard](#dashboard) · [Scanned/faxed robustness](#scanned-and-faxed-robustness-tier-b-under-degradation) · [Example documents](#example-documents) · [Models](#models) · [What the harness is](#what-the-harness-actually-is) · [Setup](#setup) · [Hardware](#hardware) · [Gaps](#gaps) · [Glossary](#glossary) · [Credits](#attributions--credits)
+
+## Benchmarks
+
+> **New here?** Start here, before the Scores table — this section defines what Tier
+> A / B / C actually measure, so the numbers read straight the first time. Unfamiliar
+> terms (ANLS, TEDS, `judge_composed`, etc.) are collected in the [Glossary](#glossary).
+
+| Benchmark | Tier | Provenance | What it tests | Why we test it |
+|---|---|---|---|---|
+| [olmOCR-Bench](https://huggingface.co/datasets/allenai/olmOCR-bench) | A | official | Per-page **unit tests**: text present/absent, reading order, math (KaTeX render), tables — across 7 doc categories incl. old scans | The broadest "did you transcribe this correctly" signal; scans + multi-column are production reality |
+| [OmniDocBench](https://github.com/opendatalab/OmniDocBench) | A | official | Full-page parse quality: text/formula/table **edit distance**, **TEDS** table structure, over 10 document sources | The industry-standard parse-fidelity metric set |
+| [RealDoc-Bench QA](https://huggingface.co/datasets/Extend-AI/RealDoc-Bench) | B | official | **Field extraction** from business docs (finance, medical, mortgage, supply-chain): markdown → frozen extractor → exact-match/ANLS | The closest proxy for "extract data from PDFs without mistakes" — the production task itself |
+| [merged_forms](benchmarks/custom/merged_forms/VALIDATION.md) | C | **custom** | **Document segmentation**: streams of 3–4 concatenated NIST SD2 tax submissions — same form faces, different filled data; boundaries only detectable by content | The hard production case: splitting merged PDFs of look-alike forms. No public benchmark covers it (we verified) |
+
+### Tier B in detail: B.1 (extraction) vs B.2 (comprehension)
+
+Tier B is split so the signal you care about is isolated:
+
+- **B.1 — extraction fidelity (primary, deterministic).** For each field question we check
+  whether the *gold value* appears, unmangled, in the model's OCR markdown — with **no LLM in
+  the loop**. This is the "does it capture the values without messing them up?" signal. It is
+  scored only on the *extractive* subset (answers that are literally on the page); the
+  `coverage` column shows how many items that is — see [Glossary](#glossary). Reproducible;
+  needs no API key.
+- **B.2 — comprehension (secondary).** A separate *reader* model answers the question from the
+  markdown, scored deterministically (field-aware exact-match + ANLS). **The reader is a
+  swappable instrument, never the model under test.** It defaults to a small local model
+  (**Phi-4-mini**, `microsoft/Phi-4-mini-instruct`, MIT) deliberately — not because it's the
+  strongest reader available, but so a fresh clone reproduces the full baseline with no API key
+  and no spend. Claude Haiku 4.5 and GPT-5.4-mini are available via OpenRouter as stronger
+  "ceiling" readers (`--reader haiku45` / `--reader gpt5mini`), and the older Qwen2.5-1.5B is
+  kept as a labeled ladder rung. Because a capable reader can paper over OCR slips, **B.2 is
+  confounded by the reader by design** — trust B.1 for extraction quality; read B.2 as a
+  directional "does this feed a downstream QA step" signal. The reader-sensitivity study
+  ([findings/partb-reader-ladder.md](findings/partb-reader-ladder.md)) quantifies the confound:
+  swapping Phi-4-mini for gpt-5.4-mini moves B.2 exact-match by **~2.8×** (0.18 → 0.50) on the
+  same fixed OCR input — the evidence for *why* B.2 is secondary, not a data quality bug.
+
+  Each B.2 number in the [Scores](#scores) table below is stamped with the `reader` column that
+  produced it. **The `v1-baseline` scoreboard predates the Phi-4-mini default switch** — its B.2
+  column was scored with Qwen2.5-1.5B-Instruct (the reader in place at the time), not the current
+  default. Read those B.2 numbers as historical; they will be refreshed once the reader ladder is
+  re-run against the current baseline.
+
+Run `gauntlet scoreboard --tier-b` for the B.1/coverage/B.2 breakdown.
+
+Tier C publishes three **trivial-baseline floor rows** (every-page-boundary,
+no-boundary, pixel-diff) — a real model must beat all three; pixel-diff doubles as
+the seam-artifact canary for the synthesized data.
 
 ## Scores
 
 > These numbers come from the `v1-baseline` run and are reproducible from its per-sample
 > records; regenerate the table any time with `gauntlet scoreboard --run-id v1-baseline`.
 >
-> **New here?** The columns below are per-tier primary scores — skim
-> [Benchmarks](#benchmarks) first for what Tier A / B / C actually measure, then the numbers
-> read straight. Higher is better everywhere; `—` means not applicable to that model.
+> Tier and B.1/B.2 definitions are in [Benchmarks](#benchmarks) above; unfamiliar terms are
+> in the [Glossary](#glossary). Higher is better everywhere; `—` means not applicable to that
+> model.
 
 <!-- SCOREBOARD:BEGIN -->
 | model | realdoc_qa | omnidocbench | olmocr_bench | merged_forms |
@@ -132,40 +181,7 @@ gauntlet ui --run-id v1-baseline   # a specific run; the run picker switches liv
 
 The dashboard ships light and dark themes; every number matches `gauntlet scoreboard` exactly (it reuses the same readers, never re-deriving a metric).
 
-## Benchmarks
-
-| Benchmark | Tier | Provenance | What it tests | Why we test it |
-|---|---|---|---|---|
-| [olmOCR-Bench](https://huggingface.co/datasets/allenai/olmOCR-bench) | A | official | Per-page **unit tests**: text present/absent, reading order, math (KaTeX render), tables — across 7 doc categories incl. old scans | The broadest "did you transcribe this correctly" signal; scans + multi-column are production reality |
-| [OmniDocBench](https://github.com/opendatalab/OmniDocBench) | A | official | Full-page parse quality: text/formula/table **edit distance**, **TEDS** table structure, over 10 document sources | The industry-standard parse-fidelity metric set |
-| [RealDoc-Bench QA](https://huggingface.co/datasets/Extend-AI/RealDoc-Bench) | B | official | **Field extraction** from business docs (finance, medical, mortgage, supply-chain): markdown → frozen extractor → exact-match/ANLS | The closest proxy for "extract data from PDFs without mistakes" — the production task itself |
-| [merged_forms](benchmarks/custom/merged_forms/VALIDATION.md) | C | **custom** | **Document segmentation**: streams of 3–4 concatenated NIST SD2 tax submissions — same form faces, different filled data; boundaries only detectable by content | The hard production case: splitting merged PDFs of look-alike forms. No public benchmark covers it (we verified) |
-
-#### How Tier B works — extraction (B.1) vs comprehension (B.2)
-
-Tier B is split so the signal you care about is isolated:
-
-- **B.1 — extraction fidelity (primary, deterministic).** For each field question we check
-  whether the *gold value* appears, unmangled, in the model's OCR markdown — with **no LLM in
-  the loop**. This is the "does it capture the values without messing them up?" signal. It is
-  scored only on the *extractive* subset (answers that are literally on the page); the
-  `coverage` column shows how many items that is. Reproducible; needs no API key.
-- **B.2 — comprehension (secondary).** A separate *reader* model answers the question from the
-  markdown, scored deterministically (field-aware exact-match + ANLS). **The reader is a swappable
-  instrument, never the model under test** — it defaults to a small local model (**Phi-4-mini**,
-  `microsoft/Phi-4-mini-instruct`, MIT), with the older Qwen2.5-1.5B kept as a labeled ladder rung,
-  and can be swapped for Claude Haiku 4.5 or GPT-5.4-mini via OpenRouter. Because a capable reader can
-  paper over OCR slips, **B.2 is confounded by the reader by design** — trust B.1 for extraction
-  quality; read B.2 as a directional "does this feed a downstream QA step" signal. Each B.2 number is
-  stamped with which reader produced it — the `v1-baseline` column above was scored with Qwen2.5-1.5B.
-
-Run `gauntlet scoreboard --tier-b` for the B.1/coverage/B.2 breakdown.
-
-Tier C publishes three **trivial-baseline floor rows** (every-page-boundary,
-no-boundary, pixel-diff) — a real model must beat all three; pixel-diff doubles as
-the seam-artifact canary for the synthesized data.
-
-### Scanned and faxed robustness (Tier B under degradation)
+## Scanned and faxed robustness (Tier B under degradation)
 
 Clean uploads and faxed/scanned copies are different production realities. We re-run the Tier-B
 extraction set through a **seeded scan-degradation pipeline** (benches `realdoc_qa_scanned_light`
@@ -197,7 +213,7 @@ scanned/faxed input. docTR is the exception (58% retained), so the split is real
 not "classic engines" as a class. Light degradation is largely absorbed; the cliff is at heavy.
 Each cell is n=100 — treat sub-0.03 gaps and the granite noise-floor row as directional.
 
-### Example documents
+## Example documents
 
 What the gauntlet actually feeds the models (thumbnails in [`docs/examples/`](docs/examples/);
 sources permit redistribution with attribution — OmniDocBench pages are
@@ -366,6 +382,12 @@ Honest limitations, current as of the v1 baseline:
   Textract/Azure/Google Doc AI/Claude/GPT ship validated but unscored — no API rows are in
   the v1-baseline scoreboard. Mistral OCR + Gemini Flash-Lite are the cheapest worth testing
   (pricing verified) and land next. Azure DI's self-host container lane is designed, not wired.
+- **Florence-2 and Phi-4-multimodal adapters are built but unregistered** — blocked on the
+  pinned **transformers 5.11** (distinct pre-v5 remote-code incompatibilities per model). Kept
+  out of `configs/models.yaml` (commented block, see each adapter's docstring) and out of the
+  scored roster. Revisit only if upstream ports them to native v5.
+- **granite_docling OOMs on Tier C** (`merged_forms`) — shown as `—` in the scoreboard;
+  deferred rather than forced through, not a bug to chase blindly.
 - **merged_forms is synthesized** (no public dataset covers the similar-forms case —
   verified against the PSS literature and HF). Mitigations: public-domain source
   data, seeded determinism, published floor rows, seam canary, VALIDATION.md. Its
@@ -375,6 +397,77 @@ Honest limitations, current as of the v1 baseline:
   fair; absolute values are lower bounds.
 - **Statistical power**: per-category cells are small (n≈14–25); treat per-category
   winners as directional, not definitive.
+
+## Glossary
+
+Reference definitions for terms used throughout — jump back here any time; the term is
+usually linked from wherever it's first used.
+
+**Metrics**
+
+- **ANLS** — Average Normalized Levenshtein Similarity. A fuzzy string-match metric
+  (0–1) used for QA/extraction: rewards near-misses (typos, minor formatting
+  differences) instead of requiring a byte-exact answer.
+- **TEDS** — Tree Edit Distance-based Similarity. A structural metric for table
+  extraction: compares a predicted table against the gold table as a tree of
+  rows/columns/cells, not as raw text.
+- **Edit distance** — Levenshtein-style character/token edit distance between
+  predicted and gold text; the core Tier-A parse-fidelity signal, reported here as a
+  normalized similarity (higher = closer match).
+- **PQ (Panoptic Quality)** — a segmentation metric adapted from panoptic image
+  segmentation for document/page-stream segmentation (Tier C): rewards correctly
+  detecting document boundaries *and* getting their extent right, symmetrically
+  penalizing over- and under-segmentation.
+- **STP** — a stricter document-stream segmentation metric (from the TABME++ /
+  LLM-for-PSS line of work) checking whether a predicted document's page span
+  exactly matches a gold document's span, all-or-nothing per document.
+- **CDM (Character Detection Matching)** — an OmniDocBench v1.5+ formula-rendering
+  metric requiring a TeX Live container; excluded here (see [Gaps](#gaps)) in favor of
+  the official edit-distance + TEDS set.
+
+**Harness concepts**
+
+- **Frozen instrument** — an LLM used only to *score or extract*, never a model under
+  test: pinned revision, temperature 0, seeded, identical for every model in the
+  roster. The Tier-B extractor and Tier-C boundary judge are this harness's two
+  frozen instruments.
+- **Official vs. custom (provenance)** — *official* = third-party dataset + third-party
+  scorer, wrapped unmodified; *custom* = we own the ground truth and the scorer
+  (requires a `VALIDATION.md`, e.g. `merged_forms`). Every scoreboard row is labeled
+  with which applies.
+- **Extractive (item)** — a QA item whose gold answer literally appears as text on the
+  page, as opposed to one requiring inference or computation. B.1 scores only the
+  extractive subset, since it's checking for verbatim presence.
+- **Coverage** — how many of a benchmark's items are extractive (and therefore
+  B.1-scorable) out of the total; shown as `n/100` in the Tier-B breakdown table.
+- **`judge_composed` vs. `native` (Tier C)** — `judge_composed` rows build a
+  segmentation from per-page OCR text plus the frozen boundary judge; `native` rows
+  use a model's own built-in document-splitting output instead. Both are scored the
+  same way but measure different things.
+- **Boundary judge** — the frozen instrument (pinned Qwen2.5-7B-Instruct) that decides,
+  given two adjacent OCR'd pages, whether a new document starts — the primitive
+  behind `judge_composed` Tier-C rows.
+- **`gold_match`** — in the Diagnose dashboard view, whether a gold answer was found
+  verbatim in a model's markdown for a given question (the same check B.1 scoring
+  performs); computed only for extractive items, so it lines up exactly with what B.1
+  credits.
+
+**Reproducibility concepts**
+
+- **`run_id`** — the identifier for one evaluation run (e.g. `v1-baseline`); all its
+  artifacts (predictions, scores, manifest) live under `results/runs/<run_id>/`.
+- **`manifest.json`** — the per-run provenance record: model fingerprints (revision or
+  API version + date), benchmark dataset revisions, scorer identity, seeds, and
+  hardware fingerprint — everything needed to say exactly what produced a given
+  number.
+- **Revision pin** — an exact, verified model/dataset commit hash (or API version),
+  recorded rather than trusting a moving `main`/`latest` tag — the "verify, never
+  assume" rule in practice.
+
+**Licensing shorthand**
+
+- **ODC-BY** — Open Data Commons Attribution License; the license olmOCR-Bench ships
+  under (attribution required, otherwise unrestricted use).
 
 ## Attributions & credits
 
