@@ -196,6 +196,36 @@ def robustness_payload(run_dir: Path) -> list[dict[str, Any]]:
     return out
 
 
+def qa_value_presence(markdown: str, golds: list[str]) -> dict[str, Any]:
+    """Per-value presence for the BEST gold variant, mirroring `field_value_presence`.
+
+    The B.1 scorer parses a `key=value` gold into fields and checks whether each VALUE
+    (e.g. ``12800``) appears in the OCR markdown — numeric-tolerant, with an ANLS fuzzy
+    fallback. It never looks for the literal ``automobile_premium=12800`` string. This
+    reuses the frozen scorer's own `_parse_fields`/`_value_in_markdown` so the workbench's
+    highlight + "missing" chips agree with the b1 number by construction (no re-derived
+    heuristic that would contradict the score). Returns the value list to highlight plus the
+    present/missing split for the variant the scorer would have credited (highest hit rate).
+    """
+    from tbdoc.scoring.scorers import _parse_fields, _value_in_markdown
+    md = markdown or ""
+    best: tuple[float, list[str], list[str], list[str]] | None = None
+    for g in golds:
+        fields = _parse_fields(g)
+        vals = [v for v in (list(fields.values()) if fields else [g]) if v]
+        if not vals:
+            continue
+        present, missing = [], []
+        for v in vals:
+            (present if _value_in_markdown(v, md, 0.8) else missing).append(v)
+        frac = len(present) / len(vals)
+        if best is None or frac > best[0]:
+            best = (frac, vals, present, missing)
+    if best is None:
+        return {"values": [], "present": [], "missing": []}
+    return {"values": best[1], "present": best[2], "missing": best[3]}
+
+
 def provenance_payload(run_dir: Path) -> dict[str, Any]:
     """Reproducibility fingerprint from manifest.json for the verify popover."""
     mf = run_dir / "manifest.json"

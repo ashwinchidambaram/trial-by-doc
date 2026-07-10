@@ -532,18 +532,21 @@ function buildWorkbench(datas,chosen){
     p.appendChild(hdr);
     if(d.error) p.appendChild(el("div",{class:"miss-chip",text:"error: "+d.error}));
     const md=extractMarkdown(d.prediction);
-    const golds=d.gold&&d.gold.kind==="qa"?(d.gold.answers||[]):[];
+    // Highlight/chip the field VALUES the b1 scorer actually credits (server-computed via the
+    // frozen scorer), not the raw key=value gold string the scorer never matches on.
+    const gm=d.gold_match||null;
+    const hiVals=gm?gm.values:(d.gold&&d.gold.kind==="qa"?(d.gold.answers||[]):[]);
     const toggle=el("div",{class:"toolbar",style:"margin:4px 0"});
     const rendered=el("div",{class:"md-render"}); const raw=el("pre",{}); raw.style.display="none";
-    rendered.innerHTML=renderMarkdown(md,golds); raw.textContent=md;
+    rendered.innerHTML=renderMarkdown(md,hiVals); raw.textContent=md;
     const bR=el("button",{class:"chip","aria-pressed":"true",text:"rendered"}); const bRaw=el("button",{class:"chip","aria-pressed":"false",text:"raw"});
     bR.onclick=()=>{rendered.style.display="";raw.style.display="none";bR.setAttribute("aria-pressed","true");bRaw.setAttribute("aria-pressed","false");};
     bRaw.onclick=()=>{rendered.style.display="none";raw.style.display="";bR.setAttribute("aria-pressed","false");bRaw.setAttribute("aria-pressed","true");};
     toggle.appendChild(bR); toggle.appendChild(bRaw); p.appendChild(toggle); p.appendChild(rendered); p.appendChild(raw);
-    // missing gold chips (Tier-B)
-    if(golds.length){ const missing=golds.filter(g=>!mdContains(md,g));
-      if(missing.length) p.appendChild(el("div",{},missing.map(g=>el("span",{class:"miss-chip",text:`missing: ${g}`}))));
-    }
+    // missing gold chips (Tier-B) — driven by the scorer's own value-presence split, so a
+    // chip appears only for a value b1 counts absent (agrees with the b1 number above).
+    const missing=gm?gm.missing:[];
+    if(missing.length) p.appendChild(el("div",{},missing.map(g=>el("span",{class:"miss-chip",text:`missing: ${g}`}))));
     // score row
     if(d.metrics){ p.appendChild(el("div",{class:"note mono",style:"margin-top:8px",
       text:scoreLine(d)})); }
@@ -562,7 +565,6 @@ function scoreLine(d){ const m=d.metrics||{}; const parts=[];
 
 // mini markdown renderer (headings, tables, lists, bold, code) with gold-hit highlight
 function esc(s){ return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
-function mdContains(md,val){ return md.toLowerCase().includes(String(val).toLowerCase()); }
 function hi(line,golds){ let out=esc(line);
   for(const g of golds){ if(!g) continue; const e=esc(String(g)); const idx=out.toLowerCase().indexOf(e.toLowerCase());
     if(idx>=0) out=out.slice(0,idx)+`<span class="hit">`+out.slice(idx,idx+e.length)+`</span>`+out.slice(idx+e.length); }

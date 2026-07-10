@@ -34,6 +34,14 @@ def client():
     return TestClient(app)
 
 
+def test_index_shell_is_no_store(client):
+    # The app shell inlines all JS/CSS; it must not be browser-cached or an updated dashboard
+    # serves stale UI (regression: a cached shell hid a workbench fix during live testing).
+    r = client.get("/")
+    assert r.status_code == 200
+    assert r.headers.get("cache-control") == "no-store"
+
+
 def test_runs_lists_v1_baseline(client):
     r = client.get("/api/runs")
     assert r.status_code == 200
@@ -66,6 +74,37 @@ def test_example_join_realdoc_qa_markdown_and_gold(client):
     assert body["gold"]["answers"]
     assert body["metrics"]["b1"] in (0.0, 1.0)
     assert body["image_url"].startswith("/api/page-image")
+
+
+def test_example_gold_match_agrees_with_b1(client):
+    # The workbench "missing" chip must not contradict the b1 score. finance_q1 is a passing
+    # extractive QA item (b1==1.0): every gold VALUE is present, so gold_match.missing is empty
+    # and the value list is offered for highlight (regression: naive whole "key=value" matching
+    # always reported missing even when the scorer credited the value).
+    r = client.get("/api/example", params={
+        "run_id": "v1-baseline", "model": "olmocr2", "bench": "realdoc_qa",
+        "sample_id": "finance_q1",
+    })
+    assert r.status_code == 200
+    body = r.json()
+    assert body["metrics"]["b1"] == 1.0
+    gm = body["gold_match"]
+    assert gm is not None
+    assert gm["missing"] == []                 # nothing chipped on a passing sample
+    assert gm["values"] and gm["present"] == gm["values"]
+
+
+def test_example_gold_match_reports_missing_on_failure(client):
+    # A b1==0 extractive item must chip every gold value as missing (present split empty).
+    r = client.get("/api/example", params={
+        "run_id": "v1-baseline", "model": "tesseract", "bench": "realdoc_qa",
+        "sample_id": "medical_healthcare_q2",
+    })
+    assert r.status_code == 200
+    body = r.json()
+    assert body["metrics"]["b1"] == 0.0
+    gm = body["gold_match"]
+    assert gm and gm["missing"] and gm["present"] == []
 
 
 def test_example_join_unknown_sample_404s(client):

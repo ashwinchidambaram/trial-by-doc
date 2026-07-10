@@ -58,7 +58,10 @@ def create_app(results_dir: str | Path = "results/runs",
     # ---- pages ---------------------------------------------------------------
     @app.get("/")
     def index():
-        return FileResponse(_STATIC_DIR / "index.html")
+        # The app shell carries all the inlined JS/CSS; never let a browser serve a stale shell
+        # after the dashboard is updated (the vendored assets below stay cacheable by filename).
+        return FileResponse(_STATIC_DIR / "index.html",
+                            headers={"Cache-Control": "no-store"})
 
     @app.get("/favicon.ico")
     def favicon():
@@ -152,6 +155,8 @@ def create_app(results_dir: str | Path = "results/runs",
         if pred is None and raw is None:
             raise HTTPException(404, f"no record for model={model!r} bench={bench!r} "
                                       f"sample_id={sample_id!r} in run {run_dir.name!r}")
+        pred_md = ((pred or {}).get("prediction") or {})
+        pred_md = pred_md.get("markdown") if isinstance(pred_md, dict) else None
         meta = registry.benchmarks.get(bench, {})
         src = meta.get("source") or {}
         gold: dict[str, Any] = {"kind": "unknown", "note": "bench not found in registry"}
@@ -166,6 +171,11 @@ def create_app(results_dir: str | Path = "results/runs",
                             "note": f"sample_id {sample_id!r} not found in bench.load()"}
             except Exception as e:
                 gold = {"kind": "unknown", "note": f"gold lookup failed: {e}"}
+        # Scorer-aligned value presence for the QA workbench: highlight the field VALUES the
+        # b1 scorer credits and chip only the ones it counts missing (never the raw key=value
+        # string, which the scorer never looks for). Keeps chip/highlight consistent with b1.
+        gold_match = (uidata.qa_value_presence(pred_md, gold.get("answers") or [])
+                      if gold.get("kind") == "qa" and isinstance(pred_md, str) else None)
         return {
             "run_id": run_dir.name, "model": model, "bench": bench, "sample_id": sample_id,
             "category": (raw or {}).get("category"),
@@ -175,6 +185,7 @@ def create_app(results_dir: str | Path = "results/runs",
                           f"&sample_id={sample_id}",
             "prediction": pred,
             "gold": gold,
+            "gold_match": gold_match,
             "metrics": (raw or {}).get("metrics"),
             "telemetry": (raw or {}).get("telemetry"),
             "error": (raw or {}).get("error") or (pred or {}).get("error"),
