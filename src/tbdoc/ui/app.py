@@ -101,13 +101,34 @@ def create_app(results_dir: str | Path = "results/runs",
                                          f"&sample_id={sid}"})
         return {"bench": bench, "license": src.get("license"), "items": out}
 
+    @app.get("/api/perf")
+    def api_perf(run_id: str | None = None):
+        return uidata.perf_payload(_safe_run_dir(results_dir, run_id))
+
+    @app.get("/api/tier-b")
+    def api_tier_b(run_id: str | None = None):
+        return uidata.tier_b_payload(_safe_run_dir(results_dir, run_id))
+
+    @app.get("/api/cost")
+    def api_cost():
+        return uidata.cost_payload()
+
+    @app.get("/api/robustness")
+    def api_robustness(run_id: str | None = None):
+        return uidata.robustness_payload(_safe_run_dir(results_dir, run_id))
+
+    @app.get("/api/provenance")
+    def api_provenance(run_id: str | None = None):
+        return uidata.provenance_payload(_safe_run_dir(results_dir, run_id))
+
     @app.get("/api/samples")
     def api_samples(run_id: str | None, model: str, bench: str, limit: int = 200):
         run_dir = _safe_run_dir(results_dir, run_id)
         model = _safe_seg(model, "model")
         bench = _safe_seg(bench, "bench")
         return {"model": model, "bench": bench,
-                "sample_ids": uidata.sample_ids(run_dir, model, bench, limit=limit)}
+                "sample_ids": uidata.sample_ids(run_dir, model, bench, limit=limit),
+                "scored": uidata.scored_sample_ids(run_dir, model, bench, limit=limit)}
 
     @app.get("/api/example")
     def api_example(run_id: str | None, model: str, bench: str, sample_id: str):

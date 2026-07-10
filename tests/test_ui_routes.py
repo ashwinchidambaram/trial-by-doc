@@ -117,6 +117,45 @@ def test_samples_and_example_reject_path_traversal(client):
         assert r.status_code == 400, f"{route} {params} → {r.status_code}"
 
 
+def test_perf_endpoint_matches_report(client):
+    body = client.get("/api/perf", params={"run_id": "v1-baseline"}).json()
+    row = next(r for r in body if r["model"] == "olmocr2")
+    assert row["median_s"] == 13.69 and row["peak_vram_gb"] == 28.8
+
+
+def test_tier_b_endpoint_has_reader_and_coverage(client):
+    body = client.get("/api/tier-b", params={"run_id": "v1-baseline"}).json()
+    row = next(r for r in body if r["model"] == "olmocr2")
+    assert row["b1"] == 0.689 and row["coverage"]["extractive"] == 90
+    assert "1.5B" in (row["reader"] or "") or row["reader"]
+
+
+def test_robustness_endpoint_curve(client):
+    body = client.get("/api/robustness", params={"run_id": "v1-baseline"}).json()
+    row = next(r for r in body if r["model"] == "tesseract")
+    assert row["clean"] > row["light"] > row["heavy"]      # monotone degradation
+    assert 0 <= row["retained_pct"] <= 100
+
+
+def test_cost_endpoint_has_classic_and_self_host(client):
+    body = client.get("/api/cost").json()
+    assert any(r["engine"] == "tesseract" for r in body["classic"])
+    assert any(r["model"] == "olmocr2" for r in body["self_host"])
+
+
+def test_provenance_endpoint(client):
+    body = client.get("/api/provenance", params={"run_id": "v1-baseline"}).json()
+    assert "hardware" in body and "git_sha" in body
+    assert body["models"]  # per-model revisions present
+
+
+def test_samples_scored_sorts_worst_first(client):
+    body = client.get("/api/samples", params={
+        "run_id": "v1-baseline", "model": "tesseract", "bench": "realdoc_qa"}).json()
+    prims = [s["primary"] for s in body["scored"] if s["primary"] is not None]
+    assert prims == sorted(prims)   # ascending == worst first
+
+
 def test_gallery_gated_for_unspecified_license(client):
     # omnidocbench's license is "unspecified" (verified — no tag on the HF dataset card),
     # so the explorer gallery must refuse to serve thumbnails for it (spec §4.2/§4.3).

@@ -139,6 +139,106 @@ def list_cells(run_dir: Path) -> list[dict[str, Any]]:
     return out
 
 
+def perf_payload(run_dir: Path) -> list[dict[str, Any]]:
+    """Per-model latency / VRAM / $per-page, straight from the report layer's `_perf`."""
+    from tbdoc.report.scoreboard import _perf
+    return [{"model": m, **d} for m, d in _perf(run_dir).items()]
+
+
+def tier_b_payload(run_dir: Path) -> list[dict[str, Any]]:
+    """Per-model Tier-B: B.1 (extraction), coverage, B.2 (comprehension), reader identity."""
+    from tbdoc.report.scoreboard import _collect_tier_b
+    out = []
+    for m, d in _collect_tier_b(run_dir).items():
+        b1 = round(sum(d["b1"]) / len(d["b1"]), 3) if d["b1"] else None
+        b2 = round(sum(d["b2"]) / len(d["b2"]), 3) if d["b2"] else None
+        out.append({"model": m, "b1": b1,
+                    "coverage": {"extractive": d["n_extractive"], "total": d["n_total"]},
+                    "b2": b2, "reader": d["reader"]})
+    return out
+
+
+def cost_payload() -> dict[str, Any]:
+    """Classic-engine CPU/GPU rows + per-model self-host rows (single source of truth)."""
+    from tbdoc.report import cost_tables as ct
+    return {"classic": ct.classic_cost_rows(), "self_host": ct.self_host_rows()}
+
+
+def robustness_payload(run_dir: Path) -> list[dict[str, Any]]:
+    """Per-model scan-robustness curve: clean -> light -> heavy B.1, and heavy-retained %.
+
+    clean = realdoc_qa primary; light/heavy = the scanned-variant benches. Only models with
+    scanned data are returned. Matches findings/partd-scanned-robustness.md.
+    """
+    from tbdoc.report.scoreboard import _collect
+    _models, _benches, cells, _cats = _collect(run_dir)
+
+    def cell_mean(model: str, bench: str) -> float | None:
+        vals = cells.get((model, bench), [])
+        return round(sum(vals) / len(vals), 3) if vals else None
+
+    out = []
+    for m in _models:
+        light = cell_mean(m, "realdoc_qa_scanned_light")
+        heavy = cell_mean(m, "realdoc_qa_scanned_heavy")
+        if light is None and heavy is None:
+            continue
+        clean = cell_mean(m, "realdoc_qa")
+        retained = (round(heavy / clean * 100) if clean and heavy is not None and clean > 0
+                    else None)
+        out.append({"model": m, "clean": clean, "light": light, "heavy": heavy,
+                    "retained_pct": retained})
+    return out
+
+
+def provenance_payload(run_dir: Path) -> dict[str, Any]:
+    """Reproducibility fingerprint from manifest.json for the verify popover."""
+    mf = run_dir / "manifest.json"
+    if not mf.exists():
+        return {}
+    m = json.loads(mf.read_text())
+    harness = m.get("harness") or {}
+    models = m.get("models") or {}
+    return {
+        "run_id": m.get("run_id"),
+        "created_at": m.get("created_at"),
+        "hardware": m.get("hardware") or {},
+        "seeds": m.get("seeds"),
+        "config_hashes": m.get("configs"),
+        "git_sha": harness.get("git_sha"),
+        "git_dirty": harness.get("git_dirty"),
+        "python": harness.get("python"),
+        "models": {k: (v.get("revision") if isinstance(v, dict) else v) for k, v in models.items()},
+    }
+
+
+def scored_sample_ids(run_dir: Path, model: str, bench: str, *, limit: int = 500) -> list[dict[str, Any]]:
+    """Sample ids with their primary score + error, sorted worst-first (None primary last).
+
+    Powers the workbench failure-triage list. Last record per sample_id wins (rescore appends).
+    """
+    path = run_dir / "raw" / model / f"{bench}.jsonl"
+    if not path.exists():
+        return []
+    latest: dict[str, dict] = {}
+    for line in path.read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            rec = json.loads(line)
+        except Exception:
+            continue
+        latest[str(rec.get("sample_id"))] = rec
+    out = []
+    for sid, rec in latest.items():
+        prim = (rec.get("metrics") or {}).get("primary")
+        out.append({"sample_id": sid,
+                    "primary": prim if isinstance(prim, (int, float)) else None,
+                    "error": rec.get("error")})
+    out.sort(key=lambda r: (r["primary"] is None, r["primary"] if r["primary"] is not None else 0.0))
+    return out[:limit]
+
+
 def sample_ids(run_dir: Path, model: str, bench: str, *, limit: int = 500) -> list[str]:
     path = run_dir / "raw" / model / f"{bench}.jsonl"
     if not path.exists():
