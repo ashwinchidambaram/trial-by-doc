@@ -22,3 +22,8 @@ results/**/*.log
 benchmarks/custom/*/raw/
 benchmarks/**/*.zip
 results/*.out
+# reader-sensitivity ladder scratch runs (Part B; findings in findings/partb-reader-ladder.md).
+# Kept on disk as paid-API evidence but not tracked — regenerating rl-gpt5/rl-haiku costs budget.
+results/runs/rl-gpt5/
+results/runs/rl-haiku/
+results/runs/rl-phi4/
