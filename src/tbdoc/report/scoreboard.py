@@ -37,6 +37,14 @@ def _mean(vals: list[float]) -> str:
     return f"{sum(vals)/len(vals):.3f}" if vals else "—"
 
 
+def _is_derived_bench(b: str) -> bool:
+    """Scanned/degraded variants (e.g. ``realdoc_qa_scanned_heavy``) are a separate
+    robustness study, not core-tier leaderboard columns. Keep them out of the main
+    scoreboard by default — they live in the README's 'Scanned and faxed robustness'
+    section and findings/partd-scanned-robustness.md instead."""
+    return "_scanned_" in b
+
+
 def _perf(run_dir: Path):
     """Per-model performance from prediction telemetry: latency/page, peak VRAM, $/page.
 
@@ -47,6 +55,8 @@ def _perf(run_dir: Path):
     root = Path(run_dir) / "predictions"
     per: dict[str, dict[str, list]] = {}
     for f in root.rglob("*.jsonl"):
+        if _is_derived_bench(f.stem):   # scanned variants aren't part of the core perf characterization
+            continue
         model = f.parent.name
         d = per.setdefault(model, {"lat": [], "vram": [], "cost": []})
         for line in f.read_text().splitlines():
@@ -97,9 +107,12 @@ def render_perf(run_dir: Path, models: list[str] | None = None) -> str:
     return "\n".join(out)
 
 
-def render(run_dir: Path, *, fmt: str = "md", by: str = "bench", registry=None) -> str:
+def render(run_dir: Path, *, fmt: str = "md", by: str = "bench", registry=None,
+           include_derived: bool = False) -> str:
     models, benches, cells, cats = _collect(run_dir)
     bmeta = (registry.benchmarks if registry else {}) or {}
+    if not include_derived:
+        benches = [b for b in benches if not _is_derived_bench(b)]
 
     if by == "category":
         lines = []
@@ -126,7 +139,8 @@ def render(run_dir: Path, *, fmt: str = "md", by: str = "bench", registry=None) 
         return "\n".join(",".join(r) for r in [header, *rows])
     out = ["| " + " | ".join(header) + " |", "|---" * len(header) + "|"]
     out += ["| " + " | ".join(r) + " |" for r in rows]
-    n = sum(len(v) for v in cells.values())
+    shown = set(benches)
+    n = sum(len(v) for (m, b), v in cells.items() if b in shown)
     out.append(f"\n_{n} scored samples · run: {Path(run_dir).name}_")
     return "\n".join(out)
 
@@ -181,7 +195,7 @@ _CLASSIC_ENGINE_THROUGHPUT: dict[str, dict[str, float | None]] = {
 }
 
 # SKU pricing — verified LIVE 2026-07-09 via Vantage (instances.vantage.sh, on-demand,
-# us-east-1, Linux); same live-pricing convention as the Azure Foundry table above.
+# us-east-1, Linux); same live-pricing convention as the Azure Foundry table below.
 _CPU_VM_SKU = "AWS EC2 c6i.xlarge (4 vCPU, 8 GiB, no GPU)"
 _CPU_VM_USD_PER_HR = 0.17
 _CPU_VM_SOURCE = "https://instances.vantage.sh/aws/ec2/c6i.xlarge"
@@ -215,7 +229,7 @@ def render_cost(models: list[str] | None = None) -> str:
                         f"${_GPU_VM_USD_PER_HR / gpu_rate * 1000:.3f} |")
     out.append(
         "\n> ⚠️ **Read as a same-hardware relative comparison, not a cloud invoice** (same "
-        "caveat as the Azure Foundry table above). Throughput is single-stream on our "
+        "caveat as the Azure Foundry table below). Throughput is single-stream on our "
         f"**RTX 5090** ([findings/ws1-cpu-engines.md](findings/ws1-cpu-engines.md)); a real "
         "cloud CPU-VM or GPU-VM is slower, so actual $/page will be **higher** — these are "
         "optimistic floors. Batched throughput would lower $/page further (not measured for "
