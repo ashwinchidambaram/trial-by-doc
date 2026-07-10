@@ -107,6 +107,19 @@ def test_example_gold_match_reports_missing_on_failure(client):
     assert gm and gm["missing"] and gm["present"] == []
 
 
+def test_example_gold_match_none_for_nonextractive(client):
+    # Non-extractive (reasoning) QA items are excluded from b1 (b1 is None), so there is no
+    # score for the workbench to agree with — gold_match must be None (no misleading chips).
+    r = client.get("/api/example", params={
+        "run_id": "v1-baseline", "model": "olmocr2", "bench": "realdoc_qa",
+        "sample_id": "medical_healthcare_q1",
+    })
+    assert r.status_code == 200
+    body = r.json()
+    assert body["metrics"]["b1"] is None            # not extractive
+    assert body["gold_match"] is None
+
+
 def test_example_join_unknown_sample_404s(client):
     r = client.get("/api/example", params={
         "run_id": "v1-baseline", "model": "qwen25vl", "bench": "realdoc_qa",

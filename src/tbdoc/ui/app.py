@@ -174,8 +174,12 @@ def create_app(results_dir: str | Path = "results/runs",
         # Scorer-aligned value presence for the QA workbench: highlight the field VALUES the
         # b1 scorer credits and chip only the ones it counts missing (never the raw key=value
         # string, which the scorer never looks for). Keeps chip/highlight consistent with b1.
+        # Only for EXTRACTIVE items — non-extractive (reasoning) golds are excluded from b1
+        # (b1=None), so a "missing" chip there would imply a failure the scorer never graded.
+        extractive = ((raw or {}).get("metrics") or {}).get("extractive")
         gold_match = (uidata.qa_value_presence(pred_md, gold.get("answers") or [])
-                      if gold.get("kind") == "qa" and isinstance(pred_md, str) else None)
+                      if gold.get("kind") == "qa" and isinstance(pred_md, str) and extractive
+                      else None)
         return {
             "run_id": run_dir.name, "model": model, "bench": bench, "sample_id": sample_id,
             "category": (raw or {}).get("category"),
