@@ -101,6 +101,22 @@ def test_olmocr_bench_gold_is_unit_tests_with_pass_fail(client):
     assert isinstance(gold["tests"], list)
 
 
+def test_samples_and_example_reject_path_traversal(client):
+    # model/bench are joined into predictions/<model>/<bench>.jsonl — a traversal
+    # payload must be refused (400), not walked outside the results dir (review Critical #1).
+    traversal = "../../../../etc"
+    for route, params in [
+        ("/api/samples", {"run_id": "v1-baseline", "model": traversal, "bench": "x"}),
+        ("/api/samples", {"run_id": "v1-baseline", "model": "qwen25vl", "bench": traversal}),
+        ("/api/example", {"run_id": "v1-baseline", "model": traversal, "bench": "x",
+                          "sample_id": "s"}),
+        ("/api/example", {"run_id": "v1-baseline", "model": "qwen25vl", "bench": "..",
+                          "sample_id": "s"}),
+    ]:
+        r = client.get(route, params=params)
+        assert r.status_code == 400, f"{route} {params} → {r.status_code}"
+
+
 def test_gallery_gated_for_unspecified_license(client):
     # omnidocbench's license is "unspecified" (verified — no tag on the HF dataset card),
     # so the explorer gallery must refuse to serve thumbnails for it (spec §4.2/§4.3).

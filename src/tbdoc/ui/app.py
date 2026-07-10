@@ -21,9 +21,20 @@ from tbdoc.ui import runs as uiruns
 _STATIC_DIR = Path(__file__).parent / "static"
 
 
+def _safe_seg(value: str, label: str) -> str:
+    """Reject path traversal in a single path component (model/bench/run_id).
+
+    These strings are joined into filesystem paths (predictions/<model>/<bench>.jsonl,
+    raw/<model>/<bench>.jsonl). Without this guard a query like model="../../etc" walks
+    outside the results dir and reads arbitrary *.jsonl files (confirmed in review)."""
+    if not value or "/" in value or "\\" in value or value in (".", ".."):
+        raise HTTPException(400, f"invalid {label} {value!r}")
+    return value
+
+
 def _safe_run_dir(results_dir: Path, run_id: str | None) -> Path:
-    if run_id and ("/" in run_id or "\\" in run_id or run_id in (".", "..")):
-        raise HTTPException(400, f"invalid run_id {run_id!r}")
+    if run_id:
+        _safe_seg(run_id, "run_id")
     try:
         return uiruns.resolve_run(results_dir, run_id)
     except FileNotFoundError as e:
@@ -93,12 +104,16 @@ def create_app(results_dir: str | Path = "results/runs",
     @app.get("/api/samples")
     def api_samples(run_id: str | None, model: str, bench: str, limit: int = 200):
         run_dir = _safe_run_dir(results_dir, run_id)
+        model = _safe_seg(model, "model")
+        bench = _safe_seg(bench, "bench")
         return {"model": model, "bench": bench,
                 "sample_ids": uidata.sample_ids(run_dir, model, bench, limit=limit)}
 
     @app.get("/api/example")
     def api_example(run_id: str | None, model: str, bench: str, sample_id: str):
         run_dir = _safe_run_dir(results_dir, run_id)
+        model = _safe_seg(model, "model")
+        bench = _safe_seg(bench, "bench")
         pred = uidata.prediction_record(run_dir, model, bench, sample_id)
         raw = uidata.raw_record(run_dir, model, bench, sample_id)
         if pred is None and raw is None:
