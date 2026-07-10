@@ -19,10 +19,10 @@ from tbdoc.instruments.extractor import FunctionExtractor
 
 
 def test_score_phase_records_b1_primary(tmp_path: Path):
-    from tbdoc.runner.infer import PredictionStore
-    from tbdoc.core.checkpoint import CheckpointStore
-    from tbdoc.runner.score import run_score
     from tbdoc.benches.official.realdoc_qa import RealDocQA
+    from tbdoc.core.checkpoint import CheckpointStore
+    from tbdoc.runner.infer import PredictionStore
+    from tbdoc.runner.score import run_score
 
     preds = PredictionStore(tmp_path)
     preds.record("m1", "realdoc_qa", "q1", kind="structured_doc",

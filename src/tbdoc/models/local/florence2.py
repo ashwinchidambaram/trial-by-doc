@@ -49,7 +49,6 @@ resize_longest cap for huge merged_forms pages).
 from __future__ import annotations
 
 from tbdoc.core.model_adapter import LocalModelAdapter
-from tbdoc.core.registry import register_model
 from tbdoc.core.structured_doc import StructuredDoc, Telemetry
 from tbdoc.core.telemetry import track
 from tbdoc.models.local._vllm_base import load_image, resize_longest

@@ -7,6 +7,7 @@ venvs / Docker scorer containers instead (see benchmarks/_scorers/).
 from __future__ import annotations
 
 import math
+import re as _re
 
 
 def levenshtein(a: str, b: str) -> int:
@@ -136,8 +137,6 @@ def field_aware_exact_match(prediction: str, golds: list[str]) -> float:
 # ---- B.1 extraction fidelity (deterministic; no LLM) -------------------------------------------
 # "Did the OCR reproduce the gold field VALUES on the page?" Reuses the field parsing + tolerant
 # value matching from field_aware_exact_match, but searches the markdown instead of an answer.
-
-import re as _re
 
 _DERIVED_PAT = _re.compile(r"\b(how many|number of|count of|how much .*in total|total number)\b", _re.I)
 # Anonymization / template placeholders in the GOLD (e.g. RealDoc's «ID», «ApproveDate», <name>,

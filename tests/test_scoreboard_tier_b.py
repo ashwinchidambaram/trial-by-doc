@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from tbdoc.core.checkpoint import CheckpointStore
 from tbdoc.report.scoreboard import render_tier_b
 

@@ -1,4 +1,4 @@
-from tbdoc.scoring.scorers import is_extractive_gold, field_value_presence
+from tbdoc.scoring.scorers import field_value_presence, is_extractive_gold
 
 
 def test_numeric_value_present_exact_and_formatted():

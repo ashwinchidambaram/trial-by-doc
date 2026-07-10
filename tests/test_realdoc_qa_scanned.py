@@ -41,13 +41,13 @@ def test_light_and_heavy_images_differ_from_clean_and_each_other():
                                        entry={"level": "light"}))
     heavy = _first_n(RealDocQAScanned("realdoc_qa_scanned_heavy", data_dir=DATA_DIR,
                                        entry={"level": "heavy"}))
-    for c, l, h in zip(clean, light, heavy):
-        assert c.id == l.id == h.id
-        ac, al, ah = np.asarray(c.image), np.asarray(l.image), np.asarray(h.image)
+    for c, lt, h in zip(clean, light, heavy):
+        assert c.id == lt.id == h.id
+        ac, al, ah = np.asarray(c.image), np.asarray(lt.image), np.asarray(h.image)
         assert not np.array_equal(ac, al)
         assert not np.array_equal(ac, ah)
         assert not np.array_equal(al, ah)
-        assert l.meta["severity"] == "light"
+        assert lt.meta["severity"] == "light"
         assert h.meta["severity"] == "heavy"
 
 

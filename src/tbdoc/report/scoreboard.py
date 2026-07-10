@@ -9,6 +9,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from tbdoc.core.checkpoint import CheckpointStore
+from tbdoc.report import cost_tables as _cost
 
 
 def _collect(run_dir: Path):
@@ -185,7 +186,6 @@ def render_tier_b(run_dir, models=None):
 # --- CPU-vs-GPU cost table (classic OCR engines) -----------------------------------
 # All cost data now lives in report.cost_tables (single source of truth, shared with the
 # README Azure render and the dashboard /api/cost endpoint).
-from tbdoc.report import cost_tables as _cost
 
 
 def render_cost(models: list[str] | None = None) -> str:
