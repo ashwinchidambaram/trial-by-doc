@@ -1,55 +1,239 @@
 {
-  "updated_at": "2026-07-09T14:40:37",
+  "updated_at": "2026-07-09T19:33:01",
   "totals": {
-    "done": 75,
-    "total": 75,
+    "done": 2800,
+    "total": 2800,
     "pct": 100.0
   },
   "current": null,
   "cells": [
     {
-      "model": "tesseract",
-      "bench": "merged_forms",
-      "done": 15,
-      "total": 15,
-      "primary_mean": 0.3298,
+      "model": "deepseek_ocr",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.4507,
       "state": "done"
     },
     {
-      "model": "rapidocr",
-      "bench": "merged_forms",
-      "done": 15,
-      "total": 15,
-      "primary_mean": 0.2579,
+      "model": "deepseek_ocr",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.2609,
       "state": "done"
     },
     {
       "model": "doctr",
-      "bench": "merged_forms",
-      "done": 15,
-      "total": 15,
-      "primary_mean": 0.3361,
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.6603,
+      "state": "done"
+    },
+    {
+      "model": "doctr",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.3981,
+      "state": "done"
+    },
+    {
+      "model": "dots_ocr",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5852,
+      "state": "done"
+    },
+    {
+      "model": "dots_ocr",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.3863,
       "state": "done"
     },
     {
       "model": "easyocr",
-      "bench": "merged_forms",
-      "done": 15,
-      "total": 15,
-      "primary_mean": 0.3967,
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.4051,
+      "state": "done"
+    },
+    {
+      "model": "easyocr",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.1257,
+      "state": "done"
+    },
+    {
+      "model": "gemma4",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5859,
+      "state": "done"
+    },
+    {
+      "model": "gemma4",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.4508,
+      "state": "done"
+    },
+    {
+      "model": "got2",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.1485,
+      "state": "done"
+    },
+    {
+      "model": "got2",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.1074,
+      "state": "done"
+    },
+    {
+      "model": "granite_docling",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.0667,
+      "state": "done"
+    },
+    {
+      "model": "granite_docling",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.0148,
       "state": "done"
     },
     {
       "model": "kosmos25",
-      "bench": "merged_forms",
-      "done": 15,
-      "total": 15,
-      "primary_mean": 0.2039,
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5173,
+      "state": "done"
+    },
+    {
+      "model": "kosmos25",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.39,
+      "state": "done"
+    },
+    {
+      "model": "lightonocr",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.6024,
+      "state": "done"
+    },
+    {
+      "model": "lightonocr",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.408,
+      "state": "done"
+    },
+    {
+      "model": "olmocr2",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.6569,
+      "state": "done"
+    },
+    {
+      "model": "olmocr2",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5139,
+      "state": "done"
+    },
+    {
+      "model": "paddleocr_vl",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.4972,
+      "state": "done"
+    },
+    {
+      "model": "paddleocr_vl",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.3052,
+      "state": "done"
+    },
+    {
+      "model": "qwen25vl",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.6759,
+      "state": "done"
+    },
+    {
+      "model": "qwen25vl",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.4361,
+      "state": "done"
+    },
+    {
+      "model": "rapidocr",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.495,
+      "state": "done"
+    },
+    {
+      "model": "rapidocr",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.2609,
+      "state": "done"
+    },
+    {
+      "model": "tesseract",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.395,
+      "state": "done"
+    },
+    {
+      "model": "tesseract",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.1713,
       "state": "done"
     }
   ],
   "hardware": {
-    "captured_at": "2026-07-09T13:13:38",
+    "captured_at": "2026-07-09T16:37:50",
     "gpu": {
       "available": true,
       "name": "NVIDIA GeForce RTX 5090",
