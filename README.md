@@ -15,10 +15,16 @@ No LLM-as-judge anywhere. Every score is a deterministic algorithm; the only LLM
 the measurement path are **frozen instruments** (pinned revision, temp=0, seeded,
 identical for every model) and the scoreboard marks where they're used.
 
+**Contents:** [Scores](#scores) · [Benchmarks](#benchmarks) · [Scanned/faxed robustness](#scanned-and-faxed-robustness-tier-b-under-degradation) · [Example documents](#example-documents) · [Models](#models) · [What the harness is](#what-the-harness-actually-is) · [Setup](#setup) · [Hardware](#hardware) · [Gaps](#gaps) · [Credits](#attributions--credits)
+
 ## Scores
 
 > These numbers come from the `v1-baseline` run and are reproducible from its per-sample
 > records; regenerate the table any time with `gauntlet scoreboard --run-id v1-baseline`.
+>
+> **New here?** The columns below are per-tier primary scores — skim
+> [Benchmarks](#benchmarks) first for what Tier A / B / C actually measure, then the numbers
+> read straight. Higher is better everywhere; `—` means not applicable to that model.
 
 <!-- SCOREBOARD:BEGIN -->
 | model | realdoc_qa | omnidocbench | olmocr_bench | merged_forms |
@@ -125,6 +131,38 @@ Run `gauntlet scoreboard --tier-b` for the B.1/coverage/B.2 breakdown.
 Tier C publishes three **trivial-baseline floor rows** (every-page-boundary,
 no-boundary, pixel-diff) — a real model must beat all three; pixel-diff doubles as
 the seam-artifact canary for the synthesized data.
+
+### Scanned and faxed robustness (Tier B under degradation)
+
+Clean uploads and faxed/scanned copies are different production realities. We re-run the Tier-B
+extraction set through a **seeded scan-degradation pipeline** (benches `realdoc_qa_scanned_light`
+/ `_heavy`) and score **B.1** (deterministic, reader-independent) on each — so a drop reflects the
+*OCR* degrading, not a reader confound. The per-model robustness curve (full write-up:
+[findings/partd-scanned-robustness.md](findings/partd-scanned-robustness.md)):
+
+| model | clean | light | heavy | heavy retained |
+|---|---|---|---|---|
+| olmocr2 | 0.689 | 0.657 | 0.514 | 75% |
+| gemma4 | 0.564 | 0.586 | 0.451 | **80%** |
+| qwen25vl | 0.637 | 0.676 | 0.436 | 68% |
+| doctr | 0.682 | 0.660 | 0.398 | 58% |
+| dots_ocr | 0.549 | 0.585 | 0.386 | 70% |
+| kosmos25 | 0.565 | 0.517 | 0.390 | 69% |
+| lightonocr | 0.658 | 0.602 | 0.408 | 62% |
+| paddleocr_vl | 0.542 | 0.497 | 0.305 | 56% |
+| deepseek_ocr | 0.469 | 0.451 | 0.261 | 56% |
+| rapidocr | 0.499 | 0.495 | 0.261 | 52% |
+| tesseract | 0.580 | 0.395 | 0.171 | **29%** |
+| easyocr | 0.583 | 0.405 | 0.126 | **22%** |
+| got2 | 0.175 | 0.149 | 0.107 | 61% |
+| granite_docling | 0.035 | 0.067 | 0.015 | — (noise floor) |
+
+**Takeaway:** VLMs are markedly more scan-robust than classic OCR engines. Under heavy degradation
+olmocr2 and gemma4 keep 75–80% of clean extraction, while **tesseract and easyocr collapse to
+22–29%** — the classic engines that look competitive on clean digital text are brittle on
+scanned/faxed input. docTR is the exception (58% retained), so the split is really tesseract/easyocr,
+not "classic engines" as a class. Light degradation is largely absorbed; the cliff is at heavy.
+Each cell is n=100 — treat sub-0.03 gaps and the granite noise-floor row as directional.
 
 ### Example documents
 
