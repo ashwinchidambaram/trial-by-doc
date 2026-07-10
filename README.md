@@ -15,7 +15,7 @@ No LLM-as-judge anywhere. Every score is a deterministic algorithm; the only LLM
 the measurement path are **frozen instruments** (pinned revision, temp=0, seeded,
 identical for every model) and the scoreboard marks where they're used.
 
-**Contents:** [Scores](#scores) · [Benchmarks](#benchmarks) · [Scanned/faxed robustness](#scanned-and-faxed-robustness-tier-b-under-degradation) · [Example documents](#example-documents) · [Models](#models) · [What the harness is](#what-the-harness-actually-is) · [Setup](#setup) · [Hardware](#hardware) · [Gaps](#gaps) · [Credits](#attributions--credits)
+**Contents:** [Scores](#scores) · [Dashboard](#dashboard) · [Benchmarks](#benchmarks) · [Scanned/faxed robustness](#scanned-and-faxed-robustness-tier-b-under-degradation) · [Example documents](#example-documents) · [Models](#models) · [What the harness is](#what-the-harness-actually-is) · [Setup](#setup) · [Hardware](#hardware) · [Gaps](#gaps) · [Credits](#attributions--credits)
 
 ## Scores
 
@@ -98,6 +98,39 @@ _4199 scored samples · run: v1-baseline_
 > ⚠️ **Read as a same-hardware relative comparison, not a cloud invoice** (same caveat as the Azure Foundry table below). Throughput is single-stream on our **RTX 5090** ([findings/ws1-cpu-engines.md](findings/ws1-cpu-engines.md)); a real cloud CPU-VM or GPU-VM is slower, so actual $/page will be **higher** — these are optimistic floors. Batched throughput would lower $/page further (not measured for classic engines). SKU prices verified **2026-07-09** via Vantage (on-demand, us-east-1, Linux): [AWS EC2 c6i.xlarge (4 vCPU, 8 GiB, no GPU)](https://instances.vantage.sh/aws/ec2/c6i.xlarge) $0.17/hr · [AWS EC2 g5.xlarge (1x NVIDIA A10G, 24 GiB)](https://instances.vantage.sh/aws/ec2/g5.xlarge) $1.006/hr. Re-pin SKU prices + region before quoting.
 
 <!-- SCOREBOARD:END -->
+
+## Dashboard
+
+`gauntlet ui` serves a local, read-only dashboard over any run (localhost-only, never
+writes to `results/`) — three surfaces for the three questions you actually ask.
+
+**Decide** — the leaderboard, with per-column accuracy shading, gold column-leaders, the
+value frontier (which models are Pareto-optimal on accuracy vs. cost), speed / VRAM /
+`$`-per-1k-pages, and a scan-robustness flag. The accuracy-vs-cost scatter below makes the
+tradeoff literal — the dashed line is the frontier, everything below it is dominated.
+
+![Leaderboard cockpit](docs/ui/cockpit-dark.png)
+
+**Diagnose** — per example, every selected model side by side: the page image, each model's
+extracted markdown, and the ground truth, with gold values highlighted exactly where the
+scorer credits them. Sort worst-first to walk a model's failures. Here olmocr2 and tesseract
+both answer a form-field question correctly — `12800` highlighted where each transcribed it —
+while tesseract's diagram text visibly degrades.
+
+![Per-example workbench](docs/ui/workbench.png)
+
+**Explore** — every benchmark's tier, license, scorer, and sample count, with license-gated
+example thumbnails (redistributable datasets only) so you can see what each tier tests —
+degraded scans included (note the blurred `scanned_heavy` thumbnails).
+
+![Benchmark explorer](docs/ui/benches.png)
+
+```bash
+gauntlet ui                        # serve the latest run at http://127.0.0.1:8765
+gauntlet ui --run-id v1-baseline   # a specific run; the run picker switches live
+```
+
+The dashboard ships light and dark themes; every number matches `gauntlet scoreboard` exactly (it reuses the same readers, never re-deriving a metric).
 
 ## Benchmarks
 
