@@ -78,8 +78,9 @@ Tier B is split so the signal you care about is isolated:
   Each B.2 number in the [Scores](#scores) table below is stamped with the `reader` column that
   produced it. **The `v1-baseline` scoreboard predates the Phi-4-mini default switch** — its B.2
   column was scored with Qwen2.5-1.5B-Instruct (the reader in place at the time), not the current
-  default. Read those B.2 numbers as historical; they will be refreshed once the reader ladder is
-  re-run against the current baseline.
+  default. Read those B.2 numbers as historical: the same predictions have since been re-scored
+  with gpt-5.4-mini as the reader — see the [re-scored B.2 table](#tier-b-b2-re-scored-with-an-api-grade-reader)
+  under Scores (run `v1-b2-gpt5mini`, [findings/b2-gpt5mini-rescore.md](findings/b2-gpt5mini-rescore.md)).
 
 Run `gauntlet scoreboard --tier-b` for the B.1/coverage/B.2 breakdown.
 
@@ -168,6 +169,37 @@ _4199 scored samples · run: v1-baseline_
 > ⚠️ **Read as a same-hardware relative comparison, not a cloud invoice** (same caveat as the Azure Foundry table below). Throughput is single-stream on our **RTX 5090** ([findings/ws1-cpu-engines.md](findings/ws1-cpu-engines.md)); a real cloud CPU-VM or GPU-VM is slower, so actual $/page will be **higher** — these are optimistic floors. Batched throughput would lower $/page further (not measured for classic engines). SKU prices verified **2026-07-09** via Vantage (on-demand, us-east-1, Linux): [AWS EC2 c6i.xlarge (4 vCPU, 8 GiB, no GPU)](https://instances.vantage.sh/aws/ec2/c6i.xlarge) $0.17/hr · [AWS EC2 g5.xlarge (1x NVIDIA A10G, 24 GiB)](https://instances.vantage.sh/aws/ec2/g5.xlarge) $1.006/hr. Re-pin SKU prices + region before quoting.
 
 <!-- SCOREBOARD:END -->
+
+### Tier-B B.2, re-scored with an API-grade reader
+
+The B.2 column above is historical (scored with the small Qwen2.5-1.5B reader — see
+[Tier B in detail](#tier-b-in-detail-b1-extraction-vs-b2-comprehension)). The exact same
+OCR predictions were re-scored with **gpt-5.4-mini** as the reader (run `v1-b2-gpt5mini`;
+B.1 is byte-identical between the two runs, so every B.2 change is the reader alone):
+
+| model | B.1 extract | B.2 (Qwen2.5-1.5B, historical) | B.2 (gpt-5.4-mini) |
+|---|---|---|---|
+| olmocr2 | 0.689 | 0.130 | **0.500** |
+| qwen25vl | 0.637 | 0.140 | 0.470 |
+| dots_ocr | 0.549 | 0.130 | 0.450 |
+| doctr | 0.682 | 0.100 | 0.390 |
+| lightonocr | 0.658 | 0.130 | 0.370 |
+| tesseract | 0.580 | 0.110 | 0.350 |
+| paddleocr_vl | 0.542 | 0.090 | 0.320 |
+| easyocr | 0.583 | 0.090 | 0.270 |
+| rapidocr | 0.499 | 0.060 | 0.260 |
+| gemma4 | 0.564 | 0.050 | 0.230 |
+| deepseek_ocr | 0.469 | 0.080 | 0.220 |
+| kosmos25 | 0.565 | 0.070 | 0.210 |
+| granite_docling | 0.035 | 0.000 | 0.040 |
+| got2 | 0.175 | 0.010 | 0.030 |
+
+With a capable reader the B.2 leader flips to **olmocr2** — matching its B.1 lead — and
+B.2 agrees better with B.1 overall (Spearman 0.71 → 0.78). The mean lifts ~3.5×
+(0.085 → 0.294): a weak reader doesn't just lower B.2, it floors out most of the
+model-to-model signal. Full method and takeaways:
+[findings/b2-gpt5mini-rescore.md](findings/b2-gpt5mini-rescore.md); reproduce with
+`gauntlet scoreboard --tier-b --run-id v1-b2-gpt5mini`.
 
 ## Dashboard
 
