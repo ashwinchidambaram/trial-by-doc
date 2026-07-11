@@ -1,0 +1,169 @@
+{
+  "updated_at": "2026-07-10T10:05:11",
+  "totals": {
+    "done": 1400,
+    "total": 1400,
+    "pct": 100.0
+  },
+  "current": null,
+  "cells": [
+    {
+      "model": "deepseek_ocr",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.4693,
+      "state": "done"
+    },
+    {
+      "model": "easyocr",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5827,
+      "state": "done"
+    },
+    {
+      "model": "tesseract",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5799,
+      "state": "done"
+    },
+    {
+      "model": "lightonocr",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.658,
+      "state": "done"
+    },
+    {
+      "model": "paddleocr_vl",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5419,
+      "state": "done"
+    },
+    {
+      "model": "rapidocr",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.4989,
+      "state": "done"
+    },
+    {
+      "model": "doctr",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.682,
+      "state": "done"
+    },
+    {
+      "model": "qwen25vl",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.6367,
+      "state": "done"
+    },
+    {
+      "model": "granite_docling",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.0352,
+      "state": "done"
+    },
+    {
+      "model": "gemma4",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5644,
+      "state": "done"
+    },
+    {
+      "model": "olmocr2",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.6891,
+      "state": "done"
+    },
+    {
+      "model": "dots_ocr",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5485,
+      "state": "done"
+    },
+    {
+      "model": "got2",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.1754,
+      "state": "done"
+    },
+    {
+      "model": "kosmos25",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5646,
+      "state": "done"
+    }
+  ],
+  "hardware": {
+    "captured_at": "2026-07-10T09:43:57",
+    "gpu": {
+      "available": true,
+      "name": "NVIDIA GeForce RTX 5090",
+      "vram_gb": 33.7,
+      "capability": [
+        12,
+        0
+      ],
+      "arch": "sm_120",
+      "driver_version": "595.71.05",
+      "supported_arch_list": [
+        "sm_75",
+        "sm_80",
+        "sm_86",
+        "sm_90",
+        "sm_100",
+        "sm_120"
+      ]
+    },
+    "cuda": {
+      "torch_cuda_build": "13.0",
+      "toolkit_home": "/home/ashwinc/cuda-13.3",
+      "toolkit_path": "/home/ashwinc/cuda-13.3",
+      "nvcc_version": "13.3",
+      "nvcc_present": true,
+      "note": "standalone CUDA toolkit, build-time only (JIT compile for FlashInfer/deepseek); torch runtime stays at torch_cuda_build. Lives outside the repo \u2014 see findings/S7-cuda-toolkit.md."
+    },
+    "software": {
+      "python": "3.12.13",
+      "torch": "2.11.0+cu130",
+      "torchvision": "0.26.0+cu130",
+      "triton": "3.6.0",
+      "vllm": "0.22.1",
+      "transformers": "5.11.0",
+      "datasets": null,
+      "accelerate": "1.14.0",
+      "huggingface_hub": "1.22.0"
+    },
+    "system": {
+      "os": "Linux",
+      "kernel": "7.0.0-27-generic",
+      "cpu_count": 24
+    }
+  }
+}
