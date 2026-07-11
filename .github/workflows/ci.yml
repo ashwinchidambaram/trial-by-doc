@@ -9,6 +9,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
       - run: uv python install 3.12
-      - run: uv sync --extra dev
+      # ui extra needed so tests/test_ui_routes.py survives collection (its tests
+      # self-skip in CI — the v1-baseline raw/ dir it needs is gitignored).
+      - run: uv sync --extra dev --extra ui
       - run: uv run ruff check src tests
       - run: uv run pytest -q
