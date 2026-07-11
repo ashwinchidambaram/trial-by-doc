@@ -1,0 +1,15 @@
+model,realdoc_qa
+deepseek_ocr,0.4693
+easyocr,0.5827
+tesseract,0.5799
+lightonocr,0.658
+paddleocr_vl,0.5419
+rapidocr,0.4989
+doctr,0.682
+qwen25vl,0.6367
+granite_docling,0.0352
+gemma4,0.5644
+olmocr2,0.6891
+dots_ocr,0.5485
+got2,0.1754
+kosmos25,0.5646

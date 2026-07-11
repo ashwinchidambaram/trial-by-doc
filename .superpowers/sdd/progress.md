@@ -112,3 +112,37 @@ RULE: strictly SEQUENTIAL subagents; confirm prior fully dead before next; don't
 - [pending] B reader upgrade
 - [pending] C2 auto-inject
 - [pending] C3 dashboard UI
+
+## Salvaged from tier-b-split worktree (uncommitted 2026-07-08 session notes; recovered 2026-07-11 before worktree removal)
+NOTE: chronologically these precede the 2026-07-09 roster-expansion entries above; the granite blocker and batch order they describe were since resolved (option (a) — granite Tier-C N/A — was taken; batch order completed through the Azure cost column). Kept for the OOM root-cause lesson.
+
+
+B.1 REAL-DATA VALIDATION (got2+olmocr2 v1 preds, no GPU): B.1 discriminates ~4x (olmocr2 0.69 / got2 0.18), ~92% coverage. Gold buckets: 73% clean, 19% boolean, 0.07% placeholder(1). Added placeholder guard to is_extractive_gold (low-impact but correct). Earlier "17 placeholders" was a buggy-regex artifact — corrected. B.2+C validation still pending GPU (v1 running).
+
+POST-V1 BATCH ORDER (owner-confirmed):
+  1. got2 B.2/C smoke (validate reader+judge on fastest model)
+  2. merge tier-b-split -> main
+  3. all 8 models through B.1/B.2/C
+  4. THEN prep + run Gemma-4 adapter (contender #9, all tiers) — owner: AFTER the 3 tiers finish on current roster
+     - Gemma4 feasible on pinned stack (vLLM 0.22.1 has gemma4_mm + Gemma4ForConditionalGeneration; transformers 5.11 has gemma4). Verify vision-capable variant (E4B-it likely; 12B-it may be text-only "Unified") + sm_120 load smoke at wire-in.
+  5. batched-throughput measurement + Azure Foundry Managed Compute cost column (both single-stream + batched)
+  6. owner verification pass before push
+GATED on v1 inference completing (7/8, granite ~252/315 then lightonocr).
+
+=== V1 OOM INCIDENT + GRANITE BLOCKER (2026-07-08 ~18:31, recovery in progress) ===
+ROOT CAUSE: global OOM. My interim Tier-A score job (omnidocbench TEDS, ~43GB RSS) ran CONCURRENTLY
+  with granite processing a memory-heavy merged_forms stream (~38GB) → 81GB > 61GB RAM → kernel
+  OOM-killed the v1 --profile full driver (pid 2006352) at 18:31. LESSON: never run the RAM-heavy
+  omnidocbench scorer concurrently with RAM-heavy local inference.
+GRANITE BLOCKER (needs owner decision): merged_forms stream_010 renders a ~145-megapixel source
+  page (DecompressionBomb). granite_docling uses the TRANSFORMERS backend (no internal image resize),
+  so its processor balloons to ~43GB RAM + pins 1 CPU core for 10+ min with NO GPU progress on that
+  single image. The other 7 models are vLLM (resize internally) and handled the stream fine.
+  granite stuck at 310/315 (merged_forms 10/15; last good = stream_009).
+  OPTIONS: (a) skip granite×merged_forms, mark Tier-C N/A (honest HW limit) — cleanest, keeps
+  granite Tier-A+B; (b) clamp granite input pixels (downsize huge pages) — gets a number but inputs
+  inconsistent w/ other 7 (fairness asterisk); (c) uniform pixel cap for ALL 8 → redo everyone's
+  merged_forms (most consistent, most work). Recommend (a) now, (b) as documented follow-up.
+RECOVERY: relaunched TARGETED `gauntlet run --run-id v1-baseline -m lightonocr` (vLLM, safe) to
+  finish the last model. Interim score job had already COMPLETED (scored:315, 0 err) before kill.
+  Final full 8-model score phase deferred until granite decision made.
