@@ -12,7 +12,9 @@ from pathlib import Path
 
 
 def _is_run_dir(p: Path) -> bool:
-    return p.is_dir() and (p / "raw").is_dir()
+    # raw/ = a locally scored run; summary.json = a published run on a fresh clone
+    # (raw/ and predictions/ are gitignored — tracked aggregates still render).
+    return p.is_dir() and ((p / "raw").is_dir() or (p / "summary.json").is_file())
 
 
 def list_run_ids(results_dir: str | Path) -> list[str]:
@@ -31,7 +33,8 @@ def resolve_run(results_dir: str | Path, run_id: str | None) -> Path:
     if run_id:
         run_dir = root / run_id
         if not _is_run_dir(run_dir):
-            raise FileNotFoundError(f"no scored run '{run_id}' under {root} (no raw/ subdir)")
+            raise FileNotFoundError(
+                f"no scored run '{run_id}' under {root} (no raw/ subdir or summary.json)")
         return run_dir
     ids = list_run_ids(root)
     if not ids:

@@ -1,15 +1,21 @@
 """Scoreboard rendering: per-model × per-bench primary means, provenance-labeled.
 
-Data source: results/runs/<id>/raw/*.jsonl via CheckpointStore (the source of truth),
-not scoreboard.csv (which is derived).
+Data source: results/runs/<id>/raw/*.jsonl via CheckpointStore (the source of truth).
+When raw/ is absent (a fresh clone of a published run — raw/ and predictions/ are
+gitignored), rendering falls back to the tracked summary.json aggregates written by
+`write_summary()` at score time, with a visible provenance note. scoreboard.csv stays
+derived-only and is never read back.
 """
 from __future__ import annotations
 
+import json
 from collections import defaultdict
 from pathlib import Path
 
 from tbdoc.core.checkpoint import CheckpointStore
 from tbdoc.report import cost_tables as _cost
+
+SUMMARY_NOTE = "_rendered from tracked summary.json (per-sample records not present in this clone)_"
 
 
 def _collect(run_dir: Path):
@@ -36,6 +42,47 @@ def _collect(run_dir: Path):
 
 def _mean(vals: list[float]) -> str:
     return f"{sum(vals)/len(vals):.3f}" if vals else "—"
+
+
+def _stat(vals: list[float]) -> dict:
+    return {"mean": (sum(vals) / len(vals)) if vals else None, "n": len(vals)}
+
+
+def _fmt_stat(s: dict | None) -> str:
+    return f"{s['mean']:.3f}" if s and s.get("n") and s.get("mean") is not None else "—"
+
+
+def load_summary(run_dir: Path) -> dict | None:
+    p = Path(run_dir) / "summary.json"
+    if not p.exists():
+        return None
+    try:
+        return json.loads(p.read_text())
+    except Exception:
+        return None
+
+
+def collect_grid(run_dir: Path):
+    """(models, benches, cell_stats, cat_stats, from_summary) from raw records, falling
+    back to the tracked summary.json when no per-sample records exist in this clone.
+
+    Raises FileNotFoundError when the run has neither — an empty table with exit 0
+    silently misled fresh-clone users once; never again.
+    """
+    models, benches, cells, cats = _collect(run_dir)
+    if models:
+        cell_stats = {k: _stat(v) for k, v in cells.items()}
+        cat_stats = {k: _stat(v) for k, v in cats.items()}
+        return models, benches, cell_stats, cat_stats, False
+    s = load_summary(run_dir)
+    if s:
+        cell_stats = {tuple(k.split("|", 1)): v for k, v in (s.get("cells") or {}).items()}
+        cat_stats = {tuple(k.split("|", 2)): v for k, v in (s.get("categories") or {}).items()}
+        return list(s.get("models") or []), list(s.get("benches") or []), cell_stats, cat_stats, True
+    raise FileNotFoundError(
+        f"run '{Path(run_dir).name}' has no per-sample records (raw/ is gitignored and absent "
+        "in this clone) and no tracked summary.json — regenerate one where raw/ exists with "
+        "`gauntlet scoreboard --run-id <id> --write-summary`")
 
 
 def _is_derived_bench(b: str) -> bool:
@@ -93,8 +140,19 @@ def _perf(run_dir: Path):
     return out
 
 
-def render_perf(run_dir: Path, models: list[str] | None = None) -> str:
+def perf_stats(run_dir: Path) -> tuple[dict, bool]:
+    """Per-model perf aggregates from prediction telemetry, else the tracked summary.json."""
     perf = _perf(run_dir)
+    if perf:
+        return perf, False
+    s = load_summary(run_dir)
+    if s and s.get("perf"):
+        return s["perf"], True
+    return {}, False
+
+
+def render_perf(run_dir: Path, models: list[str] | None = None) -> str:
+    perf, from_summary = perf_stats(run_dir)
     order = [m for m in (models or perf) if m in perf]
     if not order:
         return "_no timing telemetry_"
@@ -107,12 +165,14 @@ def render_perf(run_dir: Path, models: list[str] | None = None) -> str:
         cost = f"${p['cost_per_page_usd']}" if p["cost_per_page_usd"] else "—"
         out.append(f"| {m} | {p['median_s']} | {p['mean_s']} | {p['p90_s']} | {vram} | {cost} |")
     out.append("\n_peak VRAM — = no GPU used (CPU engine or API-hosted); $/page — = local model (electricity not priced)._")
+    if from_summary:
+        out.append(SUMMARY_NOTE)
     return "\n".join(out)
 
 
 def render(run_dir: Path, *, fmt: str = "md", by: str = "bench", registry=None,
            include_derived: bool = False) -> str:
-    models, benches, cells, cats = _collect(run_dir)
+    models, benches, cells, cats, from_summary = collect_grid(run_dir)
     bmeta = (registry.benchmarks if registry else {}) or {}
     if not include_derived:
         benches = [b for b in benches if not _is_derived_bench(b)]
@@ -128,7 +188,7 @@ def render(run_dir: Path, *, fmt: str = "md", by: str = "bench", registry=None,
             lines.append("|---" * (len(keys) + 1) + "|")
             for m in models:
                 lines.append(f"| {m} | " + " | ".join(
-                    _mean(cats.get((m, b, c), [])) for c in keys) + " |")
+                    _fmt_stat(cats.get((m, b, c))) for c in keys) + " |")
         return "\n".join(lines) or "no per-category data"
 
     def col_label(b: str) -> str:
@@ -137,14 +197,16 @@ def render(run_dir: Path, *, fmt: str = "md", by: str = "bench", registry=None,
         return b + (tag if by in ("provenance", "tier") else "")
 
     header = ["model", *[col_label(b) for b in benches]]
-    rows = [[m, *[_mean(cells.get((m, b), [])) for b in benches]] for m in models]
+    rows = [[m, *[_fmt_stat(cells.get((m, b))) for b in benches]] for m in models]
     if fmt == "csv":
         return "\n".join(",".join(r) for r in [header, *rows])
     out = ["| " + " | ".join(header) + " |", "|---" * len(header) + "|"]
     out += ["| " + " | ".join(r) + " |" for r in rows]
     shown = set(benches)
-    n = sum(len(v) for (m, b), v in cells.items() if b in shown)
+    n = sum(s["n"] for (m, b), s in cells.items() if b in shown)
     out.append(f"\n_{n} scored samples · run: {Path(run_dir).name}_")
+    if from_summary:
+        out.append(SUMMARY_NOTE)
     return "\n".join(out)
 
 
@@ -170,18 +232,38 @@ def _collect_tier_b(run_dir):
     return per
 
 
-def render_tier_b(run_dir, models=None):
+def tier_b_stats(run_dir) -> tuple[dict, bool]:
+    """Per-model Tier-B aggregates: {model: {b1, n_extractive, n_total, b2, reader}} —
+    from raw records, else the tracked summary.json (from_summary flag says which)."""
     per = _collect_tier_b(run_dir)
+    if per:
+        out = {}
+        for m, d in per.items():
+            out[m] = {"b1": (sum(d["b1"]) / len(d["b1"])) if d["b1"] else None,
+                      "n_extractive": d["n_extractive"], "n_total": d["n_total"],
+                      "b2": (sum(d["b2"]) / len(d["b2"])) if d["b2"] else None,
+                      "reader": d["reader"]}
+        return out, False
+    s = load_summary(run_dir)
+    if s and s.get("tier_b"):
+        return s["tier_b"], True
+    return {}, False
+
+
+def render_tier_b(run_dir, models=None):
+    per, from_summary = tier_b_stats(run_dir)
     order = [m for m in (models or per) if m in per]
     if not order:
         return "_no Tier-B records_"
     out = ["| model | B.1 extract | coverage | B.2 comp | reader |", "|---|---|---|---|---|"]
     for m in order:
         d = per[m]
-        b1 = f"{sum(d['b1'])/len(d['b1']):.3f}" if d["b1"] else "—"
+        b1 = f"{d['b1']:.3f}" if d["b1"] is not None else "—"
         cov = f"{d['n_extractive']}/{d['n_total']}"
-        b2 = f"{sum(d['b2'])/len(d['b2']):.3f}" if d["b2"] else "—"
+        b2 = f"{d['b2']:.3f}" if d["b2"] is not None else "—"
         out.append(f"| {m} | {b1} | {cov} | {b2} | {d['reader'] or '—'} |")
+    if from_summary:
+        out.append("\n" + SUMMARY_NOTE)
     return "\n".join(out)
 
 
@@ -213,6 +295,43 @@ def render_cost(models: list[str] | None = None) -> str:
         "region before quoting."
     )
     return "\n".join(out)
+
+
+def write_summary(run_dir: Path) -> Path | None:
+    """Write the TRACKED summary.json for a run: every aggregate the scoreboard/UI can
+    render (cell means incl. derived benches, per-category means, Tier-B, perf) so a
+    fresh clone — where raw/ and predictions/ are gitignored — can still render and
+    compare against published runs. Merged with any existing summary (an invocation on
+    a machine holding only part of the run's raw data must not drop the rest).
+    Returns None (writes nothing) when the run has no records at all."""
+    run_dir = Path(run_dir)
+    models, benches, cells, cats = _collect(run_dir)
+    if not models:
+        return None
+    tier_b, _ = tier_b_stats(run_dir)
+    perf = _perf(run_dir)
+    from datetime import datetime
+    new = {
+        "run_id": run_dir.name,
+        "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "note": ("derived aggregates from per-sample records (raw/ + predictions/, "
+                 "gitignored); tracked so fresh clones can render this run"),
+        "models": models,
+        "benches": benches,
+        "cells": {f"{m}|{b}": _stat(v) for (m, b), v in cells.items()},
+        "categories": {f"{m}|{b}|{c}": _stat(v) for (m, b, c), v in cats.items()},
+        "tier_b": tier_b,
+        "perf": perf,
+    }
+    old = load_summary(run_dir) or {}
+    if old:
+        for key in ("cells", "categories", "tier_b", "perf"):
+            new[key] = {**(old.get(key) or {}), **new[key]}
+        for key in ("models", "benches"):
+            new[key] = [x for x in (old.get(key) or []) if x not in new[key]] + new[key]
+    p = run_dir / "summary.json"
+    p.write_text(json.dumps(new, indent=2))
+    return p
 
 
 README_BEGIN, README_END = "<!-- SCOREBOARD:BEGIN -->", "<!-- SCOREBOARD:END -->"

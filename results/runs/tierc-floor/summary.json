@@ -1,0 +1,68 @@
+{
+  "run_id": "tierc-floor",
+  "generated_at": "2026-07-11T17:38:34",
+  "note": "derived aggregates from per-sample records (raw/ + predictions/, gitignored); tracked so fresh clones can render this run",
+  "models": [
+    "baseline_every_page",
+    "baseline_no_boundary",
+    "baseline_pixel_diff"
+  ],
+  "benches": [
+    "merged_forms"
+  ],
+  "cells": {
+    "baseline_every_page|merged_forms": {
+      "mean": 0.0,
+      "n": 5
+    },
+    "baseline_no_boundary|merged_forms": {
+      "mean": 0.0,
+      "n": 5
+    },
+    "baseline_pixel_diff|merged_forms": {
+      "mean": 0.22596,
+      "n": 5
+    }
+  },
+  "categories": {
+    "baseline_every_page|merged_forms|tax_forms_sd2": {
+      "mean": 0.0,
+      "n": 5
+    },
+    "baseline_no_boundary|merged_forms|tax_forms_sd2": {
+      "mean": 0.0,
+      "n": 5
+    },
+    "baseline_pixel_diff|merged_forms|tax_forms_sd2": {
+      "mean": 0.22596,
+      "n": 5
+    }
+  },
+  "tier_b": {},
+  "perf": {
+    "baseline_every_page": {
+      "n": 5,
+      "median_s": 0.0,
+      "mean_s": 0.0,
+      "p90_s": 0.0,
+      "peak_vram_gb": null,
+      "cost_per_page_usd": null
+    },
+    "baseline_no_boundary": {
+      "n": 5,
+      "median_s": 0.0,
+      "mean_s": 0.0,
+      "p90_s": 0.0,
+      "peak_vram_gb": null,
+      "cost_per_page_usd": null
+    },
+    "baseline_pixel_diff": {
+      "n": 5,
+      "median_s": 0.0,
+      "mean_s": 0.0,
+      "p90_s": 0.0,
+      "peak_vram_gb": null,
+      "cost_per_page_usd": null
+    }
+  }
+}

@@ -1,0 +1,2255 @@
+{
+  "run_id": "v1-baseline",
+  "generated_at": "2026-07-11T17:38:34",
+  "note": "derived aggregates from per-sample records (raw/ + predictions/, gitignored); tracked so fresh clones can render this run",
+  "models": [
+    "deepseek_ocr",
+    "easyocr",
+    "tesseract",
+    "lightonocr",
+    "paddleocr_vl",
+    "rapidocr",
+    "doctr",
+    "qwen25vl",
+    "granite_docling",
+    "gemma4",
+    "olmocr2",
+    "dots_ocr",
+    "got2",
+    "kosmos25"
+  ],
+  "benches": [
+    "realdoc_qa_scanned_heavy",
+    "realdoc_qa",
+    "omnidocbench",
+    "realdoc_qa_scanned_light",
+    "olmocr_bench",
+    "merged_forms"
+  ],
+  "cells": {
+    "deepseek_ocr|realdoc_qa_scanned_heavy": {
+      "mean": 0.26092592592592595,
+      "n": 90
+    },
+    "deepseek_ocr|realdoc_qa": {
+      "mean": 0.46925925925925926,
+      "n": 90
+    },
+    "deepseek_ocr|omnidocbench": {
+      "mean": 0.8203477205015672,
+      "n": 96
+    },
+    "deepseek_ocr|realdoc_qa_scanned_light": {
+      "mean": 0.4507407407407408,
+      "n": 90
+    },
+    "deepseek_ocr|olmocr_bench": {
+      "mean": 0.703896106976515,
+      "n": 100
+    },
+    "deepseek_ocr|merged_forms": {
+      "mean": 0.05076666666666666,
+      "n": 15
+    },
+    "easyocr|realdoc_qa_scanned_heavy": {
+      "mean": 0.12574074074074074,
+      "n": 90
+    },
+    "easyocr|realdoc_qa": {
+      "mean": 0.5826851851851852,
+      "n": 90
+    },
+    "easyocr|omnidocbench": {
+      "mean": 0.4825189484389422,
+      "n": 96
+    },
+    "easyocr|realdoc_qa_scanned_light": {
+      "mean": 0.4050925925925926,
+      "n": 90
+    },
+    "easyocr|olmocr_bench": {
+      "mean": 0.16186290322580646,
+      "n": 100
+    },
+    "easyocr|merged_forms": {
+      "mean": 0.39672666666666667,
+      "n": 15
+    },
+    "tesseract|realdoc_qa_scanned_heavy": {
+      "mean": 0.17129629629629628,
+      "n": 90
+    },
+    "tesseract|realdoc_qa": {
+      "mean": 0.5799074074074074,
+      "n": 90
+    },
+    "tesseract|omnidocbench": {
+      "mean": 0.5069461226792442,
+      "n": 96
+    },
+    "tesseract|realdoc_qa_scanned_light": {
+      "mean": 0.39499999999999996,
+      "n": 90
+    },
+    "tesseract|olmocr_bench": {
+      "mean": 0.2956992183970362,
+      "n": 100
+    },
+    "tesseract|merged_forms": {
+      "mean": 0.32975333333333334,
+      "n": 15
+    },
+    "lightonocr|realdoc_qa_scanned_heavy": {
+      "mean": 0.40796296296296297,
+      "n": 90
+    },
+    "lightonocr|realdoc_qa": {
+      "mean": 0.657962962962963,
+      "n": 90
+    },
+    "lightonocr|omnidocbench": {
+      "mean": 0.7255440882589456,
+      "n": 96
+    },
+    "lightonocr|realdoc_qa_scanned_light": {
+      "mean": 0.6024074074074074,
+      "n": 90
+    },
+    "lightonocr|olmocr_bench": {
+      "mean": 0.6749354434833562,
+      "n": 100
+    },
+    "lightonocr|merged_forms": {
+      "mean": 0.14241333333333334,
+      "n": 15
+    },
+    "paddleocr_vl|realdoc_qa_scanned_heavy": {
+      "mean": 0.30518518518518517,
+      "n": 90
+    },
+    "paddleocr_vl|realdoc_qa": {
+      "mean": 0.5418518518518518,
+      "n": 90
+    },
+    "paddleocr_vl|omnidocbench": {
+      "mean": 0.6601362559665079,
+      "n": 96
+    },
+    "paddleocr_vl|realdoc_qa_scanned_light": {
+      "mean": 0.49722222222222223,
+      "n": 90
+    },
+    "paddleocr_vl|olmocr_bench": {
+      "mean": 0.34533877744646246,
+      "n": 100
+    },
+    "paddleocr_vl|merged_forms": {
+      "mean": 0.06293333333333333,
+      "n": 15
+    },
+    "rapidocr|realdoc_qa_scanned_heavy": {
+      "mean": 0.26092592592592595,
+      "n": 90
+    },
+    "rapidocr|realdoc_qa": {
+      "mean": 0.4988888888888889,
+      "n": 90
+    },
+    "rapidocr|omnidocbench": {
+      "mean": 0.6421231555538812,
+      "n": 96
+    },
+    "rapidocr|realdoc_qa_scanned_light": {
+      "mean": 0.495,
+      "n": 90
+    },
+    "rapidocr|olmocr_bench": {
+      "mean": 0.16300537634408602,
+      "n": 100
+    },
+    "rapidocr|merged_forms": {
+      "mean": 0.25792000000000004,
+      "n": 15
+    },
+    "doctr|realdoc_qa_scanned_heavy": {
+      "mean": 0.3981481481481482,
+      "n": 90
+    },
+    "doctr|realdoc_qa": {
+      "mean": 0.682037037037037,
+      "n": 90
+    },
+    "doctr|omnidocbench": {
+      "mean": 0.5106886985743414,
+      "n": 96
+    },
+    "doctr|realdoc_qa_scanned_light": {
+      "mean": 0.6602777777777777,
+      "n": 90
+    },
+    "doctr|olmocr_bench": {
+      "mean": 0.1854527649769585,
+      "n": 100
+    },
+    "doctr|merged_forms": {
+      "mean": 0.3361133333333333,
+      "n": 15
+    },
+    "qwen25vl|realdoc_qa_scanned_heavy": {
+      "mean": 0.4361111111111111,
+      "n": 90
+    },
+    "qwen25vl|realdoc_qa": {
+      "mean": 0.6366666666666666,
+      "n": 90
+    },
+    "qwen25vl|omnidocbench": {
+      "mean": 0.7358021229085406,
+      "n": 96
+    },
+    "qwen25vl|realdoc_qa_scanned_light": {
+      "mean": 0.6759259259259259,
+      "n": 90
+    },
+    "qwen25vl|olmocr_bench": {
+      "mean": 0.7014870335230867,
+      "n": 100
+    },
+    "qwen25vl|merged_forms": {
+      "mean": 0.017993333333333337,
+      "n": 15
+    },
+    "granite_docling|realdoc_qa_scanned_heavy": {
+      "mean": 0.014814814814814814,
+      "n": 90
+    },
+    "granite_docling|realdoc_qa": {
+      "mean": 0.03518518518518518,
+      "n": 90
+    },
+    "granite_docling|omnidocbench": {
+      "mean": 0.1028341014180388,
+      "n": 96
+    },
+    "granite_docling|realdoc_qa_scanned_light": {
+      "mean": 0.06666666666666667,
+      "n": 90
+    },
+    "granite_docling|olmocr_bench": {
+      "mean": 0.1790595238095238,
+      "n": 100
+    },
+    "gemma4|realdoc_qa_scanned_heavy": {
+      "mean": 0.45083333333333336,
+      "n": 90
+    },
+    "gemma4|realdoc_qa": {
+      "mean": 0.5643518518518518,
+      "n": 90
+    },
+    "gemma4|omnidocbench": {
+      "mean": 0.7058961046061286,
+      "n": 96
+    },
+    "gemma4|realdoc_qa_scanned_light": {
+      "mean": 0.585925925925926,
+      "n": 90
+    },
+    "gemma4|olmocr_bench": {
+      "mean": 0.4139178998578904,
+      "n": 100
+    },
+    "gemma4|merged_forms": {
+      "mean": 0.15658,
+      "n": 15
+    },
+    "olmocr2|realdoc_qa_scanned_heavy": {
+      "mean": 0.5138888888888888,
+      "n": 90
+    },
+    "olmocr2|realdoc_qa": {
+      "mean": 0.6890740740740741,
+      "n": 90
+    },
+    "olmocr2|omnidocbench": {
+      "mean": 0.8282454054795498,
+      "n": 96
+    },
+    "olmocr2|realdoc_qa_scanned_light": {
+      "mean": 0.6568518518518519,
+      "n": 90
+    },
+    "olmocr2|olmocr_bench": {
+      "mean": 0.8362118888122209,
+      "n": 100
+    },
+    "olmocr2|merged_forms": {
+      "mean": 0.06968666666666667,
+      "n": 15
+    },
+    "dots_ocr|realdoc_qa_scanned_heavy": {
+      "mean": 0.3862962962962963,
+      "n": 90
+    },
+    "dots_ocr|realdoc_qa": {
+      "mean": 0.5485185185185185,
+      "n": 90
+    },
+    "dots_ocr|omnidocbench": {
+      "mean": 0.8971818858434114,
+      "n": 96
+    },
+    "dots_ocr|realdoc_qa_scanned_light": {
+      "mean": 0.5851851851851851,
+      "n": 90
+    },
+    "dots_ocr|olmocr_bench": {
+      "mean": 0.7337006764582666,
+      "n": 100
+    },
+    "dots_ocr|merged_forms": {
+      "mean": 0.005926666666666667,
+      "n": 15
+    },
+    "got2|realdoc_qa_scanned_heavy": {
+      "mean": 0.1074074074074074,
+      "n": 90
+    },
+    "got2|realdoc_qa": {
+      "mean": 0.17537037037037037,
+      "n": 90
+    },
+    "got2|omnidocbench": {
+      "mean": 0.6381637366634824,
+      "n": 96
+    },
+    "got2|realdoc_qa_scanned_light": {
+      "mean": 0.14851851851851852,
+      "n": 90
+    },
+    "got2|olmocr_bench": {
+      "mean": 0.30418737763922776,
+      "n": 100
+    },
+    "got2|merged_forms": {
+      "mean": 0.040286666666666665,
+      "n": 15
+    },
+    "kosmos25|realdoc_qa_scanned_heavy": {
+      "mean": 0.39,
+      "n": 90
+    },
+    "kosmos25|realdoc_qa": {
+      "mean": 0.5646296296296296,
+      "n": 90
+    },
+    "kosmos25|omnidocbench": {
+      "mean": 0.5393237886862468,
+      "n": 96
+    },
+    "kosmos25|realdoc_qa_scanned_light": {
+      "mean": 0.5173148148148148,
+      "n": 90
+    },
+    "kosmos25|olmocr_bench": {
+      "mean": 0.25934600614439324,
+      "n": 100
+    },
+    "kosmos25|merged_forms": {
+      "mean": 0.20392,
+      "n": 15
+    }
+  },
+  "categories": {
+    "deepseek_ocr|realdoc_qa_scanned_heavy|finance": {
+      "mean": 0.07738095238095237,
+      "n": 28
+    },
+    "deepseek_ocr|realdoc_qa_scanned_heavy|medical_healthcare": {
+      "mean": 0.30158730158730157,
+      "n": 21
+    },
+    "deepseek_ocr|realdoc_qa_scanned_heavy|mortgage": {
+      "mean": 0.3297101449275362,
+      "n": 23
+    },
+    "deepseek_ocr|realdoc_qa_scanned_heavy|supply_chain": {
+      "mean": 0.41111111111111115,
+      "n": 18
+    },
+    "deepseek_ocr|realdoc_qa|finance": {
+      "mean": 0.27380952380952384,
+      "n": 28
+    },
+    "deepseek_ocr|realdoc_qa|medical_healthcare": {
+      "mean": 0.746031746031746,
+      "n": 21
+    },
+    "deepseek_ocr|realdoc_qa|mortgage": {
+      "mean": 0.3695652173913043,
+      "n": 23
+    },
+    "deepseek_ocr|realdoc_qa|supply_chain": {
+      "mean": 0.5777777777777778,
+      "n": 18
+    },
+    "deepseek_ocr|omnidocbench|PPT2PDF": {
+      "mean": 0.9552188345636986,
+      "n": 11
+    },
+    "deepseek_ocr|omnidocbench|academic_literature": {
+      "mean": 0.9311803561729668,
+      "n": 10
+    },
+    "deepseek_ocr|omnidocbench|book": {
+      "mean": 0.9504234536640649,
+      "n": 11
+    },
+    "deepseek_ocr|omnidocbench|exam_paper": {
+      "mean": 0.783522299797352,
+      "n": 11
+    },
+    "deepseek_ocr|omnidocbench|historical_document": {
+      "mean": 0.4899267898919387,
+      "n": 5
+    },
+    "deepseek_ocr|omnidocbench|magazine": {
+      "mean": 0.9410735358152588,
+      "n": 9
+    },
+    "deepseek_ocr|omnidocbench|newspaper": {
+      "mean": 0.4619256656362924,
+      "n": 10
+    },
+    "deepseek_ocr|omnidocbench|note": {
+      "mean": 0.8992610190895187,
+      "n": 10
+    },
+    "deepseek_ocr|omnidocbench|research_report": {
+      "mean": 0.8541414420109825,
+      "n": 10
+    },
+    "deepseek_ocr|omnidocbench|colorful_textbook": {
+      "mean": 0.7542433443310618,
+      "n": 9
+    },
+    "deepseek_ocr|realdoc_qa_scanned_light|finance": {
+      "mean": 0.26785714285714285,
+      "n": 28
+    },
+    "deepseek_ocr|realdoc_qa_scanned_light|medical_healthcare": {
+      "mean": 0.5555555555555556,
+      "n": 21
+    },
+    "deepseek_ocr|realdoc_qa_scanned_light|mortgage": {
+      "mean": 0.4782608695652174,
+      "n": 23
+    },
+    "deepseek_ocr|realdoc_qa_scanned_light|supply_chain": {
+      "mean": 0.5777777777777778,
+      "n": 18
+    },
+    "deepseek_ocr|olmocr_bench|arxiv_math": {
+      "mean": 0.7275132275132276,
+      "n": 15
+    },
+    "deepseek_ocr|olmocr_bench|headers_footers": {
+      "mean": 0.9555555555555556,
+      "n": 15
+    },
+    "deepseek_ocr|olmocr_bench|long_tiny_text": {
+      "mean": 0.7188391485626509,
+      "n": 14
+    },
+    "deepseek_ocr|olmocr_bench|multi_column": {
+      "mean": 0.65,
+      "n": 14
+    },
+    "deepseek_ocr|olmocr_bench|old_scans": {
+      "mean": 0.2642857142857143,
+      "n": 14
+    },
+    "deepseek_ocr|olmocr_bench|old_scans_math": {
+      "mean": 0.7185036893545298,
+      "n": 14
+    },
+    "deepseek_ocr|olmocr_bench|tables": {
+      "mean": 0.8729128014842301,
+      "n": 14
+    },
+    "deepseek_ocr|merged_forms|tax_forms_sd2": {
+      "mean": 0.05076666666666666,
+      "n": 15
+    },
+    "easyocr|realdoc_qa_scanned_heavy|finance": {
+      "mean": 0.0,
+      "n": 28
+    },
+    "easyocr|realdoc_qa_scanned_heavy|medical_healthcare": {
+      "mean": 0.0,
+      "n": 21
+    },
+    "easyocr|realdoc_qa_scanned_heavy|mortgage": {
+      "mean": 0.4384057971014493,
+      "n": 23
+    },
+    "easyocr|realdoc_qa_scanned_heavy|supply_chain": {
+      "mean": 0.06851851851851852,
+      "n": 18
+    },
+    "easyocr|realdoc_qa|finance": {
+      "mean": 0.36904761904761907,
+      "n": 28
+    },
+    "easyocr|realdoc_qa|medical_healthcare": {
+      "mean": 0.8174603174603176,
+      "n": 21
+    },
+    "easyocr|realdoc_qa|mortgage": {
+      "mean": 0.606159420289855,
+      "n": 23
+    },
+    "easyocr|realdoc_qa|supply_chain": {
+      "mean": 0.6111111111111112,
+      "n": 18
+    },
+    "easyocr|omnidocbench|PPT2PDF": {
+      "mean": 0.9924920701266942,
+      "n": 11
+    },
+    "easyocr|omnidocbench|academic_literature": {
+      "mean": 0.34308314450195654,
+      "n": 10
+    },
+    "easyocr|omnidocbench|book": {
+      "mean": 0.6167718420554757,
+      "n": 11
+    },
+    "easyocr|omnidocbench|exam_paper": {
+      "mean": 0.6152250573135122,
+      "n": 11
+    },
+    "easyocr|omnidocbench|historical_document": {
+      "mean": 0.45674417165097225,
+      "n": 5
+    },
+    "easyocr|omnidocbench|magazine": {
+      "mean": 0.4766979605990566,
+      "n": 9
+    },
+    "easyocr|omnidocbench|newspaper": {
+      "mean": 0.15968031892338336,
+      "n": 10
+    },
+    "easyocr|omnidocbench|note": {
+      "mean": 0.25557362682755297,
+      "n": 10
+    },
+    "easyocr|omnidocbench|research_report": {
+      "mean": 0.11696474575552877,
+      "n": 10
+    },
+    "easyocr|omnidocbench|colorful_textbook": {
+      "mean": 0.7250466135505961,
+      "n": 9
+    },
+    "easyocr|realdoc_qa_scanned_light|finance": {
+      "mean": 0.20833333333333331,
+      "n": 28
+    },
+    "easyocr|realdoc_qa_scanned_light|medical_healthcare": {
+      "mean": 0.3412698412698413,
+      "n": 21
+    },
+    "easyocr|realdoc_qa_scanned_light|mortgage": {
+      "mean": 0.611231884057971,
+      "n": 23
+    },
+    "easyocr|realdoc_qa_scanned_light|supply_chain": {
+      "mean": 0.5222222222222223,
+      "n": 18
+    },
+    "easyocr|olmocr_bench|arxiv_math": {
+      "mean": 0.0,
+      "n": 15
+    },
+    "easyocr|olmocr_bench|headers_footers": {
+      "mean": 0.6855555555555556,
+      "n": 15
+    },
+    "easyocr|olmocr_bench|long_tiny_text": {
+      "mean": 0.23430985297344745,
+      "n": 14
+    },
+    "easyocr|olmocr_bench|multi_column": {
+      "mean": 0.07142857142857142,
+      "n": 14
+    },
+    "easyocr|olmocr_bench|old_scans": {
+      "mean": 0.1159013605442177,
+      "n": 14
+    },
+    "easyocr|olmocr_bench|old_scans_math": {
+      "mean": 0.0,
+      "n": 14
+    },
+    "easyocr|olmocr_bench|tables": {
+      "mean": 0.0,
+      "n": 14
+    },
+    "easyocr|merged_forms|tax_forms_sd2": {
+      "mean": 0.39672666666666667,
+      "n": 15
+    },
+    "tesseract|realdoc_qa_scanned_heavy|finance": {
+      "mean": 0.0,
+      "n": 28
+    },
+    "tesseract|realdoc_qa_scanned_heavy|medical_healthcare": {
+      "mean": 0.14285714285714285,
+      "n": 21
+    },
+    "tesseract|realdoc_qa_scanned_heavy|mortgage": {
+      "mean": 0.3297101449275362,
+      "n": 23
+    },
+    "tesseract|realdoc_qa_scanned_heavy|supply_chain": {
+      "mean": 0.2685185185185185,
+      "n": 18
+    },
+    "tesseract|realdoc_qa|finance": {
+      "mean": 0.27380952380952384,
+      "n": 28
+    },
+    "tesseract|realdoc_qa|medical_healthcare": {
+      "mean": 0.8809523809523809,
+      "n": 21
+    },
+    "tesseract|realdoc_qa|mortgage": {
+      "mean": 0.7257246376811594,
+      "n": 23
+    },
+    "tesseract|realdoc_qa|supply_chain": {
+      "mean": 0.5185185185185186,
+      "n": 18
+    },
+    "tesseract|omnidocbench|PPT2PDF": {
+      "mean": 0.9905782369391924,
+      "n": 11
+    },
+    "tesseract|omnidocbench|academic_literature": {
+      "mean": 0.714103577334361,
+      "n": 10
+    },
+    "tesseract|omnidocbench|book": {
+      "mean": 0.6428857840878078,
+      "n": 11
+    },
+    "tesseract|omnidocbench|exam_paper": {
+      "mean": 0.6260372472079778,
+      "n": 11
+    },
+    "tesseract|omnidocbench|historical_document": {
+      "mean": 0.33087989457780853,
+      "n": 5
+    },
+    "tesseract|omnidocbench|magazine": {
+      "mean": 0.4817272064204633,
+      "n": 9
+    },
+    "tesseract|omnidocbench|newspaper": {
+      "mean": 0.2435543081848906,
+      "n": 10
+    },
+    "tesseract|omnidocbench|note": {
+      "mean": 0.14575047577666705,
+      "n": 10
+    },
+    "tesseract|omnidocbench|research_report": {
+      "mean": 0.1250634522083514,
+      "n": 10
+    },
+    "tesseract|omnidocbench|colorful_textbook": {
+      "mean": 0.6152945956563081,
+      "n": 9
+    },
+    "tesseract|realdoc_qa_scanned_light|finance": {
+      "mean": 0.08928571428571429,
+      "n": 28
+    },
+    "tesseract|realdoc_qa_scanned_light|medical_healthcare": {
+      "mean": 0.6746031746031745,
+      "n": 21
+    },
+    "tesseract|realdoc_qa_scanned_light|mortgage": {
+      "mean": 0.6659420289855073,
+      "n": 23
+    },
+    "tesseract|realdoc_qa_scanned_light|supply_chain": {
+      "mean": 0.19814814814814813,
+      "n": 18
+    },
+    "tesseract|olmocr_bench|arxiv_math": {
+      "mean": 0.0,
+      "n": 15
+    },
+    "tesseract|olmocr_bench|headers_footers": {
+      "mean": 0.35523809523809524,
+      "n": 15
+    },
+    "tesseract|olmocr_bench|long_tiny_text": {
+      "mean": 0.8014730085582621,
+      "n": 14
+    },
+    "tesseract|olmocr_bench|multi_column": {
+      "mean": 0.6166666666666666,
+      "n": 14
+    },
+    "tesseract|olmocr_bench|old_scans": {
+      "mean": 0.3002551020408163,
+      "n": 14
+    },
+    "tesseract|olmocr_bench|old_scans_math": {
+      "mean": 0.0,
+      "n": 14
+    },
+    "tesseract|olmocr_bench|tables": {
+      "mean": 0.013130252100840336,
+      "n": 14
+    },
+    "tesseract|merged_forms|tax_forms_sd2": {
+      "mean": 0.32975333333333334,
+      "n": 15
+    },
+    "lightonocr|realdoc_qa_scanned_heavy|finance": {
+      "mean": 0.19642857142857142,
+      "n": 28
+    },
+    "lightonocr|realdoc_qa_scanned_heavy|medical_healthcare": {
+      "mean": 0.2619047619047619,
+      "n": 21
+    },
+    "lightonocr|realdoc_qa_scanned_heavy|mortgage": {
+      "mean": 0.7094202898550724,
+      "n": 23
+    },
+    "lightonocr|realdoc_qa_scanned_heavy|supply_chain": {
+      "mean": 0.5222222222222223,
+      "n": 18
+    },
+    "lightonocr|realdoc_qa|finance": {
+      "mean": 0.4642857142857143,
+      "n": 28
+    },
+    "lightonocr|realdoc_qa|medical_healthcare": {
+      "mean": 0.8571428571428571,
+      "n": 21
+    },
+    "lightonocr|realdoc_qa|mortgage": {
+      "mean": 0.8326086956521739,
+      "n": 23
+    },
+    "lightonocr|realdoc_qa|supply_chain": {
+      "mean": 0.5037037037037037,
+      "n": 18
+    },
+    "lightonocr|omnidocbench|PPT2PDF": {
+      "mean": 0.9276857404605295,
+      "n": 11
+    },
+    "lightonocr|omnidocbench|academic_literature": {
+      "mean": 0.7831441231443113,
+      "n": 10
+    },
+    "lightonocr|omnidocbench|book": {
+      "mean": 0.8948713793388214,
+      "n": 11
+    },
+    "lightonocr|omnidocbench|exam_paper": {
+      "mean": 0.8662675171486924,
+      "n": 11
+    },
+    "lightonocr|omnidocbench|historical_document": {
+      "mean": 0.3803197669615135,
+      "n": 5
+    },
+    "lightonocr|omnidocbench|magazine": {
+      "mean": 0.8727267572277463,
+      "n": 9
+    },
+    "lightonocr|omnidocbench|newspaper": {
+      "mean": 0.28090765421729713,
+      "n": 10
+    },
+    "lightonocr|omnidocbench|note": {
+      "mean": 0.6263141938068297,
+      "n": 10
+    },
+    "lightonocr|omnidocbench|research_report": {
+      "mean": 0.6018515365843441,
+      "n": 10
+    },
+    "lightonocr|omnidocbench|colorful_textbook": {
+      "mean": 0.82187185989391,
+      "n": 9
+    },
+    "lightonocr|realdoc_qa_scanned_light|finance": {
+      "mean": 0.30357142857142855,
+      "n": 28
+    },
+    "lightonocr|realdoc_qa_scanned_light|medical_healthcare": {
+      "mean": 0.8571428571428571,
+      "n": 21
+    },
+    "lightonocr|realdoc_qa_scanned_light|mortgage": {
+      "mean": 0.8326086956521739,
+      "n": 23
+    },
+    "lightonocr|realdoc_qa_scanned_light|supply_chain": {
+      "mean": 0.4759259259259259,
+      "n": 18
+    },
+    "lightonocr|olmocr_bench|arxiv_math": {
+      "mean": 0.858068783068783,
+      "n": 15
+    },
+    "lightonocr|olmocr_bench|headers_footers": {
+      "mean": 0.2977777777777778,
+      "n": 15
+    },
+    "lightonocr|olmocr_bench|long_tiny_text": {
+      "mean": 0.8564296686416502,
+      "n": 14
+    },
+    "lightonocr|olmocr_bench|multi_column": {
+      "mean": 0.8416666666666667,
+      "n": 14
+    },
+    "lightonocr|olmocr_bench|old_scans": {
+      "mean": 0.3545068027210884,
+      "n": 14
+    },
+    "lightonocr|olmocr_bench|old_scans_math": {
+      "mean": 0.7735142541865231,
+      "n": 14
+    },
+    "lightonocr|olmocr_bench|tables": {
+      "mean": 0.7564430317581579,
+      "n": 14
+    },
+    "lightonocr|merged_forms|tax_forms_sd2": {
+      "mean": 0.14241333333333334,
+      "n": 15
+    },
+    "paddleocr_vl|realdoc_qa_scanned_heavy|finance": {
+      "mean": 0.03571428571428571,
+      "n": 28
+    },
+    "paddleocr_vl|realdoc_qa_scanned_heavy|medical_healthcare": {
+      "mean": 0.30158730158730157,
+      "n": 21
+    },
+    "paddleocr_vl|realdoc_qa_scanned_heavy|mortgage": {
+      "mean": 0.4884057971014492,
+      "n": 23
+    },
+    "paddleocr_vl|realdoc_qa_scanned_heavy|supply_chain": {
+      "mean": 0.49444444444444446,
+      "n": 18
+    },
+    "paddleocr_vl|realdoc_qa|finance": {
+      "mean": 0.2261904761904762,
+      "n": 28
+    },
+    "paddleocr_vl|realdoc_qa|medical_healthcare": {
+      "mean": 0.8095238095238095,
+      "n": 21
+    },
+    "paddleocr_vl|realdoc_qa|mortgage": {
+      "mean": 0.6898550724637681,
+      "n": 23
+    },
+    "paddleocr_vl|realdoc_qa|supply_chain": {
+      "mean": 0.5314814814814814,
+      "n": 18
+    },
+    "paddleocr_vl|omnidocbench|PPT2PDF": {
+      "mean": 0.8990502862927944,
+      "n": 11
+    },
+    "paddleocr_vl|omnidocbench|academic_literature": {
+      "mean": 0.6707583030687692,
+      "n": 10
+    },
+    "paddleocr_vl|omnidocbench|book": {
+      "mean": 0.7299318931688723,
+      "n": 11
+    },
+    "paddleocr_vl|omnidocbench|exam_paper": {
+      "mean": 0.7824407991926371,
+      "n": 11
+    },
+    "paddleocr_vl|omnidocbench|historical_document": {
+      "mean": 0.5600836798608425,
+      "n": 5
+    },
+    "paddleocr_vl|omnidocbench|magazine": {
+      "mean": 0.7754874726018067,
+      "n": 9
+    },
+    "paddleocr_vl|omnidocbench|newspaper": {
+      "mean": 0.2482255754100689,
+      "n": 10
+    },
+    "paddleocr_vl|omnidocbench|note": {
+      "mean": 0.9114120419115086,
+      "n": 10
+    },
+    "paddleocr_vl|omnidocbench|research_report": {
+      "mean": 0.3315000154946911,
+      "n": 10
+    },
+    "paddleocr_vl|omnidocbench|colorful_textbook": {
+      "mean": 0.6054069773351741,
+      "n": 9
+    },
+    "paddleocr_vl|realdoc_qa_scanned_light|finance": {
+      "mean": 0.11904761904761905,
+      "n": 28
+    },
+    "paddleocr_vl|realdoc_qa_scanned_light|medical_healthcare": {
+      "mean": 0.8333333333333334,
+      "n": 21
+    },
+    "paddleocr_vl|realdoc_qa_scanned_light|mortgage": {
+      "mean": 0.7108695652173914,
+      "n": 23
+    },
+    "paddleocr_vl|realdoc_qa_scanned_light|supply_chain": {
+      "mean": 0.42037037037037034,
+      "n": 18
+    },
+    "paddleocr_vl|olmocr_bench|arxiv_math": {
+      "mean": 0.0,
+      "n": 15
+    },
+    "paddleocr_vl|olmocr_bench|headers_footers": {
+      "mean": 0.3244444444444444,
+      "n": 15
+    },
+    "paddleocr_vl|olmocr_bench|long_tiny_text": {
+      "mean": 0.8014044327408383,
+      "n": 14
+    },
+    "paddleocr_vl|olmocr_bench|multi_column": {
+      "mean": 0.7690476190476191,
+      "n": 14
+    },
+    "paddleocr_vl|olmocr_bench|old_scans": {
+      "mean": 0.40807823129251697,
+      "n": 14
+    },
+    "paddleocr_vl|olmocr_bench|old_scans_math": {
+      "mean": 0.1405562224889956,
+      "n": 14
+    },
+    "paddleocr_vl|olmocr_bench|tables": {
+      "mean": 0.0,
+      "n": 14
+    },
+    "paddleocr_vl|merged_forms|tax_forms_sd2": {
+      "mean": 0.06293333333333333,
+      "n": 15
+    },
+    "rapidocr|realdoc_qa_scanned_heavy|finance": {
+      "mean": 0.011904761904761904,
+      "n": 28
+    },
+    "rapidocr|realdoc_qa_scanned_heavy|medical_healthcare": {
+      "mean": 0.23809523809523808,
+      "n": 21
+    },
+    "rapidocr|realdoc_qa_scanned_heavy|mortgage": {
+      "mean": 0.6152173913043478,
+      "n": 23
+    },
+    "rapidocr|realdoc_qa_scanned_heavy|supply_chain": {
+      "mean": 0.2222222222222222,
+      "n": 18
+    },
+    "rapidocr|realdoc_qa|finance": {
+      "mean": 0.3154761904761905,
+      "n": 28
+    },
+    "rapidocr|realdoc_qa|medical_healthcare": {
+      "mean": 0.5079365079365079,
+      "n": 21
+    },
+    "rapidocr|realdoc_qa|mortgage": {
+      "mean": 0.7492753623188406,
+      "n": 23
+    },
+    "rapidocr|realdoc_qa|supply_chain": {
+      "mean": 0.45370370370370366,
+      "n": 18
+    },
+    "rapidocr|omnidocbench|PPT2PDF": {
+      "mean": 0.9958177483378988,
+      "n": 11
+    },
+    "rapidocr|omnidocbench|academic_literature": {
+      "mean": 0.40240211864884623,
+      "n": 10
+    },
+    "rapidocr|omnidocbench|book": {
+      "mean": 0.6904084530183258,
+      "n": 11
+    },
+    "rapidocr|omnidocbench|exam_paper": {
+      "mean": 0.7330653190869166,
+      "n": 11
+    },
+    "rapidocr|omnidocbench|historical_document": {
+      "mean": 0.2914530406736028,
+      "n": 5
+    },
+    "rapidocr|omnidocbench|magazine": {
+      "mean": 0.897519673960437,
+      "n": 9
+    },
+    "rapidocr|omnidocbench|newspaper": {
+      "mean": 0.15019509941527756,
+      "n": 10
+    },
+    "rapidocr|omnidocbench|note": {
+      "mean": 0.8984070722269406,
+      "n": 10
+    },
+    "rapidocr|omnidocbench|research_report": {
+      "mean": 0.41349492794667847,
+      "n": 10
+    },
+    "rapidocr|omnidocbench|colorful_textbook": {
+      "mean": 0.7612979729898512,
+      "n": 9
+    },
+    "rapidocr|realdoc_qa_scanned_light|finance": {
+      "mean": 0.36904761904761907,
+      "n": 28
+    },
+    "rapidocr|realdoc_qa_scanned_light|medical_healthcare": {
+      "mean": 0.4444444444444445,
+      "n": 21
+    },
+    "rapidocr|realdoc_qa_scanned_light|mortgage": {
+      "mean": 0.7528985507246376,
+      "n": 23
+    },
+    "rapidocr|realdoc_qa_scanned_light|supply_chain": {
+      "mean": 0.42037037037037034,
+      "n": 18
+    },
+    "rapidocr|olmocr_bench|arxiv_math": {
+      "mean": 0.0,
+      "n": 15
+    },
+    "rapidocr|olmocr_bench|headers_footers": {
+      "mean": 0.5285714285714286,
+      "n": 15
+    },
+    "rapidocr|olmocr_bench|long_tiny_text": {
+      "mean": 0.315174456879526,
+      "n": 14
+    },
+    "rapidocr|olmocr_bench|multi_column": {
+      "mean": 0.07142857142857142,
+      "n": 14
+    },
+    "rapidocr|olmocr_bench|old_scans": {
+      "mean": 0.21139455782312927,
+      "n": 14
+    },
+    "rapidocr|olmocr_bench|old_scans_math": {
+      "mean": 0.0,
+      "n": 14
+    },
+    "rapidocr|olmocr_bench|tables": {
+      "mean": 0.0,
+      "n": 14
+    },
+    "rapidocr|merged_forms|tax_forms_sd2": {
+      "mean": 0.25792000000000004,
+      "n": 15
+    },
+    "doctr|realdoc_qa_scanned_heavy|finance": {
+      "mean": 0.17261904761904762,
+      "n": 28
+    },
+    "doctr|realdoc_qa_scanned_heavy|medical_healthcare": {
+      "mean": 0.39682539682539686,
+      "n": 21
+    },
+    "doctr|realdoc_qa_scanned_heavy|mortgage": {
+      "mean": 0.7579710144927536,
+      "n": 23
+    },
+    "doctr|realdoc_qa_scanned_heavy|supply_chain": {
+      "mean": 0.29074074074074074,
+      "n": 18
+    },
+    "doctr|realdoc_qa|finance": {
+      "mean": 0.45833333333333337,
+      "n": 28
+    },
+    "doctr|realdoc_qa|medical_healthcare": {
+      "mean": 0.9285714285714286,
+      "n": 21
+    },
+    "doctr|realdoc_qa|mortgage": {
+      "mean": 0.8326086956521739,
+      "n": 23
+    },
+    "doctr|realdoc_qa|supply_chain": {
+      "mean": 0.55,
+      "n": 18
+    },
+    "doctr|omnidocbench|PPT2PDF": {
+      "mean": 0.9906460118635948,
+      "n": 11
+    },
+    "doctr|omnidocbench|academic_literature": {
+      "mean": 0.42471517824505733,
+      "n": 10
+    },
+    "doctr|omnidocbench|book": {
+      "mean": 0.7097337423995586,
+      "n": 11
+    },
+    "doctr|omnidocbench|exam_paper": {
+      "mean": 0.6507726883500108,
+      "n": 11
+    },
+    "doctr|omnidocbench|historical_document": {
+      "mean": 0.45299064543723616,
+      "n": 5
+    },
+    "doctr|omnidocbench|magazine": {
+      "mean": 0.48385891261729747,
+      "n": 9
+    },
+    "doctr|omnidocbench|newspaper": {
+      "mean": 0.17713281171092327,
+      "n": 10
+    },
+    "doctr|omnidocbench|note": {
+      "mean": 0.24093227487981403,
+      "n": 10
+    },
+    "doctr|omnidocbench|research_report": {
+      "mean": 0.12416778889062807,
+      "n": 10
+    },
+    "doctr|omnidocbench|colorful_textbook": {
+      "mean": 0.7638082462650982,
+      "n": 9
+    },
+    "doctr|realdoc_qa_scanned_light|finance": {
+      "mean": 0.4107142857142857,
+      "n": 28
+    },
+    "doctr|realdoc_qa_scanned_light|medical_healthcare": {
+      "mean": 0.9761904761904762,
+      "n": 21
+    },
+    "doctr|realdoc_qa_scanned_light|mortgage": {
+      "mean": 0.8054347826086956,
+      "n": 23
+    },
+    "doctr|realdoc_qa_scanned_light|supply_chain": {
+      "mean": 0.49444444444444446,
+      "n": 18
+    },
+    "doctr|olmocr_bench|arxiv_math": {
+      "mean": 0.0,
+      "n": 15
+    },
+    "doctr|olmocr_bench|headers_footers": {
+      "mean": 0.40857142857142853,
+      "n": 15
+    },
+    "doctr|olmocr_bench|long_tiny_text": {
+      "mean": 0.543285055957867,
+      "n": 14
+    },
+    "doctr|olmocr_bench|multi_column": {
+      "mean": 0.03571428571428571,
+      "n": 14
+    },
+    "doctr|olmocr_bench|old_scans": {
+      "mean": 0.3079081632653061,
+      "n": 14
+    },
+    "doctr|olmocr_bench|old_scans_math": {
+      "mean": 0.0,
+      "n": 14
+    },
+    "doctr|olmocr_bench|tables": {
+      "mean": 0.0,
+      "n": 14
+    },
+    "doctr|merged_forms|tax_forms_sd2": {
+      "mean": 0.3361133333333333,
+      "n": 15
+    },
+    "qwen25vl|realdoc_qa_scanned_heavy|finance": {
+      "mean": 0.17857142857142858,
+      "n": 28
+    },
+    "qwen25vl|realdoc_qa_scanned_heavy|medical_healthcare": {
+      "mean": 0.373015873015873,
+      "n": 21
+    },
+    "qwen25vl|realdoc_qa_scanned_heavy|mortgage": {
+      "mean": 0.7760869565217392,
+      "n": 23
+    },
+    "qwen25vl|realdoc_qa_scanned_heavy|supply_chain": {
+      "mean": 0.4759259259259259,
+      "n": 18
+    },
+    "qwen25vl|realdoc_qa|finance": {
+      "mean": 0.5047619047619047,
+      "n": 28
+    },
+    "qwen25vl|realdoc_qa|medical_healthcare": {
+      "mean": 0.7619047619047619,
+      "n": 21
+    },
+    "qwen25vl|realdoc_qa|mortgage": {
+      "mean": 0.7652173913043478,
+      "n": 23
+    },
+    "qwen25vl|realdoc_qa|supply_chain": {
+      "mean": 0.5314814814814814,
+      "n": 18
+    },
+    "qwen25vl|omnidocbench|PPT2PDF": {
+      "mean": 0.9803698759372992,
+      "n": 11
+    },
+    "qwen25vl|omnidocbench|academic_literature": {
+      "mean": 0.6789158715385555,
+      "n": 10
+    },
+    "qwen25vl|omnidocbench|book": {
+      "mean": 0.9768306449262352,
+      "n": 11
+    },
+    "qwen25vl|omnidocbench|exam_paper": {
+      "mean": 0.8860298556534135,
+      "n": 11
+    },
+    "qwen25vl|omnidocbench|historical_document": {
+      "mean": 0.03922434953362788,
+      "n": 5
+    },
+    "qwen25vl|omnidocbench|magazine": {
+      "mean": 0.9654621612007662,
+      "n": 9
+    },
+    "qwen25vl|omnidocbench|newspaper": {
+      "mean": 0.24996831633635455,
+      "n": 10
+    },
+    "qwen25vl|omnidocbench|note": {
+      "mean": 0.9091177521168499,
+      "n": 10
+    },
+    "qwen25vl|omnidocbench|research_report": {
+      "mean": 0.5179244290080431,
+      "n": 10
+    },
+    "qwen25vl|omnidocbench|colorful_textbook": {
+      "mean": 0.7685471965622678,
+      "n": 9
+    },
+    "qwen25vl|realdoc_qa_scanned_light|finance": {
+      "mean": 0.5178571428571429,
+      "n": 28
+    },
+    "qwen25vl|realdoc_qa_scanned_light|medical_healthcare": {
+      "mean": 0.8571428571428571,
+      "n": 21
+    },
+    "qwen25vl|realdoc_qa_scanned_light|mortgage": {
+      "mean": 0.7869565217391304,
+      "n": 23
+    },
+    "qwen25vl|realdoc_qa_scanned_light|supply_chain": {
+      "mean": 0.5685185185185184,
+      "n": 18
+    },
+    "qwen25vl|olmocr_bench|arxiv_math": {
+      "mean": 0.7157407407407407,
+      "n": 15
+    },
+    "qwen25vl|olmocr_bench|headers_footers": {
+      "mean": 0.5895238095238096,
+      "n": 15
+    },
+    "qwen25vl|olmocr_bench|long_tiny_text": {
+      "mean": 0.8546192670616634,
+      "n": 14
+    },
+    "qwen25vl|olmocr_bench|multi_column": {
+      "mean": 0.5642857142857143,
+      "n": 14
+    },
+    "qwen25vl|olmocr_bench|old_scans": {
+      "mean": 0.4766156462585034,
+      "n": 14
+    },
+    "qwen25vl|olmocr_bench|old_scans_math": {
+      "mean": 0.775740599270011,
+      "n": 14
+    },
+    "qwen25vl|olmocr_bench|tables": {
+      "mean": 0.9408627087198516,
+      "n": 14
+    },
+    "qwen25vl|merged_forms|tax_forms_sd2": {
+      "mean": 0.017993333333333337,
+      "n": 15
+    },
+    "granite_docling|realdoc_qa_scanned_heavy|finance": {
+      "mean": 0.0,
+      "n": 28
+    },
+    "granite_docling|realdoc_qa_scanned_heavy|medical_healthcare": {
+      "mean": 0.0,
+      "n": 21
+    },
+    "granite_docling|realdoc_qa_scanned_heavy|mortgage": {
+      "mean": 0.007246376811594202,
+      "n": 23
+    },
+    "granite_docling|realdoc_qa_scanned_heavy|supply_chain": {
+      "mean": 0.06481481481481481,
+      "n": 18
+    },
+    "granite_docling|realdoc_qa|finance": {
+      "mean": 0.03571428571428571,
+      "n": 28
+    },
+    "granite_docling|realdoc_qa|medical_healthcare": {
+      "mean": 0.0,
+      "n": 21
+    },
+    "granite_docling|realdoc_qa|mortgage": {
+      "mean": 0.0,
+      "n": 23
+    },
+    "granite_docling|realdoc_qa|supply_chain": {
+      "mean": 0.12037037037037036,
+      "n": 18
+    },
+    "granite_docling|omnidocbench|PPT2PDF": {
+      "mean": 0.1985638868444174,
+      "n": 11
+    },
+    "granite_docling|omnidocbench|academic_literature": {
+      "mean": 0.11278812319874953,
+      "n": 10
+    },
+    "granite_docling|omnidocbench|book": {
+      "mean": 0.1182982411052981,
+      "n": 11
+    },
+    "granite_docling|omnidocbench|exam_paper": {
+      "mean": 0.06471239949297022,
+      "n": 11
+    },
+    "granite_docling|omnidocbench|historical_document": {
+      "mean": 0.12196376513903957,
+      "n": 5
+    },
+    "granite_docling|omnidocbench|magazine": {
+      "mean": 0.19077491156294726,
+      "n": 9
+    },
+    "granite_docling|omnidocbench|newspaper": {
+      "mean": 0.02050058369617911,
+      "n": 10
+    },
+    "granite_docling|omnidocbench|note": {
+      "mean": 0.08773158382775655,
+      "n": 10
+    },
+    "granite_docling|omnidocbench|research_report": {
+      "mean": 0.05956878271842374,
+      "n": 10
+    },
+    "granite_docling|omnidocbench|colorful_textbook": {
+      "mean": 0.060230018898818884,
+      "n": 9
+    },
+    "granite_docling|realdoc_qa_scanned_light|finance": {
+      "mean": 0.03571428571428571,
+      "n": 28
+    },
+    "granite_docling|realdoc_qa_scanned_light|medical_healthcare": {
+      "mean": 0.0,
+      "n": 21
+    },
+    "granite_docling|realdoc_qa_scanned_light|mortgage": {
+      "mean": 0.10144927536231885,
+      "n": 23
+    },
+    "granite_docling|realdoc_qa_scanned_light|supply_chain": {
+      "mean": 0.14814814814814814,
+      "n": 18
+    },
+    "granite_docling|olmocr_bench|arxiv_math": {
+      "mean": 0.0,
+      "n": 15
+    },
+    "granite_docling|olmocr_bench|headers_footers": {
+      "mean": 0.9833333333333333,
+      "n": 15
+    },
+    "granite_docling|olmocr_bench|long_tiny_text": {
+      "mean": 0.0,
+      "n": 14
+    },
+    "granite_docling|olmocr_bench|multi_column": {
+      "mean": 0.0,
+      "n": 14
+    },
+    "granite_docling|olmocr_bench|old_scans": {
+      "mean": 0.15399659863945578,
+      "n": 14
+    },
+    "granite_docling|olmocr_bench|old_scans_math": {
+      "mean": 0.0,
+      "n": 14
+    },
+    "granite_docling|olmocr_bench|tables": {
+      "mean": 0.07142857142857142,
+      "n": 14
+    },
+    "gemma4|realdoc_qa_scanned_heavy|finance": {
+      "mean": 0.26785714285714285,
+      "n": 28
+    },
+    "gemma4|realdoc_qa_scanned_heavy|medical_healthcare": {
+      "mean": 0.46825396825396826,
+      "n": 21
+    },
+    "gemma4|realdoc_qa_scanned_heavy|mortgage": {
+      "mean": 0.6409420289855072,
+      "n": 23
+    },
+    "gemma4|realdoc_qa_scanned_heavy|supply_chain": {
+      "mean": 0.4722222222222222,
+      "n": 18
+    },
+    "gemma4|realdoc_qa|finance": {
+      "mean": 0.375,
+      "n": 28
+    },
+    "gemma4|realdoc_qa|medical_healthcare": {
+      "mean": 0.7063492063492064,
+      "n": 21
+    },
+    "gemma4|realdoc_qa|mortgage": {
+      "mean": 0.7083333333333334,
+      "n": 23
+    },
+    "gemma4|realdoc_qa|supply_chain": {
+      "mean": 0.5092592592592592,
+      "n": 18
+    },
+    "gemma4|omnidocbench|PPT2PDF": {
+      "mean": 0.9861179112195447,
+      "n": 11
+    },
+    "gemma4|omnidocbench|academic_literature": {
+      "mean": 0.7485297884030053,
+      "n": 10
+    },
+    "gemma4|omnidocbench|book": {
+      "mean": 0.9136005917995603,
+      "n": 11
+    },
+    "gemma4|omnidocbench|exam_paper": {
+      "mean": 0.7903926975208478,
+      "n": 11
+    },
+    "gemma4|omnidocbench|historical_document": {
+      "mean": 0.40011479007797146,
+      "n": 5
+    },
+    "gemma4|omnidocbench|magazine": {
+      "mean": 0.8682275036954019,
+      "n": 9
+    },
+    "gemma4|omnidocbench|newspaper": {
+      "mean": 0.12607074242160093,
+      "n": 10
+    },
+    "gemma4|omnidocbench|note": {
+      "mean": 0.7814868053093843,
+      "n": 10
+    },
+    "gemma4|omnidocbench|research_report": {
+      "mean": 0.4736769464887446,
+      "n": 10
+    },
+    "gemma4|omnidocbench|colorful_textbook": {
+      "mean": 0.7847265029303379,
+      "n": 9
+    },
+    "gemma4|realdoc_qa_scanned_light|finance": {
+      "mean": 0.44642857142857145,
+      "n": 28
+    },
+    "gemma4|realdoc_qa_scanned_light|medical_healthcare": {
+      "mean": 0.6984126984126984,
+      "n": 21
+    },
+    "gemma4|realdoc_qa_scanned_light|mortgage": {
+      "mean": 0.6478260869565218,
+      "n": 23
+    },
+    "gemma4|realdoc_qa_scanned_light|supply_chain": {
+      "mean": 0.5925925925925926,
+      "n": 18
+    },
+    "gemma4|olmocr_bench|arxiv_math": {
+      "mean": 0.27830687830687834,
+      "n": 15
+    },
+    "gemma4|olmocr_bench|headers_footers": {
+      "mean": 0.48000000000000004,
+      "n": 15
+    },
+    "gemma4|olmocr_bench|long_tiny_text": {
+      "mean": 0.4012645380732938,
+      "n": 14
+    },
+    "gemma4|olmocr_bench|multi_column": {
+      "mean": 0.29047619047619044,
+      "n": 14
+    },
+    "gemma4|olmocr_bench|old_scans": {
+      "mean": 0.46156462585034014,
+      "n": 14
+    },
+    "gemma4|olmocr_bench|old_scans_math": {
+      "mean": 0.44151607612742066,
+      "n": 14
+    },
+    "gemma4|olmocr_bench|tables": {
+      "mean": 0.5492633417003165,
+      "n": 14
+    },
+    "gemma4|merged_forms|tax_forms_sd2": {
+      "mean": 0.15658,
+      "n": 15
+    },
+    "olmocr2|realdoc_qa_scanned_heavy|finance": {
+      "mean": 0.375,
+      "n": 28
+    },
+    "olmocr2|realdoc_qa_scanned_heavy|medical_healthcare": {
+      "mean": 0.4841269841269841,
+      "n": 21
+    },
+    "olmocr2|realdoc_qa_scanned_heavy|mortgage": {
+      "mean": 0.6456521739130434,
+      "n": 23
+    },
+    "olmocr2|realdoc_qa_scanned_heavy|supply_chain": {
+      "mean": 0.5962962962962962,
+      "n": 18
+    },
+    "olmocr2|realdoc_qa|finance": {
+      "mean": 0.5797619047619048,
+      "n": 28
+    },
+    "olmocr2|realdoc_qa|medical_healthcare": {
+      "mean": 0.8809523809523809,
+      "n": 21
+    },
+    "olmocr2|realdoc_qa|mortgage": {
+      "mean": 0.6108695652173913,
+      "n": 23
+    },
+    "olmocr2|realdoc_qa|supply_chain": {
+      "mean": 0.7351851851851852,
+      "n": 18
+    },
+    "olmocr2|omnidocbench|PPT2PDF": {
+      "mean": 1.0,
+      "n": 11
+    },
+    "olmocr2|omnidocbench|academic_literature": {
+      "mean": 0.8865079346297206,
+      "n": 10
+    },
+    "olmocr2|omnidocbench|book": {
+      "mean": 0.9860082684194772,
+      "n": 11
+    },
+    "olmocr2|omnidocbench|exam_paper": {
+      "mean": 0.8823922241296107,
+      "n": 11
+    },
+    "olmocr2|omnidocbench|historical_document": {
+      "mean": 0.7162186460291593,
+      "n": 5
+    },
+    "olmocr2|omnidocbench|magazine": {
+      "mean": 0.9922933241773472,
+      "n": 9
+    },
+    "olmocr2|omnidocbench|newspaper": {
+      "mean": 0.16671596492013513,
+      "n": 10
+    },
+    "olmocr2|omnidocbench|note": {
+      "mean": 0.9210081230441075,
+      "n": 10
+    },
+    "olmocr2|omnidocbench|research_report": {
+      "mean": 0.7643085965102255,
+      "n": 10
+    },
+    "olmocr2|omnidocbench|colorful_textbook": {
+      "mean": 0.8957793521347787,
+      "n": 9
+    },
+    "olmocr2|realdoc_qa_scanned_light|finance": {
+      "mean": 0.5357142857142857,
+      "n": 28
+    },
+    "olmocr2|realdoc_qa_scanned_light|medical_healthcare": {
+      "mean": 0.8809523809523809,
+      "n": 21
+    },
+    "olmocr2|realdoc_qa_scanned_light|mortgage": {
+      "mean": 0.6253623188405797,
+      "n": 23
+    },
+    "olmocr2|realdoc_qa_scanned_light|supply_chain": {
+      "mean": 0.624074074074074,
+      "n": 18
+    },
+    "olmocr2|olmocr_bench|arxiv_math": {
+      "mean": 0.8935185185185186,
+      "n": 15
+    },
+    "olmocr2|olmocr_bench|headers_footers": {
+      "mean": 0.8933333333333333,
+      "n": 15
+    },
+    "olmocr2|olmocr_bench|long_tiny_text": {
+      "mean": 0.9247037524687294,
+      "n": 14
+    },
+    "olmocr2|olmocr_bench|multi_column": {
+      "mean": 0.9178571428571428,
+      "n": 14
+    },
+    "olmocr2|olmocr_bench|old_scans": {
+      "mean": 0.47602040816326535,
+      "n": 14
+    },
+    "olmocr2|olmocr_bench|old_scans_math": {
+      "mean": 0.7991298792244171,
+      "n": 14
+    },
+    "olmocr2|olmocr_bench|tables": {
+      "mean": 0.9407467532467532,
+      "n": 14
+    },
+    "olmocr2|merged_forms|tax_forms_sd2": {
+      "mean": 0.06968666666666667,
+      "n": 15
+    },
+    "dots_ocr|realdoc_qa_scanned_heavy|finance": {
+      "mean": 0.19047619047619047,
+      "n": 28
+    },
+    "dots_ocr|realdoc_qa_scanned_heavy|medical_healthcare": {
+      "mean": 0.5317460317460317,
+      "n": 21
+    },
+    "dots_ocr|realdoc_qa_scanned_heavy|mortgage": {
+      "mean": 0.5840579710144927,
+      "n": 23
+    },
+    "dots_ocr|realdoc_qa_scanned_heavy|supply_chain": {
+      "mean": 0.2685185185185185,
+      "n": 18
+    },
+    "dots_ocr|realdoc_qa|finance": {
+      "mean": 0.5535714285714286,
+      "n": 28
+    },
+    "dots_ocr|realdoc_qa|medical_healthcare": {
+      "mean": 0.6428571428571429,
+      "n": 21
+    },
+    "dots_ocr|realdoc_qa|mortgage": {
+      "mean": 0.7159420289855072,
+      "n": 23
+    },
+    "dots_ocr|realdoc_qa|supply_chain": {
+      "mean": 0.21666666666666667,
+      "n": 18
+    },
+    "dots_ocr|omnidocbench|PPT2PDF": {
+      "mean": 0.9997481742634097,
+      "n": 11
+    },
+    "dots_ocr|omnidocbench|academic_literature": {
+      "mean": 0.9432363519972251,
+      "n": 10
+    },
+    "dots_ocr|omnidocbench|book": {
+      "mean": 0.9571566489787823,
+      "n": 11
+    },
+    "dots_ocr|omnidocbench|exam_paper": {
+      "mean": 0.8671854158981325,
+      "n": 11
+    },
+    "dots_ocr|omnidocbench|historical_document": {
+      "mean": 0.839287432294479,
+      "n": 5
+    },
+    "dots_ocr|omnidocbench|magazine": {
+      "mean": 0.9361971016827242,
+      "n": 9
+    },
+    "dots_ocr|omnidocbench|newspaper": {
+      "mean": 0.7016786338199659,
+      "n": 10
+    },
+    "dots_ocr|omnidocbench|note": {
+      "mean": 0.9788210796357865,
+      "n": 10
+    },
+    "dots_ocr|omnidocbench|research_report": {
+      "mean": 0.7912998207198426,
+      "n": 10
+    },
+    "dots_ocr|omnidocbench|colorful_textbook": {
+      "mean": 0.9213220524532019,
+      "n": 9
+    },
+    "dots_ocr|realdoc_qa_scanned_light|finance": {
+      "mean": 0.3392857142857143,
+      "n": 28
+    },
+    "dots_ocr|realdoc_qa_scanned_light|medical_healthcare": {
+      "mean": 0.7380952380952381,
+      "n": 21
+    },
+    "dots_ocr|realdoc_qa_scanned_light|mortgage": {
+      "mean": 0.736231884057971,
+      "n": 23
+    },
+    "dots_ocr|realdoc_qa_scanned_light|supply_chain": {
+      "mean": 0.5962962962962962,
+      "n": 18
+    },
+    "dots_ocr|olmocr_bench|arxiv_math": {
+      "mean": 0.6972222222222223,
+      "n": 15
+    },
+    "dots_ocr|olmocr_bench|headers_footers": {
+      "mean": 0.5379365079365079,
+      "n": 15
+    },
+    "dots_ocr|olmocr_bench|long_tiny_text": {
+      "mean": 0.8599681808207154,
+      "n": 14
+    },
+    "dots_ocr|olmocr_bench|multi_column": {
+      "mean": 0.8892857142857142,
+      "n": 14
+    },
+    "dots_ocr|olmocr_bench|old_scans": {
+      "mean": 0.4897108843537415,
+      "n": 14
+    },
+    "dots_ocr|olmocr_bench|old_scans_math": {
+      "mean": 0.7479705518571065,
+      "n": 14
+    },
+    "dots_ocr|olmocr_bench|tables": {
+      "mean": 0.9303994325002728,
+      "n": 14
+    },
+    "dots_ocr|merged_forms|tax_forms_sd2": {
+      "mean": 0.005926666666666667,
+      "n": 15
+    },
+    "got2|realdoc_qa_scanned_heavy|finance": {
+      "mean": 0.017857142857142856,
+      "n": 28
+    },
+    "got2|realdoc_qa_scanned_heavy|medical_healthcare": {
+      "mean": 0.0,
+      "n": 21
+    },
+    "got2|realdoc_qa_scanned_heavy|mortgage": {
+      "mean": 0.32608695652173914,
+      "n": 23
+    },
+    "got2|realdoc_qa_scanned_heavy|supply_chain": {
+      "mean": 0.09259259259259259,
+      "n": 18
+    },
+    "got2|realdoc_qa|finance": {
+      "mean": 0.03571428571428571,
+      "n": 28
+    },
+    "got2|realdoc_qa|medical_healthcare": {
+      "mean": 0.30158730158730157,
+      "n": 21
+    },
+    "got2|realdoc_qa|mortgage": {
+      "mean": 0.21521739130434783,
+      "n": 23
+    },
+    "got2|realdoc_qa|supply_chain": {
+      "mean": 0.19444444444444445,
+      "n": 18
+    },
+    "got2|omnidocbench|PPT2PDF": {
+      "mean": 0.9955912849898436,
+      "n": 11
+    },
+    "got2|omnidocbench|academic_literature": {
+      "mean": 0.6713857848894477,
+      "n": 10
+    },
+    "got2|omnidocbench|book": {
+      "mean": 0.6442653016123965,
+      "n": 11
+    },
+    "got2|omnidocbench|exam_paper": {
+      "mean": 0.7466653239864228,
+      "n": 11
+    },
+    "got2|omnidocbench|historical_document": {
+      "mean": 0.48004307963429016,
+      "n": 5
+    },
+    "got2|omnidocbench|magazine": {
+      "mean": 0.8649892255862087,
+      "n": 9
+    },
+    "got2|omnidocbench|newspaper": {
+      "mean": 0.08907164572209948,
+      "n": 10
+    },
+    "got2|omnidocbench|note": {
+      "mean": 0.7474185369905817,
+      "n": 10
+    },
+    "got2|omnidocbench|research_report": {
+      "mean": 0.363634056425098,
+      "n": 10
+    },
+    "got2|omnidocbench|colorful_textbook": {
+      "mean": 0.6790843371666013,
+      "n": 9
+    },
+    "got2|realdoc_qa_scanned_light|finance": {
+      "mean": 0.07142857142857142,
+      "n": 28
+    },
+    "got2|realdoc_qa_scanned_light|medical_healthcare": {
+      "mean": 0.2857142857142857,
+      "n": 21
+    },
+    "got2|realdoc_qa_scanned_light|mortgage": {
+      "mean": 0.11014492753623188,
+      "n": 23
+    },
+    "got2|realdoc_qa_scanned_light|supply_chain": {
+      "mean": 0.1574074074074074,
+      "n": 18
+    },
+    "got2|olmocr_bench|arxiv_math": {
+      "mean": 0.16296296296296295,
+      "n": 15
+    },
+    "got2|olmocr_bench|headers_footers": {
+      "mean": 0.9055555555555556,
+      "n": 15
+    },
+    "got2|olmocr_bench|long_tiny_text": {
+      "mean": 0.4426157559798113,
+      "n": 14
+    },
+    "got2|olmocr_bench|multi_column": {
+      "mean": 0.17857142857142858,
+      "n": 14
+    },
+    "got2|olmocr_bench|old_scans": {
+      "mean": 0.2960034013605442,
+      "n": 14
+    },
+    "got2|olmocr_bench|old_scans_math": {
+      "mean": 0.11073512738428705,
+      "n": 14
+    },
+    "got2|olmocr_bench|tables": {
+      "mean": 0.0,
+      "n": 14
+    },
+    "got2|merged_forms|tax_forms_sd2": {
+      "mean": 0.040286666666666665,
+      "n": 15
+    },
+    "kosmos25|realdoc_qa_scanned_heavy|finance": {
+      "mean": 0.13690476190476192,
+      "n": 28
+    },
+    "kosmos25|realdoc_qa_scanned_heavy|medical_healthcare": {
+      "mean": 0.3492063492063492,
+      "n": 21
+    },
+    "kosmos25|realdoc_qa_scanned_heavy|mortgage": {
+      "mean": 0.5376811594202898,
+      "n": 23
+    },
+    "kosmos25|realdoc_qa_scanned_heavy|supply_chain": {
+      "mean": 0.6425925925925926,
+      "n": 18
+    },
+    "kosmos25|realdoc_qa|finance": {
+      "mean": 0.375,
+      "n": 28
+    },
+    "kosmos25|realdoc_qa|medical_healthcare": {
+      "mean": 0.8095238095238095,
+      "n": 21
+    },
+    "kosmos25|realdoc_qa|mortgage": {
+      "mean": 0.5905797101449276,
+      "n": 23
+    },
+    "kosmos25|realdoc_qa|supply_chain": {
+      "mean": 0.5407407407407407,
+      "n": 18
+    },
+    "kosmos25|omnidocbench|PPT2PDF": {
+      "mean": 0.9299085890351375,
+      "n": 11
+    },
+    "kosmos25|omnidocbench|academic_literature": {
+      "mean": 0.5243113253117798,
+      "n": 10
+    },
+    "kosmos25|omnidocbench|book": {
+      "mean": 0.7818814151400243,
+      "n": 11
+    },
+    "kosmos25|omnidocbench|exam_paper": {
+      "mean": 0.7210980604913823,
+      "n": 11
+    },
+    "kosmos25|omnidocbench|historical_document": {
+      "mean": 0.1377244923361428,
+      "n": 5
+    },
+    "kosmos25|omnidocbench|magazine": {
+      "mean": 0.6082325047522104,
+      "n": 9
+    },
+    "kosmos25|omnidocbench|newspaper": {
+      "mean": 0.11151991641399044,
+      "n": 10
+    },
+    "kosmos25|omnidocbench|note": {
+      "mean": 0.37786810005201116,
+      "n": 10
+    },
+    "kosmos25|omnidocbench|research_report": {
+      "mean": 0.28134871641375603,
+      "n": 10
+    },
+    "kosmos25|omnidocbench|colorful_textbook": {
+      "mean": 0.6555688240201912,
+      "n": 9
+    },
+    "kosmos25|realdoc_qa_scanned_light|finance": {
+      "mean": 0.2619047619047619,
+      "n": 28
+    },
+    "kosmos25|realdoc_qa_scanned_light|medical_healthcare": {
+      "mean": 0.7142857142857143,
+      "n": 21
+    },
+    "kosmos25|realdoc_qa_scanned_light|mortgage": {
+      "mean": 0.5865942028985508,
+      "n": 23
+    },
+    "kosmos25|realdoc_qa_scanned_light|supply_chain": {
+      "mean": 0.5962962962962962,
+      "n": 18
+    },
+    "kosmos25|olmocr_bench|arxiv_math": {
+      "mean": 0.22222222222222224,
+      "n": 15
+    },
+    "kosmos25|olmocr_bench|headers_footers": {
+      "mean": 0.30507936507936506,
+      "n": 15
+    },
+    "kosmos25|olmocr_bench|long_tiny_text": {
+      "mean": 0.5576585472898837,
+      "n": 14
+    },
+    "kosmos25|olmocr_bench|multi_column": {
+      "mean": 0.3761904761904762,
+      "n": 14
+    },
+    "kosmos25|olmocr_bench|old_scans": {
+      "mean": 0.3447278911564626,
+      "n": 14
+    },
+    "kosmos25|olmocr_bench|old_scans_math": {
+      "mean": 0.0,
+      "n": 14
+    },
+    "kosmos25|olmocr_bench|tables": {
+      "mean": 0.008928571428571428,
+      "n": 14
+    },
+    "kosmos25|merged_forms|tax_forms_sd2": {
+      "mean": 0.20392,
+      "n": 15
+    }
+  },
+  "tier_b": {
+    "deepseek_ocr": {
+      "b1": 0.46925925925925926,
+      "n_extractive": 90,
+      "n_total": 100,
+      "b2": 0.08,
+      "reader": "Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+    },
+    "easyocr": {
+      "b1": 0.5826851851851852,
+      "n_extractive": 90,
+      "n_total": 100,
+      "b2": 0.09,
+      "reader": "Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+    },
+    "tesseract": {
+      "b1": 0.5799074074074074,
+      "n_extractive": 90,
+      "n_total": 100,
+      "b2": 0.11,
+      "reader": "Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+    },
+    "lightonocr": {
+      "b1": 0.657962962962963,
+      "n_extractive": 90,
+      "n_total": 100,
+      "b2": 0.13,
+      "reader": "Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+    },
+    "paddleocr_vl": {
+      "b1": 0.5418518518518518,
+      "n_extractive": 90,
+      "n_total": 100,
+      "b2": 0.09,
+      "reader": "Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+    },
+    "rapidocr": {
+      "b1": 0.4988888888888889,
+      "n_extractive": 90,
+      "n_total": 100,
+      "b2": 0.06,
+      "reader": "Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+    },
+    "doctr": {
+      "b1": 0.682037037037037,
+      "n_extractive": 90,
+      "n_total": 100,
+      "b2": 0.1,
+      "reader": "Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+    },
+    "qwen25vl": {
+      "b1": 0.6366666666666666,
+      "n_extractive": 90,
+      "n_total": 100,
+      "b2": 0.14,
+      "reader": "Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+    },
+    "granite_docling": {
+      "b1": 0.03518518518518518,
+      "n_extractive": 90,
+      "n_total": 100,
+      "b2": 0.0,
+      "reader": "Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+    },
+    "gemma4": {
+      "b1": 0.5643518518518518,
+      "n_extractive": 90,
+      "n_total": 100,
+      "b2": 0.05,
+      "reader": "Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+    },
+    "olmocr2": {
+      "b1": 0.6890740740740741,
+      "n_extractive": 90,
+      "n_total": 100,
+      "b2": 0.13,
+      "reader": "Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+    },
+    "dots_ocr": {
+      "b1": 0.5485185185185185,
+      "n_extractive": 90,
+      "n_total": 100,
+      "b2": 0.13,
+      "reader": "Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+    },
+    "got2": {
+      "b1": 0.17537037037037037,
+      "n_extractive": 90,
+      "n_total": 100,
+      "b2": 0.01,
+      "reader": "Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+    },
+    "kosmos25": {
+      "b1": 0.5646296296296296,
+      "n_extractive": 90,
+      "n_total": 100,
+      "b2": 0.07,
+      "reader": "Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+    }
+  },
+  "perf": {
+    "deepseek_ocr": {
+      "n": 626,
+      "median_s": 10.13,
+      "mean_s": 18.96,
+      "p90_s": 47.9,
+      "peak_vram_gb": 29.9,
+      "cost_per_page_usd": null
+    },
+    "easyocr": {
+      "n": 626,
+      "median_s": 2.2,
+      "mean_s": 2.17,
+      "p90_s": 3.32,
+      "peak_vram_gb": 5.7,
+      "cost_per_page_usd": null
+    },
+    "tesseract": {
+      "n": 626,
+      "median_s": 1.93,
+      "mean_s": 1.93,
+      "p90_s": 2.73,
+      "peak_vram_gb": null,
+      "cost_per_page_usd": null
+    },
+    "lightonocr": {
+      "n": 626,
+      "median_s": 5.57,
+      "mean_s": 6.42,
+      "p90_s": 10.07,
+      "peak_vram_gb": 29.0,
+      "cost_per_page_usd": null
+    },
+    "paddleocr_vl": {
+      "n": 626,
+      "median_s": 6.15,
+      "mean_s": 9.49,
+      "p90_s": 17.79,
+      "peak_vram_gb": 29.3,
+      "cost_per_page_usd": null
+    },
+    "rapidocr": {
+      "n": 626,
+      "median_s": 2.21,
+      "mean_s": 2.19,
+      "p90_s": 2.73,
+      "peak_vram_gb": null,
+      "cost_per_page_usd": null
+    },
+    "doctr": {
+      "n": 626,
+      "median_s": 1.82,
+      "mean_s": 1.72,
+      "p90_s": 2.61,
+      "peak_vram_gb": null,
+      "cost_per_page_usd": null
+    },
+    "qwen25vl": {
+      "n": 626,
+      "median_s": 10.78,
+      "mean_s": 14.19,
+      "p90_s": 41.26,
+      "peak_vram_gb": 28.8,
+      "cost_per_page_usd": null
+    },
+    "granite_docling": {
+      "n": 522,
+      "median_s": 5.14,
+      "mean_s": 36.01,
+      "p90_s": 96.78,
+      "peak_vram_gb": 1.0,
+      "cost_per_page_usd": null
+    },
+    "gemma4": {
+      "n": 626,
+      "median_s": 14.03,
+      "mean_s": 15.6,
+      "p90_s": 22.73,
+      "peak_vram_gb": 29.8,
+      "cost_per_page_usd": null
+    },
+    "olmocr2": {
+      "n": 626,
+      "median_s": 13.69,
+      "mean_s": 15.8,
+      "p90_s": 40.95,
+      "peak_vram_gb": 28.8,
+      "cost_per_page_usd": null
+    },
+    "dots_ocr": {
+      "n": 626,
+      "median_s": 7.91,
+      "mean_s": 20.77,
+      "p90_s": 78.51,
+      "peak_vram_gb": 31.1,
+      "cost_per_page_usd": null
+    },
+    "got2": {
+      "n": 626,
+      "median_s": 3.39,
+      "mean_s": 4.14,
+      "p90_s": 9.09,
+      "peak_vram_gb": 3.5,
+      "cost_per_page_usd": null
+    },
+    "kosmos25": {
+      "n": 626,
+      "median_s": 4.71,
+      "mean_s": 4.95,
+      "p90_s": 8.92,
+      "peak_vram_gb": 6.8,
+      "cost_per_page_usd": null
+    }
+  }
+}

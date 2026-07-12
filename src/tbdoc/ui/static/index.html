@@ -297,8 +297,9 @@ async function renderCockpit(root){
   const bestAcc=rows.reduce((a,r)=>(r.acc!=null&&(a==null||r.acc>a.acc))?r:a,null);
 
   root.appendChild(el("h2",{text:`Leaderboard: ${sb.run_id}`}));
+  const srcNote = sb.source==="summary" ? " Rendered from the tracked summary.json (per-sample records are not in this clone; the example workbench needs a locally scored run)." : "";
   root.appendChild(el("div",{class:"muted",style:"margin:-8px 0 12px;font-size:0.8rem",
-    text:`${sb.n_scored} scored samples. Accuracy shaded per column (deeper is stronger); a gold dot marks the column leader, a terracotta dot marks models on the value frontier.`}));
+    text:`${sb.n_scored} scored samples.${srcNote} Accuracy shaded per column (deeper is stronger); a gold dot marks the column leader, a terracotta dot marks models on the value frontier.`}));
 
   // toolbar
   const showExtra={v:true}; const tierOn={A:true,B:true,C:true};

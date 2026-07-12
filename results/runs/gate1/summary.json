@@ -1,0 +1,51 @@
+{
+  "run_id": "gate1",
+  "generated_at": "2026-07-11T17:38:34",
+  "note": "derived aggregates from per-sample records (raw/ + predictions/, gitignored); tracked so fresh clones can render this run",
+  "models": [
+    "qwen25vl",
+    "anthropic_vision"
+  ],
+  "benches": [
+    "olmocr_bench"
+  ],
+  "cells": {
+    "qwen25vl|olmocr_bench": {
+      "mean": 0.42333333333333334,
+      "n": 5
+    }
+  },
+  "categories": {
+    "qwen25vl|olmocr_bench|arxiv_math": {
+      "mean": 0.0,
+      "n": 1
+    },
+    "qwen25vl|olmocr_bench|headers_footers": {
+      "mean": 0.5,
+      "n": 1
+    },
+    "qwen25vl|olmocr_bench|long_tiny_text": {
+      "mean": 0.4166666666666667,
+      "n": 1
+    },
+    "qwen25vl|olmocr_bench|multi_column": {
+      "mean": 1.0,
+      "n": 1
+    },
+    "qwen25vl|olmocr_bench|old_scans": {
+      "mean": 0.2,
+      "n": 1
+    }
+  },
+  "tier_b": {},
+  "perf": {
+    "qwen25vl": {
+      "n": 5,
+      "median_s": 7.21,
+      "mean_s": 11.09,
+      "p90_s": 23.06,
+      "peak_vram_gb": 28.8,
+      "cost_per_page_usd": null
+    }
+  }
+}
