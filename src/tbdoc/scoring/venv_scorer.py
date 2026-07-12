@@ -29,7 +29,13 @@ def score_batch_venv(scorer_dir: str | Path, args: list[str], docs: list[dict[st
             f"scorer venv missing: {py} — create it (see {d}/README.md), e.g. "
             f"`uv venv {d}/.venv && uv pip install -p {d}/.venv/bin/python -r {d}/requirements.txt`")
     import os
-    full_env = {**os.environ, **(env or {})}
+    # Scorers are third-party pinned code grading markdown — they get no secrets.
+    # Strip anything credential-shaped from the inherited env; callers add back
+    # specific vars via `env` if a scorer genuinely needs one.
+    sensitive = ("KEY", "TOKEN", "SECRET", "PASSWORD", "CREDENTIAL")
+    base_env = {k: v for k, v in os.environ.items()
+                if not any(s in k.upper() for s in sensitive)}
+    full_env = {**base_env, **(env or {})}
     stdin = "\n".join(json.dumps(x) for x in docs)
     try:
         proc = subprocess.run([str(py), str(script), *args], input=stdin, env=full_env,

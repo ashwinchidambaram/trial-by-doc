@@ -46,7 +46,8 @@ def _cuda_toolkit() -> dict[str, Any]:
     """Record the JIT-compile toolkit: a standalone CUDA toolkit wired in via cuda_env, if present.
 
     deepseek_ocr + FlashInfer JIT-compile against this; it lives outside the repo/venv (see
-    findings/S7-cuda-toolkit.md), so capturing its identity is part of reproducibility.
+    the CLAUDE.md environment notes on the host toolkit), so capturing its identity is part
+    of reproducibility.
     """
     import torch
     info: dict[str, Any] = {"torch_cuda_build": torch.version.cuda}
@@ -61,8 +62,8 @@ def _cuda_toolkit() -> dict[str, Any]:
     info["nvcc_version"] = _nvcc_version()
     info["nvcc_present"] = info["nvcc_version"] is not None
     info["note"] = ("standalone CUDA toolkit, build-time only (JIT compile for FlashInfer/deepseek); "
-                    "torch runtime stays at torch_cuda_build. Lives outside the repo — see "
-                    "findings/S7-cuda-toolkit.md.")
+                    "torch runtime stays at torch_cuda_build. Lives outside the repo — see the "
+                    "CLAUDE.md environment notes.")
     return info
 
 

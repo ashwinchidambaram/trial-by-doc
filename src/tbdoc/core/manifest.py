@@ -57,8 +57,42 @@ def build_manifest(*, run_id: str, models: list[str], benches: list[str],
     return m
 
 
+def _invocation_stanza(manifest: dict) -> dict:
+    """The per-invocation slice of a manifest (what varies between reruns of a run-id)."""
+    return {
+        "created_at": manifest.get("created_at"),
+        "harness": manifest.get("harness"),
+        "models": sorted(manifest.get("models") or {}),
+        "benchmarks": sorted(manifest.get("benchmarks") or {}),
+    }
+
+
 def write_manifest(run_dir: str | Path, manifest: dict) -> Path:
+    """Write manifest.json, MERGING with any existing one — a rescore/resume into the
+    same run-id must never clobber the original run's provenance (this bug destroyed
+    v1-baseline's core-bench fingerprints once). Union the fingerprint maps, keep the
+    first invocation's created_at, and log every invocation under "invocations".
+    Top-level "harness" reflects the LATEST invocation; per-invocation history has the rest.
+    """
     p = Path(run_dir) / "manifest.json"
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(manifest, indent=2))
+    old = None
+    if p.exists():
+        try:
+            old = json.loads(p.read_text())
+        except Exception:
+            old = None
+    merged = dict(manifest)
+    if old:
+        invocations = list(old.get("invocations") or [_invocation_stanza(old)])
+        merged["created_at"] = old.get("created_at") or manifest.get("created_at")
+        for k in ("models", "benchmarks", "instruments", "configs"):
+            merged[k] = {**(old.get(k) or {}), **(manifest.get(k) or {})}
+        # preserve keys the new manifest doesn't know about (e.g. a reconstruction note)
+        for k, v in old.items():
+            merged.setdefault(k, v)
+    else:
+        invocations = []
+    merged["invocations"] = invocations + [_invocation_stanza(manifest)]
+    p.write_text(json.dumps(merged, indent=2))
     return p

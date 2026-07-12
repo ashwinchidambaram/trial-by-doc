@@ -102,9 +102,11 @@ def render_perf(run_dir: Path, models: list[str] | None = None) -> str:
            "|---|---|---|---|---|---|"]
     for m in order:
         p = perf[m]
-        vram = f"{p['peak_vram_gb']} GB" if p["peak_vram_gb"] else "— (API)"
+        # no VRAM telemetry = the model never touched the GPU (CPU engine or API)
+        vram = f"{p['peak_vram_gb']} GB" if p["peak_vram_gb"] else "—"
         cost = f"${p['cost_per_page_usd']}" if p["cost_per_page_usd"] else "—"
         out.append(f"| {m} | {p['median_s']} | {p['mean_s']} | {p['p90_s']} | {vram} | {cost} |")
+    out.append("\n_peak VRAM — = no GPU used (CPU engine or API-hosted); $/page — = local model (electricity not priced)._")
     return "\n".join(out)
 
 

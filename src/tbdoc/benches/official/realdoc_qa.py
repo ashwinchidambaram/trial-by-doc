@@ -78,17 +78,22 @@ class RealDocQA(BenchAdapter):
         extractive = is_extractive_gold(sample.question or "", golds)
         b1 = field_value_presence(md, golds) if extractive else None
         # B.2 comprehension — only when a reader instrument is supplied (secondary signal)
-        b2 = b2_anls = answer = reader_id = None
+        b2 = b2_anls = answer = reader_id = b2_cost = None
         if extractor is not None:
             answer = extractor.answer(md, sample.question or "")
             b2 = field_aware_exact_match(answer, golds)
             b2_anls = anls(answer, golds)
             reader_id = getattr(extractor, "identity", "?")
-        return {"primary": b1,            # B.1 is the headline; None -> excluded from the mean
-                "b1": b1, "extractive": extractive,
-                "b2": b2, "b2_anls": b2_anls, "reader": reader_id,
-                "answer": (answer[:200] if answer else None),
-                "category": sample.category}
+            # API readers stamp per-call cost (cost-guard/provenance rule); local readers don't
+            b2_cost = getattr(extractor, "last_cost_usd", None)
+        out = {"primary": b1,             # B.1 is the headline; None -> excluded from the mean
+               "b1": b1, "extractive": extractive,
+               "b2": b2, "b2_anls": b2_anls, "reader": reader_id,
+               "answer": (answer[:200] if answer else None),
+               "category": sample.category}
+        if b2_cost is not None:
+            out["b2_cost_usd"] = b2_cost
+        return out
 
     def categories(self) -> list[str]:
         return ["finance", "medical_healthcare", "mortgage", "supply_chain"]

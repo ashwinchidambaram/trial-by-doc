@@ -75,11 +75,18 @@ def run_score(*, models: list[str], benches: list[str],
                         continue
                     metrics = results.get(str(s.id), results.get(s.id))
                     tel = p.telemetry.to_dict() if hasattr(p, "telemetry") else {}
+                    # scorers mark per-sample failures inside metrics["error"] (always with
+                    # primary=None) — surface that as a real error row, never a silent gap
+                    err = metrics.get("error") if isinstance(metrics, dict) else None
                     store.record(m, b, s.id, metrics=metrics, telemetry=tel,
                                  category=metrics.get("category", s.category),
                                  model_revision=(fps.get(m) or {}).get("revision")
-                                 or (fps.get(m) or {}).get("api_version"))
-                    n_scored += 1
+                                 or (fps.get(m) or {}).get("api_version"),
+                                 error=err)
+                    if err is None:
+                        n_scored += 1
+                    else:
+                        n_err += 1
             store.write_status(models, benches, totals=totals, hardware=hardware,
                                current={"model": m, "bench": b, "phase": "score"})
             log(f"[score] {m} × {b}: {len(pending)} samples")

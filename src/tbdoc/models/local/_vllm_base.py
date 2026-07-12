@@ -108,8 +108,8 @@ class VLLMModelAdapter(LocalModelAdapter):
         # seed=0: pin the sampler RNG so greedy decoding is reproducible (tie-breaks deterministic).
         # NB: this alone does NOT fully remove run-to-run drift — vLLM's attention/matmul reductions
         # aren't bit-deterministic across separate .chat() calls (issue #4). The structural fix is the
-        # OCR-once memoization in baseline_infer.py (each unique page decoded once, reused). Residual
-        # cross-run nondeterminism is documented in findings/S11.
+        # OCR-once memoization in runner/infer.py (each unique page decoded once, reused). Residual
+        # cross-run nondeterminism is inherent to vLLM batched attention (upstream, not fixable here).
         sp = self._SamplingParams(temperature=0.0, seed=0, max_tokens=self.max_tokens, logprobs=5,
                                   repetition_penalty=self.repetition_penalty,
                                   skip_special_tokens=self.skip_special_tokens)

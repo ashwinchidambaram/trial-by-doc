@@ -61,11 +61,20 @@ class BenchAdapter(ABC):
                        extractor: Any | None = None) -> dict[str, dict[str, Any]]:
         """Score a whole (model, bench) cell; returns {sample_id: metrics}.
 
-        Default loops evaluate(). Container/venv-scored benches override to score
-        in ONE subprocess/container run (see scoring/container_scorer.py).
+        Default loops evaluate() with PER-SAMPLE fault isolation: one raising sample
+        (e.g. a transient reader/API failure that survived its own retries) becomes one
+        error-marked row instead of aborting the whole cell — same {"primary": None,
+        "error": ...} marker convention the subprocess-scored benches use.
+        Container/venv-scored benches override to score in ONE subprocess/container
+        run (see scoring/container_scorer.py).
         """
-        return {s.id: self.evaluate(s, p, extractor=extractor)
-                for s, p in zip(samples, predictions)}
+        out: dict[str, dict[str, Any]] = {}
+        for s, p in zip(samples, predictions):
+            try:
+                out[s.id] = self.evaluate(s, p, extractor=extractor)
+            except Exception as e:
+                out[s.id] = {"primary": None, "error": f"scorer: {type(e).__name__}: {e}"}
+        return out
 
     def categories(self) -> list[str] | None:
         """Doc-type categories this benchmark distinguishes (per-category breakdowns)."""
