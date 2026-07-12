@@ -92,4 +92,7 @@ def run_score(*, models: list[str], benches: list[str],
             log(f"[score] {m} × {b}: {len(pending)} samples")
     store.write_scoreboard(models, benches)
     store.write_status(models, benches, totals=totals, hardware=hardware, current=None)
+    # tracked aggregates so a fresh clone (no raw/ or predictions/) can still render this run
+    from tbdoc.report.scoreboard import write_summary
+    write_summary(store.root)
     return {"scored": n_scored, "errors": n_err}

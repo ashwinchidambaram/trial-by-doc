@@ -182,20 +182,39 @@ def validate_adapter(model_key, pages):
 @click.option("--readme-inject", is_flag=True, help="write the scores into README.md's scoreboard block")
 @click.option("--perf", is_flag=True, help="show per-page latency / VRAM / cost instead")
 @click.option("--tier-b", is_flag=True, help="show Tier-B scores (B.1 + coverage + B.2 + reader)")
-def scoreboard(run_id, fmt, by, readme_inject, perf, tier_b):
+@click.option("--write-summary", is_flag=True,
+              help="(re)generate the tracked summary.json from per-sample records")
+def scoreboard(run_id, fmt, by, readme_inject, perf, tier_b, write_summary):
     """Print the scoreboard for a run."""
-    from tbdoc.report.scoreboard import inject_readme, render, render_perf, render_tier_b
-    if tier_b:
-        click.echo(render_tier_b(_latest_run(run_id)))
-        return
-    if perf:
-        click.echo(render_perf(_latest_run(run_id)))
-        return
-    if readme_inject:
-        inject_readme(_latest_run(run_id), Path("README.md"), registry=_registry())
-        click.echo("README.md scoreboard block updated")
-        return
-    click.echo(render(_latest_run(run_id), fmt=fmt, by=by, registry=_registry()))
+    from tbdoc.report.scoreboard import (
+        inject_readme,
+        render,
+        render_perf,
+        render_tier_b,
+    )
+    from tbdoc.report.scoreboard import (
+        write_summary as _write_summary,
+    )
+    try:
+        if write_summary:
+            p = _write_summary(_latest_run(run_id))
+            if p is None:
+                raise click.ClickException("no per-sample records here to summarize")
+            click.echo(f"wrote {p}")
+            return
+        if tier_b:
+            click.echo(render_tier_b(_latest_run(run_id)))
+            return
+        if perf:
+            click.echo(render_perf(_latest_run(run_id)))
+            return
+        if readme_inject:
+            inject_readme(_latest_run(run_id), Path("README.md"), registry=_registry())
+            click.echo("README.md scoreboard block updated")
+            return
+        click.echo(render(_latest_run(run_id), fmt=fmt, by=by, registry=_registry()))
+    except FileNotFoundError as e:
+        raise click.ClickException(str(e))
 
 
 @main.command("list")
@@ -337,9 +356,10 @@ def ui(run_id, host, port, no_browser):
     results_dir = (_matrix_cfg().get("run") or {}).get("results_dir", "results/runs")
     app = create_app(results_dir=results_dir, config_dir=str(_registry().config_dir))
     if run_id:
-        from pathlib import Path as _Path
-        if not (_Path(results_dir) / run_id / "raw").is_dir():
-            raise click.ClickException(f"no scored run '{run_id}' under {results_dir}")
+        from tbdoc.ui.runs import _is_run_dir
+        if not _is_run_dir(Path(results_dir) / run_id):
+            raise click.ClickException(f"no scored run '{run_id}' under {results_dir} "
+                                       "(needs raw/ or a tracked summary.json)")
     url = f"http://{host}:{port}/" + (f"#/?run_id={run_id}" if run_id else "")
     click.echo(f"gauntlet ui: {url}  (results_dir={results_dir}, Ctrl-C to stop)")
     if not no_browser:

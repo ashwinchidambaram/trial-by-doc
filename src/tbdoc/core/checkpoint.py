@@ -23,8 +23,9 @@ from typing import Iterable
 class CheckpointStore:
     def __init__(self, results_dir: str | Path):
         self.root = Path(results_dir)
+        # raw/ is created lazily by record() — constructing the store for READING
+        # (scoreboard render, UI) must not scaffold empty run dirs on fresh clones.
         self.raw = self.root / "raw"
-        self.raw.mkdir(parents=True, exist_ok=True)
         # (model, bench) -> set of completed sample ids
         self._done: dict[tuple[str, str], set[str]] = defaultdict(set)
         self._load_done()
@@ -34,6 +35,8 @@ class CheckpointStore:
         return self.raw / model / f"{bench}.jsonl"
 
     def _load_done(self) -> None:
+        if not self.raw.is_dir():
+            return
         for jl in self.raw.rglob("*.jsonl"):
             model = jl.parent.name
             bench = jl.stem
@@ -91,6 +94,8 @@ class CheckpointStore:
         return out
 
     def iter_records(self) -> Iterable[dict]:
+        if not self.raw.is_dir():
+            return
         for jl in self.raw.rglob("*.jsonl"):
             for line in jl.read_text().splitlines():
                 if line.strip():

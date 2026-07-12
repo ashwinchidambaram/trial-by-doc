@@ -11,8 +11,9 @@ from pathlib import Path
 from typing import Any
 
 from tbdoc.core.checkpoint import CheckpointStore
-from tbdoc.report.scoreboard import _collect as _collect_scoreboard
 from tbdoc.report.scoreboard import _is_derived_bench
+from tbdoc.report.scoreboard import collect_grid as _collect_grid
+from tbdoc.report.scoreboard import load_summary as _load_summary
 
 # License tags this dashboard will redistribute a thumbnail for. Anything else
 # (including "unspecified" / absent) is gated — metadata-only in the explorer gallery.
@@ -25,23 +26,29 @@ GALLERY_LICENSE_ALLOWLIST = {
 def scoreboard_payload(run_dir: Path, registry) -> dict[str, Any]:
     """Leaderboard matrix + per-category breakdown, provenance/license-labeled.
 
-    Numbers come straight from `report.scoreboard._collect` (the same function
-    `gauntlet scoreboard` prints), so a UI reload always matches the CLI exactly.
+    Numbers come straight from `report.scoreboard.collect_grid` (the same source
+    `gauntlet scoreboard` prints — raw records, else the tracked summary.json on a
+    fresh clone), so a UI reload always matches the CLI exactly.
     """
-    models, benches, cells, cats = _collect_scoreboard(run_dir)
+    try:
+        models, benches, cells, cats, from_summary = _collect_grid(run_dir)
+    except FileNotFoundError:
+        models, benches, cells, cats, from_summary = [], [], {}, {}, False
     # scanned-degradation variants are a robustness study, not core leaderboard columns —
     # they surface via the robustness endpoint / the cockpit's robust column, not here
     # (mirrors report.scoreboard.render). Keeps the leaderboard the canonical tiers.
     benches = [b for b in benches if not _is_derived_bench(b)]
     bmeta = registry.benchmarks if registry else {}
 
-    def mean_n(vals: list[float]) -> dict[str, Any]:
-        return {"mean": round(sum(vals) / len(vals), 4) if vals else None, "n": len(vals)}
+    def mean_n(stat: dict | None) -> dict[str, Any]:
+        if not stat or stat.get("mean") is None:
+            return {"mean": None, "n": (stat or {}).get("n", 0)}
+        return {"mean": round(stat["mean"], 4), "n": stat["n"]}
 
-    cell_out = {f"{m}|{b}": mean_n(cells.get((m, b), [])) for m in models for b in benches}
+    cell_out = {f"{m}|{b}": mean_n(cells.get((m, b))) for m in models for b in benches}
     cat_out: dict[str, dict[str, dict[str, Any]]] = {}
-    for (m, b, c), vals in cats.items():
-        cat_out.setdefault(f"{m}|{b}", {})[c] = mean_n(vals)
+    for (m, b, c), stat in cats.items():
+        cat_out.setdefault(f"{m}|{b}", {})[c] = mean_n(stat)
 
     bench_meta = {}
     for b in benches:
@@ -61,7 +68,8 @@ def scoreboard_payload(run_dir: Path, registry) -> dict[str, Any]:
         "cells": cell_out,
         "categories": cat_out,
         "bench_meta": bench_meta,
-        "n_scored": sum(len(v) for (m, b), v in cells.items() if b in set(benches)),
+        "n_scored": sum(s.get("n", 0) for (m, b), s in cells.items() if b in set(benches)),
+        "source": "summary" if from_summary else "raw",
     }
 
 
@@ -132,34 +140,43 @@ def raw_record(run_dir: Path, model: str, bench: str, sample_id: str) -> dict[st
 
 
 def list_cells(run_dir: Path) -> list[dict[str, Any]]:
-    """{model, bench, n} for every (model, bench) cell that has raw records."""
+    """{model, bench, n} for every (model, bench) cell — raw records, else summary.json."""
     raw = run_dir / "raw"
-    if not raw.exists():
+    if raw.exists():
+        out = []
+        for model_dir in sorted(p for p in raw.iterdir() if p.is_dir()):
+            for jl in sorted(model_dir.glob("*.jsonl")):
+                n = sum(1 for line in jl.read_text().splitlines() if line.strip())
+                out.append({"model": model_dir.name, "bench": jl.stem, "n": n})
+        return out
+    s = _load_summary(run_dir)
+    if not s:
         return []
     out = []
-    for model_dir in sorted(p for p in raw.iterdir() if p.is_dir()):
-        for jl in sorted(model_dir.glob("*.jsonl")):
-            n = sum(1 for line in jl.read_text().splitlines() if line.strip())
-            out.append({"model": model_dir.name, "bench": jl.stem, "n": n})
+    for key, stat in sorted((s.get("cells") or {}).items()):
+        m, b = key.split("|", 1)
+        out.append({"model": m, "bench": b, "n": (stat or {}).get("n", 0)})
     return out
 
 
 def perf_payload(run_dir: Path) -> list[dict[str, Any]]:
-    """Per-model latency / VRAM / $per-page, straight from the report layer's `_perf`."""
-    from tbdoc.report.scoreboard import _perf
-    return [{"model": m, **d} for m, d in _perf(run_dir).items()]
+    """Per-model latency / VRAM / $per-page — prediction telemetry, else summary.json."""
+    from tbdoc.report.scoreboard import perf_stats
+    perf, _ = perf_stats(run_dir)
+    return [{"model": m, **d} for m, d in perf.items()]
 
 
 def tier_b_payload(run_dir: Path) -> list[dict[str, Any]]:
     """Per-model Tier-B: B.1 (extraction), coverage, B.2 (comprehension), reader identity."""
-    from tbdoc.report.scoreboard import _collect_tier_b
+    from tbdoc.report.scoreboard import tier_b_stats
+    per, _ = tier_b_stats(run_dir)
     out = []
-    for m, d in _collect_tier_b(run_dir).items():
-        b1 = round(sum(d["b1"]) / len(d["b1"]), 3) if d["b1"] else None
-        b2 = round(sum(d["b2"]) / len(d["b2"]), 3) if d["b2"] else None
-        out.append({"model": m, "b1": b1,
+    for m, d in per.items():
+        out.append({"model": m,
+                    "b1": round(d["b1"], 3) if d["b1"] is not None else None,
                     "coverage": {"extractive": d["n_extractive"], "total": d["n_total"]},
-                    "b2": b2, "reader": d["reader"]})
+                    "b2": round(d["b2"], 3) if d["b2"] is not None else None,
+                    "reader": d["reader"]})
     return out
 
 
@@ -175,12 +192,16 @@ def robustness_payload(run_dir: Path) -> list[dict[str, Any]]:
     clean = realdoc_qa primary; light/heavy = the scanned-variant benches. Only models with
     scanned data are returned. Matches findings/partd-scanned-robustness.md.
     """
-    from tbdoc.report.scoreboard import _collect
-    _models, _benches, cells, _cats = _collect(run_dir)
+    try:
+        _models, _benches, cells, _cats, _ = _collect_grid(run_dir)
+    except FileNotFoundError:
+        return []
 
     def cell_mean(model: str, bench: str) -> float | None:
-        vals = cells.get((model, bench), [])
-        return round(sum(vals) / len(vals), 3) if vals else None
+        stat = cells.get((model, bench))
+        if not stat or stat.get("mean") is None:
+            return None
+        return round(stat["mean"], 3)
 
     out = []
     for m in _models:
