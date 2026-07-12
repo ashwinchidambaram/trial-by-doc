@@ -64,10 +64,12 @@ two new scanned benches (100/100 each, computed from raw score records).
   confirm the synthetic curve; the synthetic-paired stage is what's scored here.
 - **Clean-column data-hygiene note (unrelated to scanned data):** recomputing clean B.1 from raw
   records gives 200 rows for `got2` and `lightonocr` (vs 100 for others). got2 is unaffected (both
-  halves ≈0.175); **lightonocr's recompute (0.464) diverges from the official 0.658** — the clean
-  realdoc_qa raw file for lightonocr appears to hold a duplicate/older score pass. The published
-  scoreboard value (0.658) is used above. **Worth auditing `raw/lightonocr/realdoc_qa.jsonl`
-  separately** — it does not touch the scanned benches (all 100/100, clean).
+  halves ≈0.175); lightonocr's naive all-rows recompute (0.464) diverges from the official 0.658 —
+  the clean realdoc_qa raw file for lightonocr holds a duplicate/older score pass.
+  **RESOLVED (2026-07-12 audit):** the first pass simply predates the b1-field schema
+  (`reader: null`, no b1 keys); with the harness's latest-record-per-sample dedup — the rule every
+  official renderer uses — the file yields exactly 0.658 over 90 extractive items. The published
+  value is correct; the earlier rows are superseded history in an append-only log, not a data bug.
 
 ## Reproduce
 

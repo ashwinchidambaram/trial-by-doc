@@ -21,6 +21,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 NOTE: This license covers the harness code only. Benchmark datasets retain
-their own licenses (documented per benchmark in benchmarks/*/eval.yaml and
+their own licenses (documented per benchmark in configs/benchmarks.yaml and
 credited in the README Attributions section) and are NOT redistributed here
 except where their license explicitly permits (e.g. example thumbnails).

@@ -3,7 +3,7 @@
 ## Prime directive: verify, never assume
 Never state a model repo ID, license, revision hash, API price, recommended setting, or
 hardware capability from memory. Verify against the live source (HF model card, provider
-pricing page, `nvidia-smi`/torch) and record it (configs/, findings/, eval.yaml).
+pricing page, `nvidia-smi`/torch) and record it (configs/, findings/, configs/benchmarks.yaml).
 If reality contradicts the plan, STOP and flag the owner.
 
 ## What this repo is

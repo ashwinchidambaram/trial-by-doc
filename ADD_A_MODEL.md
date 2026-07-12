@@ -6,7 +6,7 @@ Any model gets in with **one adapter subclass + one YAML entry**. No harness edi
 
 | Your model is... | Subclass | Working example |
 |---|---|---|
-| Open-weights VLM on your GPU (vLLM-servable) | `VLLMModelAdapter` | `src/tbdoc/models/local/qwen25vl.py` (12 lines) |
+| Open-weights VLM on your GPU (vLLM-servable) | `VLLMModelAdapter` | `src/tbdoc/models/local/qwen25vl.py` (18 lines) |
 | Open-weights needing raw transformers | `TransformersModelAdapter` | `src/tbdoc/models/local/got2.py` |
 | A chat-vision API you prompt for markdown | `VisionChatAdapter` | `src/tbdoc/models/api/anthropic_vision.py` |
 | A dedicated document/OCR API | `APIModelAdapter` | `src/tbdoc/models/api/mistral_ocr.py` |
@@ -37,15 +37,21 @@ Secrets go in `.env` (gitignored); the harness checks presence and never logs va
 ## 3. Validate, then run
 
 ```bash
-gauntlet validate-adapter my_model            # shape/telemetry/secrets smoke, 3 pages
-gauntlet run -m my_model -b olmocr_bench --max-samples 5   # tiny real slice
-gauntlet run -m my_model --profile full       # the whole gauntlet
-gauntlet scoreboard                           # your scores, provenance-stamped
+uv run gauntlet validate-adapter my_model            # shape/telemetry/secrets smoke, 3 pages
+uv run gauntlet run -m my_model -b olmocr_bench --max-samples 5 --run-id mine   # tiny real slice
+uv run gauntlet run -m my_model -p v1 --run-id mine  # your model over the full published bench set
+uv run gauntlet scoreboard --run-id mine             # your scores, provenance-stamped
 ```
+
+**Compare against the published baselines without re-running them**: keep the `v1`
+profile's per-bench sample caps (the stratified loaders then select the identical
+samples) and read your rows against `uv run gauntlet scoreboard --run-id v1-baseline`
+— which renders from the tracked `summary.json` even on a fresh clone — or the README
+table. The dashboard's run picker (`uv run gauntlet ui`) shows both runs side by side.
 
 Runs are resumable (`--run-id`), scoring is decoupled from inference
 (`--phase score --rescore` re-scores without re-running your model), and API spend
-is estimated and budget-capped before any call.
+is estimated and budget-capped before any call — including Tier-B API reader spend.
 
 ## Tier C (document segmentation)
 

@@ -79,8 +79,12 @@ omnidocbench element-level means (edit dist, lower better; TEDS higher better): 
 
 ## Sanity flags (resolve before publishing)
 
-1. **got2 table zero is suspiciously clean** — 0/103 olmocr_bench table tests AND TEDS 0.000 on all 24 omnidocbench table pages. Verify against raw GOT-2 outputs: format mismatch vs. genuine failure. (Prior baseline scored got2 0.319 overall, so the headline is consistent, but the table story needs a citation-ready explanation.)
-2. **4096-token output cap is binding on dense pages** — the worst newspaper pages (all models) and qwen25vl's 0.00 historical_document pages all hit exactly 4096 output tokens. Newspaper truncation depresses scores mechanically; consider noting the cap in the README or re-running dense categories with a higher cap. qwen25vl's low-entropy 4096-token outputs match the known repetition-loop failure mode.
+_Status audit 2026-07-12: flag 2 is now disclosed (README Gaps + docs/REFERENCE.md#gaps)
+and flag 5 is covered by v1-baseline's manifest reconstruction note. Flag 1 (got2 table
+zero) remains OPEN — no citation-ready explanation yet; don't cite got2's table sub-scores._
+
+1. **got2 table zero is suspiciously clean** — 0/103 olmocr_bench table tests AND TEDS 0.000 on all 24 omnidocbench table pages. Verify against raw GOT-2 outputs: format mismatch vs. genuine failure. (Prior baseline scored got2 0.319 overall, so the headline is consistent, but the table story needs a citation-ready explanation.) **STILL OPEN as of 2026-07-12.**
+2. **4096-token output cap is binding on dense pages** — the worst newspaper pages (all models) and qwen25vl's 0.00 historical_document pages all hit exactly 4096 output tokens. Newspaper truncation depresses scores mechanically; consider noting the cap in the README or re-running dense categories with a higher cap. qwen25vl's low-entropy 4096-token outputs match the known repetition-loop failure mode. **Disclosed in README Gaps + REFERENCE.md (2026-07-12); caps not yet equalized.**
 3. **Newspaper collapse is universal** (0.089–0.250) — consistent with the cap issue above plus known difficulty; don't read it as a model ranking signal.
 4. **olmocr_bench category n is 14–15, omnidocbench 5–11 per category** — historical_document has only n=5; per-category numbers are noisy, label as indicative.
 5. **manifest says `git_dirty: true`** — the harness tree was dirty at run time; note in provenance or re-stamp before publishing.

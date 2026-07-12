@@ -191,6 +191,7 @@ models:
   tesseract:
     kind: cpu
     adapter: "tbdoc.models.local.tesseract:TesseractAdapter"
+    # reference-host binary; on other machines the adapter falls back to `tesseract` on PATH
     tesseract_cmd: /home/ashwinc/micromamba/envs/tesseract-ocr/bin/tesseract
     params: "n/a"
     license: apache-2.0
