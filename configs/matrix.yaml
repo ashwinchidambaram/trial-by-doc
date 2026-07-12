@@ -6,23 +6,42 @@ run:
   budget: { max_usd_per_model: 10.0 }   # API guard; estimate-cost must not exceed
 
 profiles:
+  # keyless + CPU-friendly sanity run: tesseract needs no GPU/key; qwen25vl exercises
+  # the vLLM lane. (Was [qwen25vl, anthropic_vision] — but no direct Anthropic key is
+  # provisioned, so half of every smoke run came back as error rows.)
   smoke:
-    models: [qwen25vl, anthropic_vision]
+    models: [qwen25vl, tesseract]
     benchmarks: { olmocr_bench: 5 }
     max_samples: 5
 
-  # v1 baseline: 8 local + 2 cheap APIs (keys required) + Tier-C floor baselines.
+  smoke_cpu:                     # zero-GPU, zero-key variant for fresh clones
+    models: [tesseract]
+    benchmarks: { olmocr_bench: 5 }
+    max_samples: 5
+
+  # THE published 14-model roster — reproduces the README scoreboard.
   # Per-bench caps sized for one RTX 5090 (stratified loaders make each cap representative).
-  full:
-    # v1 scored roster: 8 local models. API lanes (mistral_ocr, gemini_flash_lite)
-    # DEFERRED by owner 2026-07-07 (no keys yet) — add them back here when keys land.
+  v1:
     models: [olmocr2, qwen25vl, got2, dots_ocr, paddleocr_vl, deepseek_ocr,
-             granite_docling, lightonocr]
+             granite_docling, lightonocr, gemma4, kosmos25,
+             tesseract, rapidocr, doctr, easyocr]
     benchmarks:
       olmocr_bench: 100        # pages (stratified over 7 categories)
       omnidocbench: 100        # pages (stratified over 10 data sources)
       realdoc_qa: 100          # questions (~25 docs, stratified over 4 domains; page OCR memoized)
       merged_forms: 15         # streams (~17 pages each -> ~255 page inferences/model)
+
+  # HISTORICAL: the original 8-model core run (the roster later grew to the 14 above,
+  # ad hoc; `v1` is what reproduces the published table). API lanes (mistral_ocr,
+  # gemini_flash_lite) DEFERRED by owner 2026-07-07 (no keys yet).
+  full:
+    models: [olmocr2, qwen25vl, got2, dots_ocr, paddleocr_vl, deepseek_ocr,
+             granite_docling, lightonocr]
+    benchmarks:
+      olmocr_bench: 100
+      omnidocbench: 100
+      realdoc_qa: 100
+      merged_forms: 15
 
   tierc_floor:
     models: [baseline_every_page, baseline_no_boundary, baseline_pixel_diff]

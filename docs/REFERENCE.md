@@ -96,3 +96,22 @@ Honest limitations, current as of the v1 baseline:
   fair; absolute values are lower bounds.
 - **Statistical power**: per-category cells are small (n≈14–25); treat per-category
   winners as directional, not definitive.
+- **Output-token budgets are not equalized**: most vLLM models cap generation at 4096
+  tokens/page, but dots_ocr runs at 16000 and deepseek_ocr at 8192 (their cards' recipes).
+  The 4096 cap demonstrably binds on dense newspaper pages (see
+  findings/v1-interim-analysis.md §sanity-flags), so part of dots_ocr's OmniDocBench lead
+  is budget headroom, not parse skill. More broadly, comparisons are *recipe-vs-recipe*
+  (each model at its card-recommended resolution/prompt/token budget), not same-input.
+- **Developer-affiliated benchmarks**: olmocr2 (Allen AI) leads olmocr_bench (Allen AI);
+  dots.ocr and PaddleOCR-VL report OmniDocBench on their model cards (developed/selected
+  against it) and lead that column. Cross-benchmark agreement (olmocr2 also leads the
+  unaffiliated RealDoc B.1) mitigates but does not remove the confound; no affiliation
+  marker is on the scoreboard yet.
+- **API readers are stamped, not frozen**: the gpt-5.4-mini / haiku B.2 reader rungs run
+  temp=0 with identity + pricing stamped per record, but cannot be revision-pinned or
+  seeded through OpenRouter — unlike the local instruments, byte-exact reproduction of
+  those columns months later is not guaranteed.
+- **No confidence intervals on the scoreboard**: cells are means of ~15–100 samples;
+  sub-0.05 gaps between adjacent models are generally within noise (the B.2 re-score's
+  leading trio is presented as a tie for this reason). Paired bootstrap CIs are cheap
+  (all models share items) and are the natural next hardening step.

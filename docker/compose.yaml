@@ -26,4 +26,6 @@ services:
     volumes:
       - ../benchmarks:/app/benchmarks
       - ../results:/app/results
-      - /var/run/docker.sock:/var/run/docker.sock
+      # docker.sock (root-equivalent) deliberately NOT mounted here — the cpu image is
+      # for API models + native scoring; run container-scored benches from the gpu
+      # service or score on the host (--phase score).

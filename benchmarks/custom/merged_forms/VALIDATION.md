@@ -21,5 +21,16 @@ Boundaries = packet edges, known by construction (manifest.json, seed=0).
 
 ## Results
 - determinism sha256: 940b95ddeaf8644f (regenerated twice, identical — 2026-07-07)
-- pixel_diff vs content models: (stamped after v1 run)
-- human spot-check: PENDING
+- pixel_diff vs content models: **canary PARTIALLY FIRES** (stamped 2026-07-12, run
+  `tierc-floor-15`: all 3 floors × the same 15 streams the models scored; an earlier
+  n=5 floor run had accidentally inherited the smoke profile's sample cap).
+  baseline_pixel_diff PQ **0.226** vs content-based models: the four classic engines
+  beat it (easyocr 0.397, doctr 0.336, tesseract 0.330, rapidocr 0.258) but **every
+  VLM scores below it** (best: kosmos25 0.204; olmocr2 0.070; dots_ocr 0.006).
+  Interpretation: the merge does not leak trivially detectable seams *to content-blind
+  diffing better than content reading in general* — the strongest splitters are
+  content-based — but VLM `judge_composed` scores must NOT be cited as competent
+  splitting; they fail the floor test. The README Tier C claims are caveated
+  accordingly. every_page / no_boundary floors: 0.0.
+- human spot-check: PENDING (owner: eyeball N=10 stream boundaries against page
+  images — until then scores stay provisional per the header)

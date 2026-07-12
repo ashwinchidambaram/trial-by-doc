@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-07-09T19:33:01",
+  "updated_at": "2026-07-11T17:42:42",
   "totals": {
-    "done": 2800,
-    "total": 2800,
-    "pct": 100.0
+    "done": 7195,
+    "total": 7154,
+    "pct": 100.6
   },
   "current": null,
   "cells": [
@@ -230,52 +230,455 @@
       "total": 100,
       "primary_mean": 0.1713,
       "state": "done"
+    },
+    {
+      "model": "deepseek_ocr",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.4693,
+      "state": "done"
+    },
+    {
+      "model": "deepseek_ocr",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 96,
+      "primary_mean": 0.8203,
+      "state": "done"
+    },
+    {
+      "model": "deepseek_ocr",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7039,
+      "state": "done"
+    },
+    {
+      "model": "deepseek_ocr",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.0508,
+      "state": "done"
+    },
+    {
+      "model": "doctr",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.682,
+      "state": "done"
+    },
+    {
+      "model": "doctr",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 96,
+      "primary_mean": 0.5107,
+      "state": "done"
+    },
+    {
+      "model": "doctr",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.1855,
+      "state": "done"
+    },
+    {
+      "model": "doctr",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.3361,
+      "state": "done"
+    },
+    {
+      "model": "dots_ocr",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5485,
+      "state": "done"
+    },
+    {
+      "model": "dots_ocr",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 96,
+      "primary_mean": 0.8972,
+      "state": "done"
+    },
+    {
+      "model": "dots_ocr",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7337,
+      "state": "done"
+    },
+    {
+      "model": "dots_ocr",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.0059,
+      "state": "done"
+    },
+    {
+      "model": "easyocr",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5827,
+      "state": "done"
+    },
+    {
+      "model": "easyocr",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 96,
+      "primary_mean": 0.4825,
+      "state": "done"
+    },
+    {
+      "model": "easyocr",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.1619,
+      "state": "done"
+    },
+    {
+      "model": "easyocr",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.3967,
+      "state": "done"
+    },
+    {
+      "model": "gemma4",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5644,
+      "state": "done"
+    },
+    {
+      "model": "gemma4",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 96,
+      "primary_mean": 0.7059,
+      "state": "done"
+    },
+    {
+      "model": "gemma4",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.4139,
+      "state": "done"
+    },
+    {
+      "model": "gemma4",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.1566,
+      "state": "done"
+    },
+    {
+      "model": "got2",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.1754,
+      "state": "done"
+    },
+    {
+      "model": "got2",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 96,
+      "primary_mean": 0.6382,
+      "state": "done"
+    },
+    {
+      "model": "got2",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.3042,
+      "state": "done"
+    },
+    {
+      "model": "got2",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.0403,
+      "state": "done"
+    },
+    {
+      "model": "granite_docling",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.0352,
+      "state": "done"
+    },
+    {
+      "model": "granite_docling",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 96,
+      "primary_mean": 0.1028,
+      "state": "done"
+    },
+    {
+      "model": "granite_docling",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.1791,
+      "state": "done"
+    },
+    {
+      "model": "granite_docling",
+      "bench": "merged_forms",
+      "done": 0,
+      "total": 15,
+      "primary_mean": null,
+      "state": "pending"
+    },
+    {
+      "model": "kosmos25",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5646,
+      "state": "done"
+    },
+    {
+      "model": "kosmos25",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 96,
+      "primary_mean": 0.5393,
+      "state": "done"
+    },
+    {
+      "model": "kosmos25",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.2593,
+      "state": "done"
+    },
+    {
+      "model": "kosmos25",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.2039,
+      "state": "done"
+    },
+    {
+      "model": "lightonocr",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.658,
+      "state": "done"
+    },
+    {
+      "model": "lightonocr",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 96,
+      "primary_mean": 0.7255,
+      "state": "done"
+    },
+    {
+      "model": "lightonocr",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.6749,
+      "state": "done"
+    },
+    {
+      "model": "lightonocr",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.1424,
+      "state": "done"
+    },
+    {
+      "model": "olmocr2",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.6891,
+      "state": "done"
+    },
+    {
+      "model": "olmocr2",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 96,
+      "primary_mean": 0.8282,
+      "state": "done"
+    },
+    {
+      "model": "olmocr2",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.8362,
+      "state": "done"
+    },
+    {
+      "model": "olmocr2",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.0697,
+      "state": "done"
+    },
+    {
+      "model": "paddleocr_vl",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5419,
+      "state": "done"
+    },
+    {
+      "model": "paddleocr_vl",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 96,
+      "primary_mean": 0.6601,
+      "state": "done"
+    },
+    {
+      "model": "paddleocr_vl",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.3453,
+      "state": "done"
+    },
+    {
+      "model": "paddleocr_vl",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.0629,
+      "state": "done"
+    },
+    {
+      "model": "qwen25vl",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.6367,
+      "state": "done"
+    },
+    {
+      "model": "qwen25vl",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 96,
+      "primary_mean": 0.7358,
+      "state": "done"
+    },
+    {
+      "model": "qwen25vl",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7015,
+      "state": "done"
+    },
+    {
+      "model": "qwen25vl",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.018,
+      "state": "done"
+    },
+    {
+      "model": "rapidocr",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.4989,
+      "state": "done"
+    },
+    {
+      "model": "rapidocr",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 96,
+      "primary_mean": 0.6421,
+      "state": "done"
+    },
+    {
+      "model": "rapidocr",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.163,
+      "state": "done"
+    },
+    {
+      "model": "rapidocr",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.2579,
+      "state": "done"
+    },
+    {
+      "model": "tesseract",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5799,
+      "state": "done"
+    },
+    {
+      "model": "tesseract",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 96,
+      "primary_mean": 0.5069,
+      "state": "done"
+    },
+    {
+      "model": "tesseract",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.2957,
+      "state": "done"
+    },
+    {
+      "model": "tesseract",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 15,
+      "primary_mean": 0.3298,
+      "state": "done"
     }
   ],
-  "hardware": {
-    "captured_at": "2026-07-09T16:37:50",
-    "gpu": {
-      "available": true,
-      "name": "NVIDIA GeForce RTX 5090",
-      "vram_gb": 33.7,
-      "capability": [
-        12,
-        0
-      ],
-      "arch": "sm_120",
-      "driver_version": "595.71.05",
-      "supported_arch_list": [
-        "sm_75",
-        "sm_80",
-        "sm_86",
-        "sm_90",
-        "sm_100",
-        "sm_120"
-      ]
-    },
-    "cuda": {
-      "torch_cuda_build": "13.0",
-      "toolkit_home": "/home/ashwinc/cuda-13.3",
-      "toolkit_path": "/home/ashwinc/cuda-13.3",
-      "nvcc_version": "13.3",
-      "nvcc_present": true,
-      "note": "standalone CUDA toolkit, build-time only (JIT compile for FlashInfer/deepseek); torch runtime stays at torch_cuda_build. Lives outside the repo \u2014 see findings/S7-cuda-toolkit.md."
-    },
-    "software": {
-      "python": "3.12.13",
-      "torch": "2.11.0+cu130",
-      "torchvision": "0.26.0+cu130",
-      "triton": "3.6.0",
-      "vllm": "0.22.1",
-      "transformers": "5.11.0",
-      "datasets": null,
-      "accelerate": "1.14.0",
-      "huggingface_hub": "1.22.0"
-    },
-    "system": {
-      "os": "Linux",
-      "kernel": "7.0.0-27-generic",
-      "cpu_count": 24
-    }
-  }
+  "hardware": null
 }

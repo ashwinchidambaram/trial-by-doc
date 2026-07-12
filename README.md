@@ -22,9 +22,12 @@ identical for every model) and the scoreboard marks where they're used.
 If you only read one section, read this — everything below backs these claims with numbers.
 
 - **No single model wins everything.** VLMs (olmocr2, dots_ocr) are the strongest raw OCR
-  (Tier A parse fidelity); classic CPU engines (easyocr, docTR, tesseract) unexpectedly
-  *dominate* document-splitting (Tier C) — up to 2.5× the best VLM — because they emit
-  steadier per-page text where VLMs tend to over-merge huge multi-form pages.
+  (Tier A parse fidelity). On document-splitting (Tier C) the classic CPU engines lead —
+  but the honest headline is that **splitting is unsolved on this bench**: only the four
+  classic engines beat the trivial pixel-diff floor (0.226), and *every VLM scores below
+  it* (see [Tier C floors](#tier-c-floor-baselines-most-models-fail-them)). A plausible
+  mechanism is steadier per-page text vs. VLM over-merging, but the boundary-judge
+  instrument only reads a window of each page, so treat the *why* as unconfirmed.
 - **docTR is the standout generalist**: 2nd-best overall extraction accuracy (B.1 0.682,
   just behind olmocr2's 0.689), competitive Tier-C segmentation, and it's a free CPU engine.
 - **Scanned/faxed input changes the ranking.** olmocr2 and gemma4 hold onto 75–80% of their
@@ -36,7 +39,9 @@ If you only read one section, read this — everything below backs these claims 
   which of those are actually worth paying for.
 - **Quick picks**: cleanest raw OCR → **olmocr2** (olmocr_bench) / **dots_ocr** (omnidocbench)
   · cheapest that's still competitive → **tesseract** / **docTR** · best if input is
-  scanned/faxed → **olmocr2** / **gemma4** · best document-splitting → **easyocr**.
+  scanned/faxed → **olmocr2** / **gemma4** · document-splitting → **easyocr** leads (0.397),
+  but no model clears the bar we'd call "solved" (the bench itself is provisional pending a
+  human spot-check — see its [VALIDATION.md](benchmarks/custom/merged_forms/VALIDATION.md)).
 
 ## Benchmarks
 
@@ -84,9 +89,12 @@ Tier B is split so the signal you care about is isolated:
 
 Run `gauntlet scoreboard --tier-b` for the B.1/coverage/B.2 breakdown.
 
-Tier C publishes three **trivial-baseline floor rows** (every-page-boundary,
-no-boundary, pixel-diff) — a real model must beat all three; pixel-diff doubles as
-the seam-artifact canary for the synthesized data.
+Tier C ships three **trivial-baseline floor rows** (every-page-boundary, no-boundary,
+pixel-diff) — a real model should beat all three, and pixel-diff doubles as the
+seam-artifact canary for the synthesized data. The floors are published in
+[Tier C floors](#tier-c-floor-baselines-most-models-fail-them) under Scores — and most
+of the roster currently **fails** the pixel-diff floor, which is the main reason Tier C
+results are presented with caution throughout.
 
 ## Scores
 
@@ -142,11 +150,11 @@ _4199 scored samples · run: v1-baseline_
 |---|---|---|---|---|---|
 | deepseek_ocr | 10.13 | 18.96 | 47.9 | 29.9 GB | — |
 | easyocr | 2.2 | 2.17 | 3.32 | 5.7 GB | — |
-| tesseract | 1.93 | 1.93 | 2.73 | — (API) | — |
+| tesseract | 1.93 | 1.93 | 2.73 | — | — |
 | lightonocr | 5.57 | 6.42 | 10.07 | 29.0 GB | — |
 | paddleocr_vl | 6.15 | 9.49 | 17.79 | 29.3 GB | — |
-| rapidocr | 2.21 | 2.19 | 2.73 | — (API) | — |
-| doctr | 1.82 | 1.72 | 2.61 | — (API) | — |
+| rapidocr | 2.21 | 2.19 | 2.73 | — | — |
+| doctr | 1.82 | 1.72 | 2.61 | — | — |
 | qwen25vl | 10.78 | 14.19 | 41.26 | 28.8 GB | — |
 | granite_docling | 5.14 | 36.01 | 96.78 | 1.0 GB | — |
 | gemma4 | 14.03 | 15.6 | 22.73 | 29.8 GB | — |
@@ -154,6 +162,8 @@ _4199 scored samples · run: v1-baseline_
 | dots_ocr | 7.91 | 20.77 | 78.51 | 31.1 GB | — |
 | got2 | 3.39 | 4.14 | 9.09 | 3.5 GB | — |
 | kosmos25 | 4.71 | 4.95 | 8.92 | 6.8 GB | — |
+
+_peak VRAM — = no GPU used (CPU engine or API-hosted); $/page — = local model (electricity not priced)._
 
 ### Cost — classic OCR engines, CPU-VM vs GPU-VM
 
@@ -194,12 +204,42 @@ B.1 is byte-identical between the two runs, so every B.2 change is the reader al
 | granite_docling | 0.035 | 0.000 | 0.040 |
 | got2 | 0.175 | 0.010 | 0.030 |
 
-With a capable reader the B.2 leader flips to **olmocr2** — matching its B.1 lead — and
-B.2 agrees better with B.1 overall (Spearman 0.71 → 0.78). The mean lifts ~3.5×
-(0.085 → 0.294): a weak reader doesn't just lower B.2, it floors out most of the
-model-to-model signal. Full method and takeaways:
+With a capable reader a **leading group emerges — olmocr2 (0.500), qwen25vl (0.470),
+dots_ocr (0.450)** — matching the B.1 order; at n=100 items the gaps inside that group
+are a statistical tie, so read it as a group, not a podium. Rank agreement with B.1
+edges up (tie-aware Spearman **0.75 → 0.78** — directional; at 14 models the change is
+within noise). The mean lifts ~3.5× (0.085 → 0.294): a weak reader doesn't just lower
+B.2, it floors out most of the model-to-model signal. One honesty note: gpt-5.4-mini is
+an **API instrument** — identity and pricing are stamped per record, but unlike the
+local readers it cannot be revision-pinned or seeded, so a re-run months later may not
+reproduce byte-for-byte. Full method and takeaways:
 [findings/b2-gpt5mini-rescore.md](findings/b2-gpt5mini-rescore.md); reproduce with
 `gauntlet scoreboard --tier-b --run-id v1-b2-gpt5mini`.
+
+### Tier C floor baselines: most models fail them
+
+Three trivial baselines, run on the **same 15 merged_forms streams** the models scored
+(run `tierc-floor-15`; an earlier n=5 floor run had accidentally inherited the smoke
+profile's sample cap):
+
+| baseline | what it does | PQ |
+|---|---|---|
+| `baseline_pixel_diff` | grayscale pixel delta between consecutive pages, threshold at mean+1σ | **0.226** |
+| `baseline_every_page` | every page starts a new document | 0.0 |
+| `baseline_no_boundary` | the whole stream is one document | 0.0 |
+
+Read against the `merged_forms` column above: **only the four classic engines beat the
+content-blind pixel-diff floor** (easyocr 0.397, doctr 0.336, tesseract 0.330,
+rapidocr 0.258). Every VLM scores below it (best: kosmos25 0.204; olmocr2 0.070;
+dots_ocr 0.006). Two conclusions we stand behind, and one we don't: (1) if you must
+split look-alike form streams today, a classic engine front-end is the defensible
+choice; (2) VLM `judge_composed` splitting fails the floor test and should not be
+relied on; but (3) *why* VLMs fail here — over-merging vs. the boundary judge's
+truncated page window — is not yet isolated, and the bench itself remains provisional
+pending its human spot-check
+([VALIDATION.md](benchmarks/custom/merged_forms/VALIDATION.md)). Reproduce (CPU-only,
+~1 min): `uv run gauntlet run -p tierc_floor --max-samples 15 --run-id my-floors
+--no-llm-instruments`.
 
 ## Dashboard
 
@@ -228,9 +268,13 @@ degraded scans included (note the blurred `scanned_heavy` thumbnails).
 ![Benchmark explorer](docs/ui/benches.png)
 
 ```bash
-gauntlet ui                        # serve the latest run at http://127.0.0.1:8765
-gauntlet ui --run-id v1-baseline   # a specific run; the run picker switches live
+uv run gauntlet ui                        # serve the latest run at http://127.0.0.1:8000
+uv run gauntlet ui --run-id v1-baseline   # a specific run; the run picker switches live
 ```
+
+On a fresh clone the dashboard renders the published runs from their tracked
+`summary.json` aggregates (the leaderboard notes this); the per-example Diagnose
+workbench needs a locally scored run, since per-sample records aren't committed.
 
 The dashboard ships light and dark themes; every number matches `gauntlet scoreboard` exactly (it reuses the same readers, never re-deriving a metric).
 
@@ -294,12 +338,14 @@ boundary; note the form faces look alike and only the filled content changes:
 |---|---|---|---|
 | ![p6](docs/examples/mergedforms_p06.jpg) | ![p7](docs/examples/mergedforms_p07.jpg) | ![p8 boundary](docs/examples/mergedforms_p08_BOUNDARY.jpg) | ![p9](docs/examples/mergedforms_p09.jpg) |
 
-> A page-image → parsed-markdown side-by-side per tier lands with the v1 scores.
+> For page-image → parsed-markdown side-by-sides, use the [Dashboard](#dashboard)'s
+> Diagnose workbench over a scored run.
 
 ## Models
 
-17 models wired via one adapter + one registry entry each (`configs/models.yaml`) — classic
-CPU engines, local open-weights VLMs, and commercial APIs. A few notable picks; the full
+18 model adapters wired via one adapter + one registry entry each (`configs/models.yaml`) —
+classic CPU engines, local open-weights VLMs, and commercial APIs (14 scored in
+`v1-baseline`; the API fleet is wired but unscored, see [Gaps](#gaps)). A few notable picks; the full
 roster (params, license, commercial-use terms, declared specialty) and the Azure self-host
 cost tables are in **[docs/REFERENCE.md](docs/REFERENCE.md)**.
 
@@ -308,7 +354,7 @@ cost tables are in **[docs/REFERENCE.md](docs/REFERENCE.md)**.
 | Best overall accuracy | [olmOCR-2](https://huggingface.co/allenai/olmOCR-2-7B-1025) | wins Tier A (olmocr_bench) and B.1 extraction |
 | Best value | [Tesseract](https://github.com/tesseract-ocr/tesseract) / [docTR](https://github.com/mindee/doctr) | $0.057–$0.173/1k pages (CPU), competitive B.1 |
 | Most scan-robust | [Gemma-4-E4B-it](https://huggingface.co/google/gemma-4-E4B-it) | retains 80% of clean accuracy under heavy scan degradation |
-| Best document-splitting | [EasyOCR](https://github.com/JaidedAI/EasyOCR) | 0.397 on Tier C (merged_forms), best of all 14 scored models |
+| Best document-splitting | [EasyOCR](https://github.com/JaidedAI/EasyOCR) | 0.397 on Tier C (merged_forms), best of the 14 scored — though see the [floor caveat](#tier-c-floor-baselines-most-models-fail-them) |
 
 Usage rights verified against the live model cards / provider terms at pin time (re-verify
 before you rely on them — licenses move; see docs/REFERENCE.md for the per-model license
@@ -341,20 +387,46 @@ model revision (or API version + date), benchmark revision, scorer identity, run
 
 ## Setup
 
+Prerequisites: [uv](https://docs.astral.sh/uv/), Python 3.12 (uv fetches it), and — only
+for the local-VLM lane — an NVIDIA GPU with ~30 GB VRAM (the classic-engine and scoring
+lanes run on CPU with zero API keys). Run every command from the repo root; `gauntlet`
+resolves `configs/` and `results/` relative to it.
+
 ```bash
 git clone https://github.com/ashwinchidambaram/trial-by-doc
 cd trial-by-doc
-uv sync --extra local          # GPU/open-weights lane (torch + vLLM)
-# uv sync --extra api          # API-only lane (no GPU needed)
+uv sync --extra local              # GPU/open-weights lane (torch + vLLM)
+# uv sync --extra api              # API-only lane (no GPU needed)
 
-cp .env.example .env           # add API keys if scoring API models
-gauntlet download all          # benchmark data at pinned revisions
-gauntlet list models           # see what's wired
+cp .env.example .env               # add keys only if you use them (see the file's comments)
+uv run gauntlet verify-env         # fresh-clone preflight: GPU, version pins, RAM
+uv run gauntlet download all       # benchmark data at pinned revisions
+uv run gauntlet list models        # see what's wired
 
-gauntlet run --profile smoke   # tiny end-to-end sanity run
-gauntlet run --profile full    # the whole gauntlet (resumable; --run-id to resume)
-gauntlet scoreboard            # provenance-stamped results
+uv run gauntlet run --profile smoke      # sanity run (GPU; use --profile smoke_cpu for zero-GPU/zero-key)
+uv run gauntlet run --profile v1         # the published 14-model gauntlet (resumable; --run-id to resume)
+uv run gauntlet scoreboard               # provenance-stamped results
 ```
+
+**Compare your model against the published baselines** — no need to re-run the 14
+baseline models:
+
+```bash
+uv run gauntlet run -m my_model -b realdoc_qa,olmocr_bench --max-samples 100 --run-id mine
+uv run gauntlet scoreboard --run-id mine        # your rows
+uv run gauntlet scoreboard --run-id v1-baseline # the published rows (renders from tracked summary.json)
+```
+
+Read your numbers against the v1-baseline table above (or open both runs in the
+[Dashboard](#dashboard)'s run picker). Same benchmarks, same pinned data revisions,
+same deterministic scorers — the comparison is apples-to-apples as long as you keep
+the per-bench sample caps (`--max-samples 100`; `merged_forms: 15`) so the stratified
+sample sets match.
+
+Before any paid run: `uv run gauntlet estimate-cost -m mistral_ocr -b realdoc_qa` —
+API spend is estimated up front and hard-capped per model
+(`configs/matrix.yaml: budget`) before any call is made, including Tier-B API reader
+spend (`--reader gpt5mini` etc.).
 
 Docker (same CLI, zero env setup): `docker/Dockerfile.gpu` (needs
 nvidia-container-toolkit; mount your HF cache) and `docker/Dockerfile.cpu` (API
@@ -363,11 +435,8 @@ math/table renderer) run as siblings — mount `/var/run/docker.sock`, or score 
 the host with `--phase score`.
 
 **Bring your own model** → [ADD_A_MODEL.md](ADD_A_MODEL.md) (one subclass + one YAML
-entry + `gauntlet validate-adapter my_model`). Add a benchmark →
+entry + `uv run gauntlet validate-adapter my_model`). Add a benchmark →
 [ADD_A_BENCHMARK.md](ADD_A_BENCHMARK.md).
-
-API spend is estimated up front (`gauntlet estimate-cost`) and hard-capped per model
-(`configs/matrix.yaml: budget`) before any call is made.
 
 ## Hardware
 
@@ -383,10 +452,14 @@ rare token ties.
 
 Honest limitations, current as of the v1 baseline. Biggest open item: the **API fleet
 (Mistral OCR, Gemini Flash-Lite, Claude/GPT vision) ships validated but unscored** — no API
-rows are in the v1-baseline scoreboard yet. Nine more (DocVQA/DocBench exclusions, OmniDocBench
-CDM, blocked Florence-2/Phi-4-multimodal adapters, granite_docling's Tier-C OOM, merged_forms'
-synthesized provenance, instrument coupling, statistical power, and more) are listed in full at
-**[docs/REFERENCE.md#gaps](docs/REFERENCE.md#gaps)**.
+rows are in the v1-baseline scoreboard yet. Two worth knowing before citing numbers:
+**output-token budgets are not equalized** (dots_ocr generates with 4× the token headroom of
+most rivals, and the default cap demonstrably binds on dense newspaper pages — part of its
+OmniDocBench lead is budget, not parsing), and **no scoreboard cell carries a confidence
+interval** (treat sub-0.05 gaps as ties). The full list (DocVQA/DocBench exclusions,
+OmniDocBench CDM, blocked adapters, granite_docling's Tier-C OOM, merged_forms' synthesized
+provenance, instrument coupling, developer-affiliated benchmarks, statistical power, and more)
+is at **[docs/REFERENCE.md#gaps](docs/REFERENCE.md#gaps)**.
 
 ## Glossary
 

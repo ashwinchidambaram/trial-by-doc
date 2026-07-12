@@ -3,6 +3,17 @@
 _Written 2026-07-10. Snapshot for picking up a fresh session. If this contradicts
 `git log` or `findings/`, trust git — this file goes stale._
 
+> **Staleness update (2026-07-12):** main has moved well past `696efd3` — since this
+> was written: README restructure + density fix (PRs #1–3), CI ui-extra fix (#4), the
+> gpt-5.4-mini B.2 rescore tracked + folded in (#5–6, `findings/b2-gpt5mini-rescore.md`),
+> pipeline hardening — reader retry/cost-guard, merge-on-write run artifacts (#7),
+> fresh-clone replicability via tracked `summary.json` (#8), and the results-integrity
+> pass (Tier C floors on all 15 streams: run `tierc-floor-15`; Spearman correction;
+> v1-baseline manifest reconstruction). The section below stays as the Phase-1 record.
+> Known deferred: haiku-4.5 B.2 rung (owner-paused), got2 table-zero explanation (open
+> sanity flag), Docker images not lockfile-pinned (a `uv sync --frozen` build attempt
+> failed 2026-07-12 — see Dockerfile.cpu TODO), per-model CIs.
+
 ## TL;DR
 
 **Phase 1 is complete and merged to `main` (pushed to origin at `696efd3`).** The
@@ -28,8 +39,8 @@ fine-tuning / distillation). Do not start Phase 2 without owner sign-off.
   `Qwen2.5-7B-Instruct@a09a35458c70`; scorers `field_aware_exact_match`,
   `field_value_presence`/`_norm`, `anls`. Never print secret values
   (`OPEN_ROUTER_API_KEY`, `HF_TOKEN` in `.env`). Never install xformers.
-- Full spec: `x_docs/spec.md`. Environment facts (Blackwell/sm_120, torch 2.11+cu130,
-  vLLM 0.22, transformers 5.11): see `CLAUDE.md` "Environment notes".
+- Design specs live in `docs/superpowers/specs/`. Environment facts (Blackwell/sm_120,
+  torch 2.11+cu130, vLLM 0.22, transformers 5.11): see `CLAUDE.md` "Environment notes".
 
 ## What's on main (all done, all merged)
 

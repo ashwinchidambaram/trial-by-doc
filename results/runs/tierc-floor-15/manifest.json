@@ -1,0 +1,193 @@
+{
+  "run_id": "tierc-floor-15",
+  "created_at": "2026-07-11T17:41:16",
+  "harness": {
+    "git_sha": "e52e1896ea7fd86868c4592dc77895ca1be6bc05",
+    "git_dirty": false,
+    "python": "3.12.13",
+    "argv": [
+      "/home/ashwinc/dev/projects/trial-by-doc/.venv/bin/gauntlet",
+      "run",
+      "-p",
+      "tierc_floor",
+      "--max-samples",
+      "15",
+      "--run-id",
+      "tierc-floor-15",
+      "--no-llm-instruments"
+    ]
+  },
+  "configs": {
+    "benchmarks.yaml": "27d23abff503dea0",
+    "matrix.yaml": "5ba823d8fa624fb4",
+    "models.yaml": "282a322f394c9757"
+  },
+  "models": {
+    "baseline_every_page": {
+      "key": "baseline_every_page",
+      "backend": "baseline",
+      "revision": "n/a"
+    },
+    "baseline_no_boundary": {
+      "key": "baseline_no_boundary",
+      "backend": "baseline",
+      "revision": "n/a"
+    },
+    "baseline_pixel_diff": {
+      "key": "baseline_pixel_diff",
+      "backend": "baseline",
+      "revision": "n/a"
+    }
+  },
+  "benchmarks": {
+    "merged_forms": {
+      "key": "merged_forms",
+      "tier": "C",
+      "unit": "document",
+      "provenance": "custom",
+      "revision": null,
+      "license": null,
+      "scorer": "native"
+    }
+  },
+  "instruments": {
+    "extractor": {
+      "chosen": "Qwen/Qwen2.5-7B-Instruct",
+      "revision": "a09a35458c70",
+      "license": "apache-2.0",
+      "sampling": {
+        "temperature": 0,
+        "seed": 0,
+        "repetition_penalty": 1.05,
+        "max_answer_tokens": 64
+      },
+      "max_model_len": 32768
+    },
+    "boundary_judge": {
+      "chosen": "Qwen/Qwen2.5-7B-Instruct",
+      "revision": "a09a35458c70",
+      "prompt_version": "v1"
+    },
+    "reader": {
+      "default_local": {
+        "repo": "microsoft/Phi-4-mini-instruct",
+        "revision": "cfbefacb99257ffa30c83adab238a50856ac3083",
+        "license": "mit"
+      },
+      "local_variants": {
+        "local_qwen15": {
+          "repo": "Qwen/Qwen2.5-1.5B-Instruct",
+          "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+          "license": "apache-2.0"
+        }
+      },
+      "backends": {
+        "haiku45": {
+          "backend": "openrouter",
+          "api_model_id": "anthropic/claude-haiku-4.5",
+          "secrets": [
+            "OPEN_ROUTER_API_KEY"
+          ],
+          "pricing": {
+            "per_mtok_in_usd": 1.0,
+            "per_mtok_out_usd": 5.0,
+            "as_of": "2026-07-09",
+            "source": "https://openrouter.ai/api/v1/models"
+          }
+        },
+        "gpt5mini": {
+          "backend": "openrouter",
+          "api_model_id": "openai/gpt-5.4-mini",
+          "secrets": [
+            "OPEN_ROUTER_API_KEY"
+          ],
+          "pricing": {
+            "per_mtok_in_usd": 0.75,
+            "per_mtok_out_usd": 4.5,
+            "as_of": "2026-07-09",
+            "source": "https://openrouter.ai/api/v1/models"
+          }
+        }
+      }
+    }
+  },
+  "hardware": {
+    "captured_at": "2026-07-11T17:41:03",
+    "gpu": {
+      "available": true,
+      "name": "NVIDIA GeForce RTX 5090",
+      "vram_gb": 33.7,
+      "capability": [
+        12,
+        0
+      ],
+      "arch": "sm_120",
+      "driver_version": "595.71.05",
+      "supported_arch_list": [
+        "sm_75",
+        "sm_80",
+        "sm_86",
+        "sm_90",
+        "sm_100",
+        "sm_120"
+      ]
+    },
+    "cuda": {
+      "torch_cuda_build": "13.0",
+      "toolkit_home": "/home/ashwinc/cuda-13.3",
+      "toolkit_path": "/home/ashwinc/cuda-13.3",
+      "nvcc_version": "13.3",
+      "nvcc_present": true,
+      "note": "standalone CUDA toolkit, build-time only (JIT compile for FlashInfer/deepseek); torch runtime stays at torch_cuda_build. Lives outside the repo \u2014 see the CLAUDE.md environment notes."
+    },
+    "software": {
+      "python": "3.12.13",
+      "torch": "2.11.0+cu130",
+      "torchvision": "0.26.0+cu130",
+      "triton": "3.6.0",
+      "vllm": "0.22.1",
+      "transformers": "5.11.0",
+      "datasets": null,
+      "accelerate": "1.14.0",
+      "huggingface_hub": "1.22.0"
+    },
+    "system": {
+      "os": "Linux",
+      "kernel": "7.0.0-27-generic",
+      "cpu_count": 24
+    }
+  },
+  "seeds": {
+    "sampling_seed": 0,
+    "temperature": 0
+  },
+  "invocations": [
+    {
+      "created_at": "2026-07-11T17:41:16",
+      "harness": {
+        "git_sha": "e52e1896ea7fd86868c4592dc77895ca1be6bc05",
+        "git_dirty": false,
+        "python": "3.12.13",
+        "argv": [
+          "/home/ashwinc/dev/projects/trial-by-doc/.venv/bin/gauntlet",
+          "run",
+          "-p",
+          "tierc_floor",
+          "--max-samples",
+          "15",
+          "--run-id",
+          "tierc-floor-15",
+          "--no-llm-instruments"
+        ]
+      },
+      "models": [
+        "baseline_every_page",
+        "baseline_no_boundary",
+        "baseline_pixel_diff"
+      ],
+      "benchmarks": [
+        "merged_forms"
+      ]
+    }
+  ]
+}

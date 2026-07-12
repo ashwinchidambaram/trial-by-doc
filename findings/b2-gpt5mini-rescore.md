@@ -18,7 +18,10 @@ The full 14-model `v1-baseline` Tier-B lane, re-scored with the **gpt-5.4-mini**
 - 14 models × 100 samples = 1,400/1,400 scored, 0 errors. ~1,400 OpenRouter reader calls
   ≈ **$14** at the ladder study's empirical ~$0.01/call rate.
 - Reader identity is stamped per-record (`openrouter:openai/gpt-5.4-mini`); pricing
-  ($0.75/$4.50 per Mtok in/out, as of 2026-07-09) is in the run manifest.
+  ($0.75/$4.50 per Mtok in/out, as of 2026-07-09) is in the run manifest. Note the
+  reader is an **API instrument**: temp=0 and stamped, but not revision-pinnable or
+  seedable through OpenRouter — byte-exact reproduction of this column later is not
+  guaranteed (the local readers don't have this caveat).
 - Provenance: `results/runs/v1-b2-gpt5mini/{manifest.json,scoreboard.csv,status.json}`
   (tracked); harness at `abd1afb`, configs hashed in the manifest.
 
@@ -45,11 +48,17 @@ Mean B.2 across the roster: **0.085 → 0.294** (~3.5× average; per-model 2.8�
 
 ## Takeaways
 
-1. **The leader flips to match B.1.** Under Qwen2.5-1.5B the B.2 column was compressed
-   into 0.00–0.14 and led by qwen25vl (0.14) — barely above the pack. With a capable
-   reader, olmocr2 leads (0.500), followed by qwen25vl (0.470) and dots_ocr (0.450) —
-   the same models that lead extraction. Rank agreement with B.1 rises (Spearman
-   0.71 → 0.78).
+1. **A leading group emerges, matching B.1.** Under Qwen2.5-1.5B the B.2 column was
+   compressed into 0.00–0.14 and led by qwen25vl (0.14) — barely above the pack. With a
+   capable reader the top three are olmocr2 (0.500), qwen25vl (0.470) and dots_ocr
+   (0.450) — the same models that lead extraction. At n=100 paired items the gaps
+   inside that trio are a statistical tie (0.500 vs 0.470 is three answers), so read it
+   as a leading group, not a podium. Rank agreement with B.1 edges up: tie-aware
+   Spearman **0.75 → 0.78**. *(Correction 2026-07-12: this was first published as
+   "0.71 → 0.78" — the 0.71 came from the naive rank formula, which breaks the heavy
+   ties in the Qwen column (three models at 0.130, two at 0.090) by arbitrary row
+   order; tie-aware ranking gives 0.751. At n=14 models the delta is directional, not
+   significant.)*
 2. **The reader confound goes both directions.** The ladder study showed a capable
    reader can paper over OCR slips; this rescore shows a weak reader also *floors* the
    metric — with Qwen2.5-1.5B, nearly all model-to-model signal in B.2 was reader
