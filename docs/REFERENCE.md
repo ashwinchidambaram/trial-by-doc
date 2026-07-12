@@ -102,16 +102,28 @@ Honest limitations, current as of the v1 baseline:
   findings/v1-interim-analysis.md §sanity-flags), so part of dots_ocr's OmniDocBench lead
   is budget headroom, not parse skill. More broadly, comparisons are *recipe-vs-recipe*
   (each model at its card-recommended resolution/prompt/token budget), not same-input.
-- **Developer-affiliated benchmarks**: olmocr2 (Allen AI) leads olmocr_bench (Allen AI);
-  dots.ocr and PaddleOCR-VL report OmniDocBench on their model cards (developed/selected
-  against it) and lead that column. Cross-benchmark agreement (olmocr2 also leads the
-  unaffiliated RealDoc B.1) mitigates but does not remove the confound; no affiliation
-  marker is on the scoreboard yet.
+- **Developer-affiliated benchmarks** (now marked on the scoreboard — a `⚠
+  Developer-affiliated` footnote is rendered under the injected table, driven by
+  `affiliated_models` in `configs/benchmarks.yaml`):
+
+  | benchmark | affiliated model(s) | kind | verified |
+  |---|---|---|---|
+  | olmocr_bench (Allen AI) | olmocr2 | same lab | repo Attributions |
+  | omnidocbench (opendatalab) | dots_ocr, paddleocr_vl | report SOTA on their model cards | live-fetched 2026-07-12 |
+
+  Same-lab coupling (olmocr2 ↔ olmocr_bench) and train/select-toward-benchmark coupling
+  (dots.ocr, PaddleOCR-VL ↔ OmniDocBench) are standard OCR-eval confounds. Cross-benchmark
+  agreement mitigates but does not remove them: olmocr2 also leads the *unaffiliated*
+  RealDoc B.1 group, so its standing isn't an artifact of its home bench. Interpret an
+  affiliated model's score *on its own bench* with that caveat.
 - **API readers are stamped, not frozen**: the gpt-5.4-mini / haiku B.2 reader rungs run
   temp=0 with identity + pricing stamped per record, but cannot be revision-pinned or
   seeded through OpenRouter — unlike the local instruments, byte-exact reproduction of
   those columns months later is not guaranteed.
-- **No confidence intervals on the scoreboard**: cells are means of ~15–100 samples;
-  sub-0.05 gaps between adjacent models are generally within noise (the B.2 re-score's
-  leading trio is presented as a tie for this reason). Paired bootstrap CIs are cheap
-  (all models share items) and are the natural next hardening step.
+- **Confidence intervals are computed on demand, not on the scoreboard face**: cells are
+  means of ~15–100 samples. Paired bootstrap CIs (`gauntlet scoreboard --ci A,B`,
+  `src/tbdoc/report/stats.py`) show that on RealDoc B.1 at n=90, **gaps below ~0.10 are
+  within noise** — the entire B.1 top four ties, as does the B.2 leading trio (see
+  [findings/statistical-significance.md](../findings/statistical-significance.md)). Coarse
+  structure (leaders vs. mid-pack) is significant; fine adjacent-rank ordering is not. The
+  scoreboard still prints point means; read close ranks as ties.

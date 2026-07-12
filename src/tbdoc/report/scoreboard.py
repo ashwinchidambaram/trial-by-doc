@@ -205,9 +205,29 @@ def render(run_dir: Path, *, fmt: str = "md", by: str = "bench", registry=None,
     shown = set(benches)
     n = sum(s["n"] for (m, b), s in cells.items() if b in shown)
     out.append(f"\n_{n} scored samples · run: {Path(run_dir).name}_")
+    aff = _affiliation_note(benches, models, bmeta)
+    if aff:
+        out.append(aff)
     if from_summary:
         out.append(SUMMARY_NOTE)
     return "\n".join(out)
+
+
+def _affiliation_note(benches: list[str], models: list[str], bmeta: dict) -> str:
+    """Disclose model↔benchmark coupling (same-lab / reports-the-benchmark) from the
+    benchmark registry's `affiliated_models` field — a standard OCR-eval confound."""
+    kinds = {"same-lab": "same lab", "reports-benchmark": "reports this bench on its model card"}
+    notes = []
+    for b in benches:
+        src = (bmeta.get(b, {}).get("source") or {})
+        aff = [m for m in (src.get("affiliated_models") or []) if m in models]
+        if aff:
+            label = kinds.get(src.get("affiliation_kind"), src.get("affiliation_kind") or "affiliated")
+            notes.append(f"**{b}** ↔ {', '.join(aff)} ({label})")
+    if not notes:
+        return ""
+    return ("\n_⚠ Developer-affiliated (interpret that column with care): "
+            + "; ".join(notes) + "._")
 
 
 def _collect_tier_b(run_dir):

@@ -8,13 +8,13 @@ FROM python:3.12-slim
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 WORKDIR /app
-COPY pyproject.toml README.md ./
+COPY pyproject.toml uv.lock README.md ./
 COPY src ./src
 COPY configs ./configs
-# TODO(reproducibility): pin via uv.lock (`COPY uv.lock` + `uv sync --frozen`) — a
-# --frozen build attempt failed 2026-07-12 (unresolved); until fixed, in-image builds
-# resolve fresh and are NOT revision-pinned like the host env is.
-RUN uv venv --python 3.12 && uv sync --extra api --no-dev
+# --frozen: build against the committed uv.lock (reproducibility rule). NOTE: this image
+# is large (~9 GB) because torch+CUDA arrive via the base classic-engine deps
+# (easyocr/doctr), not because of a GPU stack — see Dockerfile comment above.
+RUN uv venv --python 3.12 && uv sync --frozen --extra api --no-dev
 ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1
 
 ENTRYPOINT ["gauntlet"]

@@ -28,8 +28,12 @@ If you only read one section, read this — everything below backs these claims 
   it* (see [Tier C floors](#tier-c-floor-baselines-most-models-fail-them)). A plausible
   mechanism is steadier per-page text vs. VLM over-merging, but the boundary-judge
   instrument only reads a window of each page, so treat the *why* as unconfirmed.
-- **docTR is the standout generalist**: 2nd-best overall extraction accuracy (B.1 0.682,
-  just behind olmocr2's 0.689), competitive Tier-C segmentation, and it's a free CPU engine.
+- **The B.1 extraction lead is a four-way tie.** olmocr2 (0.689), doctr (0.682),
+  lightonocr (0.658), and qwen25vl (0.637) are statistically indistinguishable on
+  RealDoc-QA — paired bootstrap CIs span 0 even for the 0.689-vs-0.637 spread
+  ([findings/statistical-significance.md](findings/statistical-significance.md)). olmocr2
+  is the top pick on *cross-benchmark consistency* (it also leads Tier A), not on a B.1
+  margin. docTR earning a spot in that group while being a free CPU engine is the standout.
 - **Scanned/faxed input changes the ranking.** olmocr2 and gemma4 hold onto 75–80% of their
   clean-document accuracy under heavy degradation; tesseract and easyocr collapse to 22–29%.
   If your documents arrive scanned or faxed, don't trust the clean-benchmark numbers alone —
@@ -125,6 +129,8 @@ results are presented with caution throughout.
 
 _4199 scored samples · run: v1-baseline_
 
+_⚠ Developer-affiliated (interpret that column with care): **omnidocbench** ↔ dots_ocr, paddleocr_vl (reports this bench on its model card); **olmocr_bench** ↔ olmocr2 (same lab)._
+
 ### Tier-B — extraction (B.1) vs comprehension (B.2)
 
 | model | B.1 extract | coverage | B.2 comp | reader |
@@ -206,7 +212,9 @@ B.1 is byte-identical between the two runs, so every B.2 change is the reader al
 
 With a capable reader a **leading group emerges — olmocr2 (0.500), qwen25vl (0.470),
 dots_ocr (0.450)** — matching the B.1 order; at n=100 items the gaps inside that group
-are a statistical tie, so read it as a group, not a podium. Rank agreement with B.1
+are a statistical tie (paired bootstrap 95% CIs all span 0 —
+[findings/statistical-significance.md](findings/statistical-significance.md)), so read it
+as a group, not a podium. Rank agreement with B.1
 edges up (tie-aware Spearman **0.75 → 0.78** — directional; at 14 models the change is
 within noise). The mean lifts ~3.5× (0.085 → 0.294): a weak reader doesn't just lower
 B.2, it floors out most of the model-to-model signal. One honesty note: gpt-5.4-mini is
