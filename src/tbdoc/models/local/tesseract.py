@@ -40,6 +40,10 @@ class TesseractAdapter(ModelAdapter):
 
         cmd = self.entry.get("tesseract_cmd")
         if cmd:
+            # a configured path may be host-specific (e.g. the reference host's
+            # micromamba env) — fall back to PATH before failing on other machines
+            if shutil.which(cmd) is None and shutil.which("tesseract") is not None:
+                cmd = "tesseract"
             pytesseract.pytesseract.tesseract_cmd = cmd
         resolved = pytesseract.pytesseract.tesseract_cmd
         if shutil.which(resolved) is None:

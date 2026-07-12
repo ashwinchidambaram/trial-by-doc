@@ -58,6 +58,7 @@ packages = ["src/tbdoc"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+timeout = 300  # pytest-timeout: no single test may hang the suite (subprocess scorers etc.)
 
 [tool.ruff]
 line-length = 110

@@ -11,11 +11,21 @@ from tbdoc.core.registry import Registry, load_yaml
 from tbdoc.core.secrets import load_dotenv
 
 
+def _require_repo_root() -> None:
+    """The harness reads configs/ and benchmarks/ relative to the CWD."""
+    if not Path("configs/models.yaml").exists():
+        raise click.ClickException(
+            "configs/models.yaml not found — run `gauntlet` from the trial-by-doc repo root "
+            "(the harness resolves configs/, benchmarks/ and results/ relative to the CWD)")
+
+
 def _registry() -> Registry:
+    _require_repo_root()
     return Registry("configs")
 
 
 def _matrix_cfg() -> dict:
+    _require_repo_root()
     return load_yaml("configs/matrix.yaml")
 
 
@@ -83,6 +93,32 @@ def run(models, benches, profile, max_samples, run_id, phase, rescore, no_llm_in
             if spend:
                 click.echo("estimated API spend: "
                            + ", ".join(f"{m}=${u:.4f}" for m, u in spend.items()))
+    # Same house rule for the B.2 reader instrument: API reader calls are paid spend and
+    # must clear the per-model cap BEFORE any call (readers run once per (model, sample)).
+    if "score" in phases and not no_llm_instruments:
+        from tbdoc.instruments.reader import api_backend, estimate_call_usd
+        rb = api_backend(reader, (reg.instruments or {}).get("reader") or {})
+        needs_reader = [b for b in bench_keys
+                        if (reg.benchmarks.get(b, {}).get("scorer") or {}).get("instrument") == "extractor"]
+        if rb is not None and needs_reader:
+            cap = ((_matrix_cfg().get("run") or {}).get("budget") or {}).get("max_usd_per_model")
+            per_call = estimate_call_usd(rb.get("pricing"))
+            if per_call is None:
+                if cap is not None:
+                    raise click.ClickException(
+                        f"budget guard: reader '{reader}' has no pricing in configs/models.yaml — "
+                        "cannot estimate B.2 reader spend; add pricing or use a local reader")
+            else:
+                n_calls = _count_samples(reg, needs_reader, max_samples)
+                per_model = per_call * n_calls
+                click.echo(f"estimated B.2 reader spend ({reader}, upper bound): "
+                           f"${per_model:.2f}/model × {len(model_keys)} models "
+                           f"= ${per_model * len(model_keys):.2f} ({n_calls} calls/model)")
+                if cap is not None and per_model > cap:
+                    raise click.ClickException(
+                        f"budget guard: estimated B.2 reader spend ${per_model:.2f}/model exceeds "
+                        f"max_usd_per_model=${cap} — shrink the run, use a local reader, or raise "
+                        "the cap in configs/matrix.yaml")
     try:
         hw = hw_fingerprint()
     except Exception:
@@ -226,16 +262,9 @@ def download(bench):
 _EST_IN_TOK, _EST_OUT_TOK = 2000, 1000
 
 
-def _estimate(reg: Registry, model_keys: list[str], bench_keys: list[str],
-              max_samples: int | None) -> dict[str, float]:
-    """{model_key: estimated_usd} for API models (0.0 for local)."""
-    # Local models cost nothing, so a local-only run needs no page count at all.
-    # Counting via `ba.load()` enumerates (and, for some benches, decodes) EVERY
-    # sample — e.g. all 1651 omnidocbench pages — which made local runs appear to
-    # hang at startup for minutes. Skip it entirely unless an API model is present.
-    if not any((reg.models.get(m) or {}).get("kind") == "api" for m in model_keys):
-        return {m: 0.0 for m in model_keys}
-    n_pages = 0
+def _count_samples(reg: Registry, bench_keys: list[str], max_samples) -> int:
+    """Samples a run will touch across bench_keys, honoring per-bench caps."""
+    n = 0
     for b in bench_keys:
         ba = reg.bench(b)
         cap = max_samples.get(b) if isinstance(max_samples, dict) else max_samples
@@ -245,9 +274,22 @@ def _estimate(reg: Registry, model_keys: list[str], bench_keys: list[str],
                 c += 1
                 if c >= cap:
                     break
-            n_pages += c
+            n += c
         else:
-            n_pages += sum(1 for _ in ba.load())
+            n += sum(1 for _ in ba.load())
+    return n
+
+
+def _estimate(reg: Registry, model_keys: list[str], bench_keys: list[str],
+              max_samples: int | None) -> dict[str, float]:
+    """{model_key: estimated_usd} for API models (0.0 for local)."""
+    # Local models cost nothing, so a local-only run needs no page count at all.
+    # Counting via `ba.load()` enumerates (and, for some benches, decodes) EVERY
+    # sample — e.g. all 1651 omnidocbench pages — which made local runs appear to
+    # hang at startup for minutes. Skip it entirely unless an API model is present.
+    if not any((reg.models.get(m) or {}).get("kind") == "api" for m in model_keys):
+        return {m: 0.0 for m in model_keys}
+    n_pages = _count_samples(reg, bench_keys, max_samples)
     out: dict[str, float] = {}
     for m in model_keys:
         e = reg.models.get(m) or {}

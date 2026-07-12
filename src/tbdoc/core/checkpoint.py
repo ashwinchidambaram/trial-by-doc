@@ -114,12 +114,46 @@ class CheckpointStore:
         return round(sum(vals) / len(vals), 4) if vals else None
 
     def write_scoreboard(self, models: list[str], benches: list[str]) -> Path:
+        """Write scoreboard.csv, MERGING with any existing one: a later invocation
+        scoped to a subset of models/benches (rescore, scanned add-on, roster
+        expansion) updates its own cells and preserves everyone else's — this file
+        is tracked per published run and was clobbered once (v1-baseline)."""
         path = self.root / "scoreboard.csv"
+        rows: dict[str, dict[str, str]] = {}
+        all_models: list[str] = []
+        all_benches: list[str] = []
+        if path.exists():
+            try:
+                with path.open(newline="") as f:
+                    for rec in csv.DictReader(f):
+                        m = rec.pop("model", None)
+                        if m is None:
+                            continue
+                        rows[m] = rec
+                        all_models.append(m)
+                        for b in rec:
+                            if b not in all_benches:
+                                all_benches.append(b)
+            except Exception:
+                rows, all_models, all_benches = {}, [], []
+        for m in models:
+            if m not in rows:
+                rows[m] = {}
+                all_models.append(m)
+        for b in benches:
+            if b not in all_benches:
+                all_benches.append(b)
+        for m in models:
+            for b in benches:
+                v = self._cell_primary_mean(m, b)
+                if v is None and rows[m].get(b):
+                    continue  # no records here now — keep the previously published value
+                rows[m][b] = "" if v is None else str(v)
         with path.open("w", newline="") as f:
             w = csv.writer(f)
-            w.writerow(["model", *benches])
-            for m in models:
-                w.writerow([m, *[self._cell_primary_mean(m, b) for b in benches]])
+            w.writerow(["model", *all_benches])
+            for m in all_models:
+                w.writerow([m, *[rows[m].get(b, "") for b in all_benches]])
         return path
 
     def write_status(self, models: list[str], benches: list[str], *,
@@ -132,23 +166,32 @@ class CheckpointStore:
         cell's total is unknown, "total" is null and only "done" is reported.
         """
         totals = totals or {}
-        cells = []
-        grand_done = grand_total = 0
+        path = self.root / "status.json"
+        # MERGE with any existing status.json: an invocation scoped to a subset of
+        # cells (rescore / scanned add-on) must not drop the other cells' progress —
+        # this file is tracked per published run and was clobbered once (v1-baseline).
+        merged: dict[tuple[str, str], dict] = {}
+        if path.exists():
+            try:
+                for c in (json.loads(path.read_text()).get("cells") or []):
+                    merged[(c.get("model"), c.get("bench"))] = c
+            except Exception:
+                merged = {}
         for m in models:
             for b in benches:
                 done = self.done_count(m, b)
                 total = totals.get((m, b))
-                grand_done += done
-                if total is not None:
-                    grand_total += total
                 if total is None:
                     state = "running" if done else "pending"
                 else:
                     state = "done" if done >= total and total > 0 else ("running" if done else "pending")
-                cells.append({
+                merged[(m, b)] = {
                     "model": m, "bench": b, "done": done, "total": total,
                     "primary_mean": self._cell_primary_mean(m, b), "state": state,
-                })
+                }
+        cells = list(merged.values())
+        grand_done = sum(c.get("done") or 0 for c in cells)
+        grand_total = sum(c.get("total") or 0 for c in cells)
         status = {
             "updated_at": datetime.now().isoformat(timespec="seconds"),
             "totals": {"done": grand_done, "total": grand_total or None,
