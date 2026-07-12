@@ -11,6 +11,10 @@ benchmarks:
       hf_repo: allenai/olmOCR-bench
       revision: 54a96a6f
       license: odc-by
+      # Coupling disclosure (verify-never-assume; see docs/REFERENCE.md#gaps):
+      # olmocr2 is from the SAME lab (Allen Institute for AI) that publishes this bench.
+      affiliated_models: [olmocr2]
+      affiliation_kind: same-lab
     scorer:
       kind: container                 # tbdoc-scorer-olmocr:v1 (full suite incl math/table);
       image: tbdoc-scorer-olmocr:v1   # falls back to isolated venv (render excluded)
@@ -27,6 +31,11 @@ benchmarks:
                                       # benchmarks/_scorers/omnidocbench/requirements.txt
       license: unspecified            # VERIFIED 2026-07-07 — no license tag/field on the HF
                                       # dataset card; the eval-code repo is Apache-2.0
+      # Coupling disclosure: dots_ocr (rednote-hilab) and paddleocr_vl (PaddlePaddle) both
+      # REPORT OmniDocBench SOTA on their model cards (verified live 2026-07-12) — i.e.
+      # developed/tuned against it. Not same-lab (bench is opendatalab).
+      affiliated_models: [dots_ocr, paddleocr_vl]
+      affiliation_kind: reports-benchmark
     scorer:
       kind: venv                      # official end2end pipeline (quick_match, Edit_dist+TEDS);
                                       # CDM excluded (needs TeX Live container) — flagged in output

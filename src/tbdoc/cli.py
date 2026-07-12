@@ -184,7 +184,12 @@ def validate_adapter(model_key, pages):
 @click.option("--tier-b", is_flag=True, help="show Tier-B scores (B.1 + coverage + B.2 + reader)")
 @click.option("--write-summary", is_flag=True,
               help="(re)generate the tracked summary.json from per-sample records")
-def scoreboard(run_id, fmt, by, readme_inject, perf, tier_b, write_summary):
+@click.option("--ci", default=None, metavar="MODEL_A,MODEL_B",
+              help="paired bootstrap 95% CI on a metric gap between two models "
+                   "(needs raw records; --bench/--metric select the cell/column)")
+@click.option("--bench", default="realdoc_qa", show_default=True, help="cell for --ci")
+@click.option("--metric", default="b2", show_default=True, help="per-sample metric key for --ci")
+def scoreboard(run_id, fmt, by, readme_inject, perf, tier_b, write_summary, ci, bench, metric):
     """Print the scoreboard for a run."""
     from tbdoc.report.scoreboard import (
         inject_readme,
@@ -196,6 +201,26 @@ def scoreboard(run_id, fmt, by, readme_inject, perf, tier_b, write_summary):
         write_summary as _write_summary,
     )
     try:
+        if ci:
+            from tbdoc.report.stats import paired_bootstrap_diff, per_sample_metric
+            try:
+                a, b = [x.strip() for x in ci.split(",")]
+            except ValueError:
+                raise click.ClickException("--ci expects MODEL_A,MODEL_B")
+            run = _latest_run(run_id)
+            sa = per_sample_metric(run, a, bench, metric)
+            sb = per_sample_metric(run, b, bench, metric)
+            r = paired_bootstrap_diff(sa, sb)
+            if not r["n"]:
+                raise click.ClickException(
+                    f"no shared per-sample '{metric}' records for {a}/{b} in {bench} "
+                    f"(run needs raw/; not available from summary.json alone)")
+            verdict = ("gap is within noise (CI spans 0)" if r["ci_low"] <= 0 <= r["ci_high"]
+                       else "gap is significant (CI excludes 0)")
+            click.echo(f"{a} vs {b} — {metric} on {bench} (paired bootstrap, n={r['n']}, seed=0):\n"
+                       f"  Δ = {r['diff']:+.3f}   95% CI [{r['ci_low']:+.3f}, {r['ci_high']:+.3f}]"
+                       f"   p≈{r['p_two_sided']:.2f}\n  → {verdict}")
+            return
         if write_summary:
             p = _write_summary(_latest_run(run_id))
             if p is None:

@@ -10,9 +10,12 @@ _Written 2026-07-10. Snapshot for picking up a fresh session. If this contradict
 > fresh-clone replicability via tracked `summary.json` (#8), and the results-integrity
 > pass (Tier C floors on all 15 streams: run `tierc-floor-15`; Spearman correction;
 > v1-baseline manifest reconstruction). The section below stays as the Phase-1 record.
-> Known deferred: haiku-4.5 B.2 rung (owner-paused), got2 table-zero explanation (open
-> sanity flag), Docker images not lockfile-pinned (a `uv sync --frozen` build attempt
-> failed 2026-07-12 — see Dockerfile.cpu TODO), per-model CIs.
+> Known deferred: haiku-4.5 B.2 rung (owner-paused). Closed in the 2026-07-12 followups
+> pass: got2 table-zero (format mismatch — findings/got2-table-zero.md), paired bootstrap
+> CIs (findings/statistical-significance.md + `gauntlet scoreboard --ci`), Docker
+> lockfile pinning (Dockerfile.cpu now `--frozen`), developer-affiliation disclosure.
+> Still open: Dockerfile.gpu not yet `--frozen`, token-cap equalization (disclosed only),
+> the API fleet, and merged_forms' owner spot-check.
 
 ## TL;DR
 
