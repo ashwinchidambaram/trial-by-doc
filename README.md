@@ -15,7 +15,7 @@ No LLM-as-judge anywhere. Every score is a deterministic algorithm; the only LLM
 the measurement path are **frozen instruments** (pinned revision, temp=0, seeded,
 identical for every model) and the scoreboard marks where they're used.
 
-**Contents:** [Bottom line](#bottom-line) · [Recommendations](#recommendations) · [Benchmarks](#benchmarks) · [Scores](#scores) · [Dashboard](#dashboard) · [Scanned/faxed robustness](#scanned-and-faxed-robustness-tier-b-under-degradation) · [Example documents](#example-documents) · [Models](#models) · [What the harness is](#what-the-harness-actually-is) · [Setup](#setup) · [Hardware](#hardware) · [Gaps](#gaps) · [Glossary](#glossary) · [Credits](#attributions--credits)
+**Contents:** [Bottom line](#bottom-line) · [Recommendations](#recommendations) · [Benchmarks](#benchmarks) · [Scores](#scores) · [Dashboard](#dashboard) · [Scanned/faxed robustness](#scanned-and-faxed-robustness-tier-b-under-degradation) · [Example documents](#example-documents) · [Models](#models) · [What the harness is](#what-the-harness-actually-is) · [Fine-tuning & RL](#fine-tuning--rl) · [Setup](#setup) · [Hardware](#hardware) · [Gaps](#gaps) · [Glossary](#glossary) · [Credits](#attributions--credits)
 
 ## Bottom line
 
@@ -102,21 +102,11 @@ outperform it — the entire reason this section exists.
 
 ### Can these be improved? (fine-tuning / RL)
 
-Two of the recommended picks have clear headroom, and the harness is built to measure whether
-tuning actually pays off:
-
-- **docTR** is the most tractable: its recognition backbone is a config knob
-  (`reco_arch`, currently the lightweight `crnn_vgg16_bn`; stronger transformer recognizers
-  `parseq` / `vitstr_base` ship in the same package), and Mindee provides fine-tuning scripts
-  for its detection and recognition heads — the direct way to lift it on your domain's fonts and
-  scan profile. Swapping the backbone is a one-line `configs/models.yaml` change that produces a
-  fresh, provenance-stamped run you can A/B against the baseline with `gauntlet scoreboard --ci`.
-- **The VLMs** (olmocr2, lightonocr, qwen25vl) are LoRA/full-fine-tunable; olmocr2 itself is a
-  fine-tune of Qwen2.5-VL on OCR data, so the ceiling is real.
-- **RL is a natural fit**: this harness's deterministic scorers (B.1 field-presence, Tier-A
-  edit-distance) are exactly the verifiable reward signals RLVR needs, so the eval gauntlet can
-  double as the reward model. That said, **training is a deliberate next phase** — the harness
-  today is an evaluation gauntlet with no training loop (see the Phase-2 gate in `CLAUDE.md`).
+Yes — two of these picks have clear headroom. **docTR** is the most tractable (swap its
+`reco_arch` backbone, or fine-tune its heads on your domain), and **the VLMs** take LoRA/full
+fine-tuning. The harness is also usable as **RL reward infrastructure** — its deterministic
+scorers are exactly the verifiable signal RLVR needs. Full treatment, including what's in-scope
+today vs. gated behind Phase 2: **[Fine-tuning & RL](#fine-tuning--rl)**.
 
 ### Caveats on these recommendations
 
@@ -477,6 +467,54 @@ the loop. Tier C `judge_composed` rows measure per-page parses + the frozen boun
 judge; `native` rows measure the model's own splitter. Every row carries provenance:
 model revision (or API version + date), benchmark revision, scorer identity, run id
 → `results/runs/<id>/manifest.json`.
+
+## Fine-tuning & RL
+
+trial-by-doc is an **evaluation** gauntlet, not a training framework — but the same
+deterministic-scoring discipline that keeps the leaderboard honest also makes it unusually
+good as **reward and measurement infrastructure** for improving a model. Here's what's
+usable today, and where the line is.
+
+**The scorers are ready-made verifiable rewards.** Every score is a pure, deterministic
+function returning a value in `[0,1]` — no LLM-as-judge, so nothing to reward-hack by fooling
+a critic. That is exactly the signal RL-with-verifiable-rewards (RLVR / GRPO-style) needs:
+
+- `field_value_presence` / `field_aware_exact_match` / `anls` (`src/tbdoc/scoring/scorers.py`)
+  — field-extraction reward (the production task).
+- Tier-A normalized edit distance — full-page parse-fidelity reward.
+- `segmentation_metrics` — boundary-F1 / PQ / STP (`src/tbdoc/scoring/native.py`) — a
+  document-splitting reward.
+
+Each is per-sample and importable, so a training loop can call it directly: *the same numbers
+that rank models become the signal that trains them.*
+
+**The eval loop closes the training loop.** A fine-tuned or RL'd checkpoint plugs back in as
+one adapter + one `configs/models.yaml` entry ([ADD_A_MODEL.md](ADD_A_MODEL.md)), gets a fresh
+provenance-stamped run, and — critically — you can *prove* the tune helped with
+`gauntlet scoreboard --ci tuned,base` rather than trusting a point-estimate bump. The
+[scanned-robustness split](#scanned-and-faxed-robustness-tier-b-under-degradation)
+(clean/light/heavy) doubles as an out-of-distribution check, so a fine-tune that overfits clean
+input gets caught.
+
+**Per-model tuning paths:**
+
+- **docTR** — most tractable: its detection/recognition backbones are config knobs
+  (`det_arch` / `reco_arch`, currently the lightweight `crnn_vgg16_bn`; `parseq` / `vitstr_base`
+  ship in the same package), and Mindee provides supervised fine-tuning scripts for both heads —
+  the direct route to lift it on your domain's fonts and scan profile.
+- **The VLMs** (olmocr2, lightonocr, qwen25vl, …) — LoRA or full fine-tune; several roster
+  models are themselves products of OCR-specialized training (lightonocr is distilled — see
+  [docs/REFERENCE.md](docs/REFERENCE.md)), so the ceiling is demonstrably real.
+- **Classic engines** (tesseract, easyocr) — support model / language-pack fine-tuning via
+  their own toolchains, at a lower ceiling than the VLMs.
+
+**Where the line is (honest scope).** The repo today contains **no training loop** — no trainer,
+no reward server, no data pipeline. Fine-tuning, distillation, and RL are **Phase 2**, gated
+behind an explicit owner sign-off in [`CLAUDE.md`](CLAUDE.md) / [HANDOVER.md](HANDOVER.md); the
+distillation lineage lives in the sibling `of-course-i-can-parse-that` project. So the accurate
+capability statement is: the **reward functions, the OOD eval split, the significance test, and
+the drop-in checkpoint contract are all here and reusable** — the training machinery itself is a
+deliberate, un-started next phase.
 
 ## Setup
 
