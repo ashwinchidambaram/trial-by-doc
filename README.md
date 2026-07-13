@@ -15,7 +15,7 @@ No LLM-as-judge anywhere. Every score is a deterministic algorithm; the only LLM
 the measurement path are **frozen instruments** (pinned revision, temp=0, seeded,
 identical for every model) and the scoreboard marks where they're used.
 
-**Contents:** [Bottom line](#bottom-line) · [Benchmarks](#benchmarks) · [Scores](#scores) · [Dashboard](#dashboard) · [Scanned/faxed robustness](#scanned-and-faxed-robustness-tier-b-under-degradation) · [Example documents](#example-documents) · [Models](#models) · [What the harness is](#what-the-harness-actually-is) · [Setup](#setup) · [Hardware](#hardware) · [Gaps](#gaps) · [Glossary](#glossary) · [Credits](#attributions--credits)
+**Contents:** [Bottom line](#bottom-line) · [Recommendations](#recommendations) · [Benchmarks](#benchmarks) · [Scores](#scores) · [Dashboard](#dashboard) · [Scanned/faxed robustness](#scanned-and-faxed-robustness-tier-b-under-degradation) · [Example documents](#example-documents) · [Models](#models) · [What the harness is](#what-the-harness-actually-is) · [Setup](#setup) · [Hardware](#hardware) · [Gaps](#gaps) · [Glossary](#glossary) · [Credits](#attributions--credits)
 
 ## Bottom line
 
@@ -46,6 +46,91 @@ If you only read one section, read this — everything below backs these claims 
   scanned/faxed → **olmocr2** / **gemma4** · document-splitting → **easyocr** leads (0.397),
   but no model clears the bar we'd call "solved" (the bench itself is provisional pending a
   human spot-check — see its [VALIDATION.md](benchmarks/custom/merged_forms/VALIDATION.md)).
+  The full decision guide is in [Recommendations](#recommendations) below.
+
+## Recommendations
+
+Which model to actually deploy depends on three things: **your input** (clean digital PDFs,
+scanned/faxed, or a mix), **your deployment budget** (CPU-only, one commodity GPU, or an
+A100), and **your task** (field extraction vs. faithful full-page reconstruction). Pick the
+row that matches your hardest constraint. Every claim below is backed by the scored data and,
+where it's a close call, a paired-bootstrap significance test
+([findings/statistical-significance.md](findings/statistical-significance.md)); "mixed" =
+the mean of clean / light-scan / heavy-scan B.1 extraction accuracy, the production task.
+
+| Your constraint | Pick | Mixed B.1 | Cost /1k (batched) | Why |
+|---|---|---|---|---|
+| **Accuracy first, have an A100** | **olmocr2** | **0.620** | $1.19 (A100) | Best mixed extraction *and* best full-page fidelity; significantly most robust under heavy degradation |
+| **Best value, one commodity GPU (T4)** | **lightonocr** | 0.556 | **$0.18** (T4) | Statistically ties olmocr2 on *clean* extraction at ~1/6 the cost; only gives ground under heavy scans |
+| **Rock-bottom GPU cost** | **dots_ocr** | 0.507 | **$0.11** (T4) | Cheapest usable model; strong full-page fidelity (Tier A 0.734); still beats tesseract on mixed, significantly |
+| **CPU-only / on-prem, extraction task** | **docTR** | 0.580 | $0.17 (CPU) / $0.04 (GPU) | Best CPU-capable *extractor*; 2× tesseract's scan-robustness — **but see the caveat, it can't reconstruct pages** |
+| **Scanned/faxed-dominant** | **olmocr2** / **gemma4** | 0.620 / 0.534 | $1.19 / $1.08 (A100) | olmocr2 has the highest absolute heavy-scan score; gemma4 *retains* the most (80% of clean) |
+| **Clean digital PDFs only, minimize cost** | **tesseract** | 0.382 | **$0.057** (CPU) | Cheapest of all, competitive B.1 on clean input — but collapses the moment scans appear |
+| **Faithful full-page markdown (tables, math, layout)** | **olmocr2** / **dots_ocr** | — | $1.19 / $0.11 | Tier-A leaders (0.836 / 0.734); do **not** use docTR or tesseract here |
+
+### Justification for the headline picks
+
+**olmocr2 — the accuracy pick.** It is 1st on both axes that matter: full-page parse fidelity
+(Tier A olmocr_bench 0.836, well clear of the field) and mixed-input field extraction (0.620).
+Crucially, its robustness lead is *real*, not a rounding artifact — under heavy scan/fax
+degradation it scores 0.514 vs the next-best 0.451, and the paired-bootstrap gap over qwen25vl
+(+0.078) and docTR (+0.116) excludes zero. If accuracy is the priority and an A100 is available,
+this is the defensible default. The cost — $1.19/1k pages batched, ~20× tesseract — is the price.
+
+**lightonocr — the value pick, and the one most people should look at first.** On *clean*
+documents its extraction is **statistically indistinguishable from olmocr2** (Δ=0.031, CI
+[−0.05, +0.11] — a tie), yet it runs on a **T4 instead of an A100** at **$0.18/1k, roughly
+one-sixth the cost**. The gap to olmocr2 only opens under *heavy* degradation (+0.106, significant),
+so if your inputs skew clean-to-moderate, you are paying 6× for a difference you won't see. It
+also keeps 62% of its clean accuracy under heavy scans (vs tesseract's 30%) and beats tesseract
+significantly at every degradation level. Among the cheap-GPU tier it's the best extractor —
+it significantly out-extracts dots_ocr (+0.109 on clean).
+
+**docTR — the CPU pick, with one hard caveat.** For a no-GPU, on-prem, or cost-floored
+deployment doing **field extraction**, docTR is the standout classic engine: mixed B.1 0.580
+(3rd overall, ties the top extraction group), 58% scan-retention (2× tesseract), Apache-2.0,
+and pennies per thousand pages. **But it cannot reconstruct a page** — its Tier A full-page
+fidelity is 0.185, near the bottom (olmocr2 beats it there by +0.651, a chasm), because it
+emits plain text lines with no tables, math, or layout. Use docTR when you need *values pulled
+out*; never when you need *faithful markdown of the whole document*.
+
+**tesseract — only for clean input.** It's the cheapest model in the roster and competitive at
+clean-document extraction (B.1 0.580), but it drops from 6th to 11th of 13 once scanned input
+enters the mix, retaining just 30% of its accuracy under heavy degradation. For any mixed or
+scan-heavy pipeline, docTR (CPU) or lightonocr/dots_ocr (cheap GPU) strictly and significantly
+outperform it — the entire reason this section exists.
+
+### Can these be improved? (fine-tuning / RL)
+
+Two of the recommended picks have clear headroom, and the harness is built to measure whether
+tuning actually pays off:
+
+- **docTR** is the most tractable: its recognition backbone is a config knob
+  (`reco_arch`, currently the lightweight `crnn_vgg16_bn`; stronger transformer recognizers
+  `parseq` / `vitstr_base` ship in the same package), and Mindee provides fine-tuning scripts
+  for its detection and recognition heads — the direct way to lift it on your domain's fonts and
+  scan profile. Swapping the backbone is a one-line `configs/models.yaml` change that produces a
+  fresh, provenance-stamped run you can A/B against the baseline with `gauntlet scoreboard --ci`.
+- **The VLMs** (olmocr2, lightonocr, qwen25vl) are LoRA/full-fine-tunable; olmocr2 itself is a
+  fine-tune of Qwen2.5-VL on OCR data, so the ceiling is real.
+- **RL is a natural fit**: this harness's deterministic scorers (B.1 field-presence, Tier-A
+  edit-distance) are exactly the verifiable reward signals RLVR needs, so the eval gauntlet can
+  double as the reward model. That said, **training is a deliberate next phase** — the harness
+  today is an evaluation gauntlet with no training loop (see the Phase-2 gate in `CLAUDE.md`).
+
+### Caveats on these recommendations
+
+- Extraction figures are **RealDoc-QA B.1** (deterministic, reader-free) — the production
+  "pull the fields out" task. Full-page fidelity is a *separate* axis (Tier A); the table above
+  keeps them distinct on purpose.
+- "Mixed" weights clean / light / heavy equally. If your real split differs, recompute — the
+  per-condition numbers are in [Scanned robustness](#scanned-and-faxed-robustness-tier-b-under-degradation).
+- Degraded scores come from a **seeded synthetic** scan/fax pipeline, not real fax hardware;
+  treat them as a controlled robustness ranking, not an absolute fax-accuracy promise.
+- Costs are **self-host Azure estimates** at batched throughput ([docs/REFERENCE.md](docs/REFERENCE.md));
+  single-stream and other clouds run higher. Re-price before committing.
+- Adjacent ranks are often statistical ties — the guide leans on *significant* gaps; where two
+  picks are close (e.g. lightonocr vs olmocr2 on clean) that's stated as a tie, not a winner.
 
 ## Benchmarks
 
