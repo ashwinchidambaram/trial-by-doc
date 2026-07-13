@@ -58,8 +58,9 @@ The method is not just saying "everything ties" — it discriminates real gaps c
 ## Scope / caveats
 
 - Per-category cells (n≈14–25) are even noisier — treat those as illustrative only.
-- CIs need per-sample records (`raw/`), so they run where the run was scored, not from a
-  fresh clone's `summary.json` alone. The two published runs' raw records are on the
-  owner's machine; the reproduce command above assumes them.
+- CIs need per-sample scores. These are now persisted (as scalars, not the bulky
+  predictions) in each run's tracked `summary.json` under `samples`, so `--ci` reproduces
+  from a fresh clone — `per_sample_metric` falls back to `summary.json` when `raw/` is
+  absent. (Verified: fresh-clone CIs match the raw-scored CIs byte-for-byte.)
 - These are marginal CIs per pair; no multiple-comparison correction is applied (would
   only widen them, i.e. make more pairs ties).

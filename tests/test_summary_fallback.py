@@ -80,6 +80,31 @@ def test_tier_b_falls_back_to_summary(tmp_path):
     assert _strip_note(from_summary).rstrip() == with_raw.rstrip()
 
 
+def test_ci_reproduces_from_summary_without_raw(tmp_path):
+    """A fresh clone (summary.json only) must recompute the SAME paired-bootstrap CI the
+    owner got from raw/. The bootstrap resamples by position under a fixed seed, so this
+    also guards the sample-ORDER preservation in the tracked summary — a regression there
+    silently shifts every published CI."""
+    from tbdoc.core.checkpoint import CheckpointStore
+    from tbdoc.report.stats import paired_bootstrap_diff, per_sample_metric
+
+    run = tmp_path / "cirun"
+    store = CheckpointStore(run)
+    # two models, both scored on the same 20 items, with a mix of wins so the CI is nontrivial
+    for i in range(20):
+        store.record("m1", "realdoc_qa", f"q{i}", metrics={"primary": float(i % 3 == 0), "b1": float(i % 3 == 0)})
+        store.record("m2", "realdoc_qa", f"q{i}", metrics={"primary": float(i % 2 == 0), "b1": float(i % 2 == 0)})
+    with_raw = paired_bootstrap_diff(per_sample_metric(run, "m1", "realdoc_qa", "b1"),
+                                     per_sample_metric(run, "m2", "realdoc_qa", "b1"))
+    assert write_summary(run) is not None
+    shutil.rmtree(run / "raw")
+    from_summary = paired_bootstrap_diff(per_sample_metric(run, "m1", "realdoc_qa", "b1"),
+                                         per_sample_metric(run, "m2", "realdoc_qa", "b1"))
+    assert from_summary["n"] == 20
+    assert (from_summary["ci_low"], from_summary["ci_high"], from_summary["diff"]) == \
+           (with_raw["ci_low"], with_raw["ci_high"], with_raw["diff"])
+
+
 def test_summary_merges_partial_regeneration(tmp_path, dummy_factories):
     mf, bf = dummy_factories
     run_matrix(models=["m1"], benches=["b1"], model_factory=mf, bench_factory=bf,
