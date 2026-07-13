@@ -1,6 +1,6 @@
 {
   "run_id": "gate1",
-  "generated_at": "2026-07-11T17:38:34",
+  "generated_at": "2026-07-13T10:00:33",
   "note": "derived aggregates from per-sample records (raw/ + predictions/, gitignored); tracked so fresh clones can render this run",
   "models": [
     "qwen25vl",
@@ -47,5 +47,8 @@
       "peak_vram_gb": 28.8,
       "cost_per_page_usd": null
     }
+  },
+  "samples": {
+    "qwen25vl|olmocr_bench": {"2502.15977_pg21.pdf":{"primary":0.0},"0058e04004009cc0df75aab998d3e107dc646b46_page_1_processed.pdf":{"primary":0.5},"10a_pg1.pdf":{"primary":0.4166666666666667},"0005784d0d255f6652180433936fa2998188_page_1_pg1.pdf":{"primary":1.0},"1.pdf":{"primary":0.2}}
   }
 }

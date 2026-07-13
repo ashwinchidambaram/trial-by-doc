@@ -1,6 +1,6 @@
 {
   "run_id": "tierb-smoke",
-  "generated_at": "2026-07-11T17:38:34",
+  "generated_at": "2026-07-13T10:00:33",
   "note": "derived aggregates from per-sample records (raw/ + predictions/, gitignored); tracked so fresh clones can render this run",
   "models": [
     "qwen25vl"
@@ -42,5 +42,8 @@
       "peak_vram_gb": 28.8,
       "cost_per_page_usd": null
     }
+  },
+  "samples": {
+    "qwen25vl|realdoc_qa": {"finance_q1":{"primary":1.0},"finance_q2":{"primary":0.0},"finance_q3":{"primary":0.0},"medical_healthcare_q1":{"primary":0.0},"medical_healthcare_q2":{"primary":0.0},"medical_healthcare_q164":{"primary":1.0}}
   }
 }

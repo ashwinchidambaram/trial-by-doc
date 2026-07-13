@@ -40,6 +40,31 @@ def _collect(run_dir: Path):
     return models, benches, cells, cats
 
 
+# Per-sample scalar scores we persist for paired-bootstrap CIs. Only these scores travel
+# into the tracked summary.json — never the bulky predictions, which stay in gitignored raw/.
+_SAMPLE_METRIC_KEYS = ("primary", "b1", "b2")
+
+
+def _per_sample(run_dir: Path) -> dict:
+    """{f"{model}|{bench}": {sample_id: {metric: value}}} for the numeric metrics that back
+    per-sample analyses (``gauntlet scoreboard --ci`` paired bootstrap). Storing just the
+    scalar scores — not the predictions — keeps CIs reproducible from a fresh clone while the
+    repo stays lean. Last record per sample wins (``--rescore`` appends); errors are skipped."""
+    store = CheckpointStore(run_dir)
+    latest: dict[tuple[str, str, str], dict] = {}
+    for r in store.iter_records():
+        latest[(r["model"], r["bench"], str(r.get("sample_id")))] = r
+    out: dict[str, dict] = {}
+    for (m, b, sid), r in latest.items():
+        if r.get("error") is not None:
+            continue
+        mt = r.get("metrics") or {}
+        vals = {k: mt[k] for k in _SAMPLE_METRIC_KEYS if isinstance(mt.get(k), (int, float))}
+        if vals:
+            out.setdefault(f"{m}|{b}", {})[sid] = vals
+    return out
+
+
 def _mean(vals: list[float]) -> str:
     return f"{sum(vals)/len(vals):.3f}" if vals else "—"
 
@@ -319,11 +344,13 @@ def render_cost(models: list[str] | None = None) -> str:
 
 def write_summary(run_dir: Path) -> Path | None:
     """Write the TRACKED summary.json for a run: every aggregate the scoreboard/UI can
-    render (cell means incl. derived benches, per-category means, Tier-B, perf) so a
-    fresh clone — where raw/ and predictions/ are gitignored — can still render and
-    compare against published runs. Merged with any existing summary (an invocation on
-    a machine holding only part of the run's raw data must not drop the rest).
-    Returns None (writes nothing) when the run has no records at all."""
+    render (cell means incl. derived benches, per-category means, Tier-B, perf) plus the
+    per-sample scalar scores (``samples``) that back paired-bootstrap CIs — so a fresh
+    clone, where raw/ and predictions/ are gitignored, can still render, compare against
+    published runs, AND recompute significance (``gauntlet scoreboard --ci``). Merged with
+    any existing summary (an invocation on a machine holding only part of the run's raw
+    data must not drop the rest). Returns None (writes nothing) when the run has no
+    records at all."""
     run_dir = Path(run_dir)
     models, benches, cells, cats = _collect(run_dir)
     if not models:
@@ -342,16 +369,38 @@ def write_summary(run_dir: Path) -> Path | None:
         "categories": {f"{m}|{b}|{c}": _stat(v) for (m, b, c), v in cats.items()},
         "tier_b": tier_b,
         "perf": perf,
+        "samples": _per_sample(run_dir),
     }
     old = load_summary(run_dir) or {}
     if old:
-        for key in ("cells", "categories", "tier_b", "perf"):
+        for key in ("cells", "categories", "tier_b", "perf", "samples"):
             new[key] = {**(old.get(key) or {}), **new[key]}
         for key in ("models", "benches"):
             new[key] = [x for x in (old.get(key) or []) if x not in new[key]] + new[key]
     p = run_dir / "summary.json"
-    p.write_text(json.dumps(new, indent=2))
+    p.write_text(_dump_summary(new))
     return p
+
+
+def _dump_summary(d: dict) -> str:
+    """Serialize summary.json: indent=2 for the human-scannable aggregates, but ONE compact
+    line per cell for the bulky ``samples`` block — thousands of per-sample scores as an
+    indented tree would swamp diffs and bloat the file for no reader benefit.
+
+    Per-sample INSERTION order is preserved (not sorted): the paired bootstrap resamples by
+    position under a fixed seed, so the CI is only reproducible if the fresh-clone fallback
+    reads samples in the same order the raw records were written. Cell keys are sorted for a
+    stable file; sample order within a cell is not touched."""
+    samples = d.get("samples") or {}
+    head = json.dumps({k: v for k, v in d.items() if k != "samples"}, indent=2)
+    if not samples:
+        block = "{}"
+    else:
+        rows = ",\n".join(
+            f'    {json.dumps(c)}: {json.dumps(v, separators=(",", ":"))}'
+            for c, v in sorted(samples.items()))
+        block = "{\n" + rows + "\n  }"
+    return head[:-2] + ',\n  "samples": ' + block + "\n}"
 
 
 README_BEGIN, README_END = "<!-- SCOREBOARD:BEGIN -->", "<!-- SCOREBOARD:END -->"

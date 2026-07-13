@@ -1,6 +1,6 @@
 {
   "run_id": "tierc-floor-15",
-  "generated_at": "2026-07-11T17:41:22",
+  "generated_at": "2026-07-13T10:00:33",
   "note": "derived aggregates from per-sample records (raw/ + predictions/, gitignored); tracked so fresh clones can render this run",
   "models": [
     "baseline_every_page",
@@ -64,5 +64,10 @@
       "peak_vram_gb": null,
       "cost_per_page_usd": null
     }
+  },
+  "samples": {
+    "baseline_every_page|merged_forms": {"stream_000":{"primary":0.0},"stream_001":{"primary":0.0},"stream_002":{"primary":0.0},"stream_003":{"primary":0.0},"stream_004":{"primary":0.0},"stream_005":{"primary":0.0},"stream_006":{"primary":0.0},"stream_007":{"primary":0.0},"stream_008":{"primary":0.0},"stream_009":{"primary":0.0},"stream_010":{"primary":0.0},"stream_011":{"primary":0.0},"stream_012":{"primary":0.0},"stream_013":{"primary":0.0},"stream_014":{"primary":0.0}},
+    "baseline_no_boundary|merged_forms": {"stream_000":{"primary":0.0},"stream_001":{"primary":0.0},"stream_002":{"primary":0.0},"stream_003":{"primary":0.0},"stream_004":{"primary":0.0},"stream_005":{"primary":0.0},"stream_006":{"primary":0.0},"stream_007":{"primary":0.0},"stream_008":{"primary":0.0},"stream_009":{"primary":0.0},"stream_010":{"primary":0.0},"stream_011":{"primary":0.0},"stream_012":{"primary":0.0},"stream_013":{"primary":0.0},"stream_014":{"primary":0.0}},
+    "baseline_pixel_diff|merged_forms": {"stream_000":{"primary":0.2},"stream_001":{"primary":0.2778},"stream_002":{"primary":0.2921},"stream_003":{"primary":0.0},"stream_004":{"primary":0.3599},"stream_005":{"primary":0.2792},"stream_006":{"primary":0.2083},"stream_007":{"primary":0.1197},"stream_008":{"primary":0.0},"stream_009":{"primary":0.1333},"stream_010":{"primary":0.3013},"stream_011":{"primary":0.3946},"stream_012":{"primary":0.3723},"stream_013":{"primary":0.4508},"stream_014":{"primary":0.0}}
   }
 }

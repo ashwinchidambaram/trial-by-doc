@@ -53,20 +53,33 @@ def paired_bootstrap_diff(a: Mapping[str, float | None], b: Mapping[str, float |
 
 
 def per_sample_metric(run_dir, model: str, bench: str, key: str) -> dict[str, float | None]:
-    """{sample_id: metric[key]} for one cell, last-record-per-sample (rescore-safe)."""
+    """{sample_id: metric[key]} for one cell, last-record-per-sample (rescore-safe).
+
+    Reads the gitignored raw/ records where present; on a fresh clone (raw/ absent) it
+    falls back to the per-sample scalar scores tracked in summary.json, so paired-bootstrap
+    CIs reproduce without the run having been scored locally.
+    """
     import json
     from pathlib import Path
     path = Path(run_dir) / "raw" / model / f"{bench}.jsonl"
     out: dict[str, float | None] = {}
-    if not path.exists():
+    if path.exists():
+        for line in path.read_text().splitlines():
+            if not line.strip():
+                continue
+            try:
+                r = json.loads(line)
+            except Exception:
+                continue
+            m = r.get("metrics") or {}
+            out[str(r.get("sample_id"))] = m.get(key) if r.get("error") is None else None
         return out
-    for line in path.read_text().splitlines():
-        if not line.strip():
-            continue
+    # Fresh-clone fallback: per-sample scalars persisted in the tracked summary.json.
+    sp = Path(run_dir) / "summary.json"
+    if sp.exists():
         try:
-            r = json.loads(line)
+            samples = (json.loads(sp.read_text()).get("samples") or {}).get(f"{model}|{bench}") or {}
         except Exception:
-            continue
-        m = r.get("metrics") or {}
-        out[str(r.get("sample_id"))] = m.get(key) if r.get("error") is None else None
+            samples = {}
+        return {sid: (d.get(key) if isinstance(d, dict) else None) for sid, d in samples.items()}
     return out

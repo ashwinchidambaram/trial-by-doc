@@ -14,10 +14,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 WORKDIR /app
-COPY pyproject.toml README.md ./
+COPY pyproject.toml uv.lock README.md ./
 COPY src ./src
 COPY configs ./configs
-RUN uv venv --python 3.12 && uv sync --extra local --no-dev
+# --frozen: build against the committed uv.lock (reproducibility rule), same as
+# Dockerfile.cpu. The `local` extra pulls the GPU stack (vLLM); it is pinned in uv.lock.
+RUN uv venv --python 3.12 && uv sync --frozen --extra local --no-dev
 ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1
 
 ENTRYPOINT ["gauntlet"]
