@@ -73,3 +73,32 @@ def test_fingerprint_records_the_pinned_serving_provider():
 
 def test_temperature_is_zero_for_determinism():
     assert _call(_adapter(or_provider="azure"))["temperature"] == 0
+
+
+def test_or_reasoning_passthrough():
+    """Reasoning VLMs (kimi-k3) burn the whole token budget thinking on dense pages —
+    finish=length, content empty (verified live 2026-07-22). `or_reasoning` in the
+    models.yaml entry is forwarded so the entry can disable it for transcription."""
+    kwargs = _call(_adapter(or_provider="moonshotai", or_reasoning={"enabled": False}))
+    assert kwargs["extra_body"]["reasoning"] == {"enabled": False}
+
+
+def test_no_or_reasoning_sends_no_reasoning_block():
+    assert "reasoning" not in (_call(_adapter(or_provider="azure")).get("extra_body") or {})
+
+
+class _EmptyCompletions:
+    """HTTP-200 with empty content — Azure gpt-5.4 did this transiently (3/10 smoke
+    pages, 2026-07-22). Must be retried, not recorded as a silent success."""
+    def create(self, **kwargs):
+        msg = type("M", (), {"content": ""})()
+        choice = type("Ch", (), {"message": msg, "finish_reason": "stop"})()
+        return type("R", (), {"choices": [choice]})()
+
+
+def test_empty_completion_raises_retryable():
+    from tbdoc.core.ratelimit import RetryableError
+    ad = _adapter(or_provider="azure")
+    ad.client.chat.completions = _EmptyCompletions()
+    with pytest.raises(RetryableError):
+        ad._call_api(Image.new("RGB", (12, 12), "white"))

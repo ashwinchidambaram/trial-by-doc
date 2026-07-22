@@ -232,7 +232,11 @@ models:
     kind: api
     adapter: "tbdoc.models.api.openrouter_vision:OpenRouterVisionAdapter"
     provider: openrouter
-    or_provider: moonshotai          # single endpoint (Moonshot AI) — verified 2026-07-22; slug re-check before scored run
+    or_provider: moonshotai          # sole endpoint (Moonshot AI); slug verified via /api/v1/providers 2026-07-22
+    or_reasoning: { enabled: false } # kimi-k3 is a reasoning VLM: with reasoning on it burns the FULL
+                                     # 4096-token budget thinking on dense pages -> finish=length, EMPTY
+                                     # content (smoke 8/10 empty, 2026-07-22). Off: same-quality markdown
+                                     # at ~1/4 the output tokens. Transcription needs no chain-of-thought.
     api_model_id: moonshotai/kimi-k3
     secrets: [OPEN_ROUTER_API_KEY]
     rate_limit: { rps: 1.0, burst: 2 }

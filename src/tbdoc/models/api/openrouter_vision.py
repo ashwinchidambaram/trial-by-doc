@@ -34,10 +34,18 @@ class OpenRouterVisionAdapter(OpenAIVisionAdapter):
         return OpenAI(base_url=_BASE_URL, api_key=os.environ["OPEN_ROUTER_API_KEY"])
 
     def _extra_body(self) -> dict:
+        body: dict = {}
         prov = self.entry.get("or_provider")
-        if not prov:                       # unpinned: OpenRouter's own routing, disclosed as such
-            return {}
-        return {"provider": {"order": [prov], "allow_fallbacks": False}}
+        if prov:                           # unpinned: OpenRouter's own routing, disclosed as such
+            body["provider"] = {"order": [prov], "allow_fallbacks": False}
+        # Reasoning VLMs (kimi-k3) spend the whole max_completion_tokens budget thinking
+        # on dense pages -> finish=length with EMPTY content (verified 2026-07-22:
+        # 4093/4096 reasoning tokens on an arxiv math page). Transcription needs no
+        # chain-of-thought, so entries may pass e.g. `or_reasoning: {enabled: false}`.
+        reasoning = self.entry.get("or_reasoning")
+        if reasoning is not None:
+            body["reasoning"] = reasoning
+        return body
 
     def fingerprint(self) -> dict[str, Any]:
         fp = super().fingerprint()
