@@ -55,7 +55,7 @@ benchmarks:
 
   realdoc_qa_scanned_light:
     adapter: "tbdoc.benches.official.realdoc_qa_scanned:RealDocQAScanned"
-    tier: B
+    tier: D                           # robustness: Tier-B extraction under scan/fax degradation
     unit: page
     provenance: official
     data_dir: benchmarks/official/realdoc_qa/data   # reuses realdoc_qa's qa_bank.json + docs verbatim
@@ -70,7 +70,7 @@ benchmarks:
 
   realdoc_qa_scanned_heavy:
     adapter: "tbdoc.benches.official.realdoc_qa_scanned:RealDocQAScanned"
-    tier: B
+    tier: D                           # robustness: Tier-B extraction under scan/fax degradation
     unit: page
     provenance: official
     data_dir: benchmarks/official/realdoc_qa/data   # reuses realdoc_qa's qa_bank.json + docs verbatim

@@ -22,7 +22,8 @@ _Written 2026-07-10. Snapshot for picking up a fresh session. If this contradict
 **Phase 1 is complete and merged to `main` (pushed to origin at `696efd3`).** The
 document-OCR evaluation harness now has a 14-model baseline across 4 tiers, a pluggable
 Tier-B reader with a sensitivity ladder, a fresh-clone `verify-env` preflight, code-generated
-report tables, a scanned-robustness study, and a full results dashboard (`gauntlet ui`).
+report tables, a scanned-robustness study (promoted to official **Tier D** on 2026-07-22),
+and a full results dashboard (`gauntlet ui`).
 
 Per `CLAUDE.md`, Phase 1 ends with a **hard STOP before Phase 2** (data pipeline /
 fine-tuning / distillation). Do not start Phase 2 without owner sign-off.
@@ -54,7 +55,7 @@ fine-tuning / distillation). Do not start Phase 2 without owner sign-off.
 | C1 | `gauntlet verify-env` preflight (GPU + CPU + scorers + datasets + secrets-presence) | `src/tbdoc/core/preflight.py` |
 | C2 | `gauntlet scoreboard --readme-inject` regenerates report tables into README | `scoreboard.py:inject_readme` |
 | C3 | Dashboard rebuild (decide cockpit / diagnose workbench / verify explorer, AC brand) | merge `696efd3` |
-| D | Scanned-degradation robustness study (clean/light/heavy) | `580ae7b`, `findings/partd-*` |
+| D | Scanned-degradation robustness study (clean/light/heavy) — later promoted to official Tier D | `580ae7b`, `findings/tierd-*` (renamed from `partd-*` at promotion) |
 
 ## The 14-model scoreboard (`results/runs/v1-baseline/scoreboard.csv`)
 

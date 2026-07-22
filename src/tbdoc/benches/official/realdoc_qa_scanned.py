@@ -1,4 +1,4 @@
-"""RealDoc-Bench QA under synthetic scan/fax degradation (Part D, spec §4.2).
+"""RealDoc-Bench QA under synthetic scan/fax degradation (Tier D, spec §4.2).
 
 Thin subclass of `RealDocQA` — reuses its `qa_bank.json` + gold + stratified
 sampling VERBATIM (calls `super().load()`, never re-derives the bank) and only
@@ -21,7 +21,9 @@ The seed is derived deterministically from (source_file, level), so it is a
 seed "per (sample, level)" at the page granularity that RealDocQA already
 treats as one physical scanned artifact.
 
-tier="B", unit="page", requires_extractor=True (unchanged from RealDocQA).
+tier="D" (set in configs/benchmarks.yaml; promoted from "B" when the scanned
+study became an official tier, 2026-07-22), unit="page", requires_extractor=True
+(unchanged from RealDocQA).
 """
 from __future__ import annotations
 

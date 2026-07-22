@@ -110,11 +110,14 @@ def collect_grid(run_dir: Path):
         "`gauntlet scoreboard --run-id <id> --write-summary`")
 
 
-def _is_derived_bench(b: str) -> bool:
-    """Scanned/degraded variants (e.g. ``realdoc_qa_scanned_heavy``) are a separate
-    robustness study, not core-tier leaderboard columns. Keep them out of the main
-    scoreboard by default — they live in the README's 'Scanned and faxed robustness'
-    section and findings/partd-scanned-robustness.md instead."""
+def _is_robustness_bench(b: str) -> bool:
+    """Scanned/degraded variants (e.g. ``realdoc_qa_scanned_heavy``) — Tier D.
+
+    Official leaderboard columns since the 2026-07-22 Tier-D promotion (see
+    findings/tierd-scanned-robustness.md), so they are NOT excluded from the
+    scoreboard grid. They stay out of the perf characterization (`_perf`) only:
+    latency/VRAM/$ per page is a clean-page property, and counting the same
+    pages again under degradation would double-weight those models."""
     return "_scanned_" in b
 
 
@@ -128,7 +131,7 @@ def _perf(run_dir: Path):
     root = Path(run_dir) / "predictions"
     per: dict[str, dict[str, list]] = {}
     for f in root.rglob("*.jsonl"):
-        if _is_derived_bench(f.stem):   # scanned variants aren't part of the core perf characterization
+        if _is_robustness_bench(f.stem):   # Tier D pages aren't part of the core perf characterization
             continue
         model = f.parent.name
         d = per.setdefault(model, {"lat": [], "vram": [], "cost": []})
@@ -195,12 +198,9 @@ def render_perf(run_dir: Path, models: list[str] | None = None) -> str:
     return "\n".join(out)
 
 
-def render(run_dir: Path, *, fmt: str = "md", by: str = "bench", registry=None,
-           include_derived: bool = False) -> str:
+def render(run_dir: Path, *, fmt: str = "md", by: str = "bench", registry=None) -> str:
     models, benches, cells, cats, from_summary = collect_grid(run_dir)
     bmeta = (registry.benchmarks if registry else {}) or {}
-    if not include_derived:
-        benches = [b for b in benches if not _is_derived_bench(b)]
 
     if by == "category":
         lines = []

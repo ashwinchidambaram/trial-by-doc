@@ -47,11 +47,12 @@ profiles:
     models: [baseline_every_page, baseline_no_boundary, baseline_pixel_diff]
     benchmarks: { merged_forms: 30 }
 
-  # Part D: scan/fax robustness (docs/superpowers/specs/2026-07-09-scanned-robustness-design.md).
-  # Separate profile (mirrors tierc_floor) rather than folded into `full` — it's a distinct axis
-  # (clean -> light -> heavy B.1 delta) staged AFTER the Part-A gate, not part of the v1 comparison.
-  # BUILD-only here: the controller runs this profile for the scored comparison, not this task.
-  partd_scanned:
+  # Tier D: scan/fax robustness (docs/superpowers/specs/2026-07-09-scanned-robustness-design.md;
+  # promoted from "Part D" study to official tier 2026-07-22). Separate profile (mirrors
+  # tierc_floor) — it's a stress axis over Tier-B extraction (clean -> light -> heavy B.1 delta),
+  # staged AFTER the Part-A gate. (Profile was `partd_scanned` before the promotion; historical
+  # run manifests keep the old name.)
+  tierd_scanned:
     models: [olmocr2, qwen25vl, got2, dots_ocr, paddleocr_vl, deepseek_ocr,
              granite_docling, lightonocr]
     benchmarks:

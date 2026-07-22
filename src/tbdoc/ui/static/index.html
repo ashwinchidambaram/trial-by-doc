@@ -302,10 +302,10 @@ async function renderCockpit(root){
     text:`${sb.n_scored} scored samples.${srcNote} Accuracy shaded per column (deeper is stronger); a gold dot marks the column leader, a terracotta dot marks models on the value frontier.`}));
 
   // toolbar
-  const showExtra={v:true}; const tierOn={A:true,B:true,C:true};
+  const showExtra={v:true}; const tierOn={A:true,B:true,C:true,D:true};
   const searchIn=el("input",{type:"search",placeholder:"filter models",style:"width:150px",
     oninput:()=>drawTable()});
-  const tierChips=["A","B","C"].map(t=>el("button",{class:"chip","aria-pressed":"true",text:`tier ${t}`,
+  const tierChips=["A","B","C","D"].map(t=>el("button",{class:"chip","aria-pressed":"true",text:`tier ${t}`,
     onclick:e=>{ tierOn[t]=!tierOn[t]; e.target.setAttribute("aria-pressed",tierOn[t]); drawTable(); }}));
   const extraChip=el("button",{class:"chip","aria-pressed":"true",text:"speed / cost / robustness",
     onclick:e=>{ showExtra.v=!showExtra.v; e.target.setAttribute("aria-pressed",showExtra.v); drawTable(); }});

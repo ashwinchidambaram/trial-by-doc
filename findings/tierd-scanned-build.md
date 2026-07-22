@@ -1,4 +1,8 @@
-# Part D — scan/fax robustness: BUILD complete, awaiting controller's scored run
+# Part D (now Tier D) — scan/fax robustness: BUILD complete, awaiting controller's scored run
+
+> Promoted to official **Tier D** on 2026-07-22 (file renamed from `partd-scanned-build.md`;
+> the matrix profile is now `tierd_scanned`, was `partd_scanned`). Historical record below
+> kept verbatim.
 
 **Date:** 2026-07-09
 **Spec:** `docs/superpowers/specs/2026-07-09-scanned-robustness-design.md`

@@ -15,7 +15,7 @@ No LLM-as-judge anywhere. Every score is a deterministic algorithm; the only LLM
 the measurement path are **frozen instruments** (pinned revision, temp=0, seeded,
 identical for every model) and the scoreboard marks where they're used.
 
-**Contents:** [Bottom line](#bottom-line) · [Recommendations](#recommendations) · [Benchmarks](#benchmarks) · [Scores](#scores) · [Dashboard](#dashboard) · [Scanned/faxed robustness](#scanned-and-faxed-robustness-tier-b-under-degradation) · [Example documents](#example-documents) · [Models](#models) · [What the harness is](#what-the-harness-actually-is) · [Fine-tuning & RL](#fine-tuning--rl) · [Setup](#setup) · [Hardware](#hardware) · [Gaps](#gaps) · [Glossary](#glossary) · [Credits](#attributions--credits)
+**Contents:** [Bottom line](#bottom-line) · [Recommendations](#recommendations) · [Benchmarks](#benchmarks) · [Scores](#scores) · [Dashboard](#dashboard) · [Tier D robustness](#tier-d--scannedfaxed-robustness) · [Example documents](#example-documents) · [Models](#models) · [What the harness is](#what-the-harness-actually-is) · [Fine-tuning & RL](#fine-tuning--rl) · [Setup](#setup) · [Hardware](#hardware) · [Gaps](#gaps) · [Glossary](#glossary) · [Credits](#attributions--credits)
 
 ## Bottom line
 
@@ -37,7 +37,7 @@ If you only read one section, read this — everything below backs these claims 
 - **Scanned/faxed input changes the ranking.** olmocr2 and gemma4 hold onto 75–80% of their
   clean-document accuracy under heavy degradation; tesseract and easyocr collapse to 22–29%.
   If your documents arrive scanned or faxed, don't trust the clean-benchmark numbers alone —
-  see [Scanned and faxed robustness](#scanned-and-faxed-robustness-tier-b-under-degradation).
+  see [Tier D — scanned/faxed robustness](#tier-d--scannedfaxed-robustness).
 - **Cost spans three orders of magnitude** — $0.057/1k pages (tesseract, CPU) to $10.60/1k
   pages (gemma4, single-stream A100) — and the [Dashboard](#dashboard)'s value frontier shows
   which of those are actually worth paying for.
@@ -114,7 +114,7 @@ today vs. gated behind Phase 2: **[Fine-tuning & RL](#fine-tuning--rl)**.
   "pull the fields out" task. Full-page fidelity is a *separate* axis (Tier A); the table above
   keeps them distinct on purpose.
 - "Mixed" weights clean / light / heavy equally. If your real split differs, recompute — the
-  per-condition numbers are in [Scanned robustness](#scanned-and-faxed-robustness-tier-b-under-degradation).
+  per-condition numbers are in [Tier D robustness](#tier-d--scannedfaxed-robustness).
 - Degraded scores come from a **seeded synthetic** scan/fax pipeline, not real fax hardware;
   treat them as a controlled robustness ranking, not an absolute fax-accuracy promise.
 - Costs are **self-host Azure estimates** at batched throughput ([docs/REFERENCE.md](docs/REFERENCE.md));
@@ -361,13 +361,15 @@ workbench needs a locally scored run, since per-sample records aren't committed.
 
 The dashboard ships light and dark themes; every number matches `gauntlet scoreboard` exactly (it reuses the same readers, never re-deriving a metric).
 
-## Scanned and faxed robustness (Tier B under degradation)
+## Tier D — scanned/faxed robustness
 
-Clean uploads and faxed/scanned copies are different production realities. We re-run the Tier-B
+Clean uploads and faxed/scanned copies are different production realities. **Tier D** (an
+official tier since 2026-07-22; previously the "Part D" robustness study) runs the Tier-B
 extraction set through a **seeded scan-degradation pipeline** (benches `realdoc_qa_scanned_light`
-/ `_heavy`) and score **B.1** (deterministic, reader-independent) on each — so a drop reflects the
-*OCR* degrading, not a reader confound. The per-model robustness curve (full write-up:
-[findings/partd-scanned-robustness.md](findings/partd-scanned-robustness.md)):
+/ `_heavy`) and scores **B.1** (deterministic, reader-independent) on each — so a drop reflects the
+*OCR* degrading, not a reader confound. It is a stress axis over Tier B, not a fourth orthogonal
+capability. The per-model robustness curve (full write-up:
+[findings/tierd-scanned-robustness.md](findings/tierd-scanned-robustness.md)):
 
 | model | clean | light | heavy | heavy retained |
 |---|---|---|---|---|
@@ -492,7 +494,7 @@ that rank models become the signal that trains them.*
 one adapter + one `configs/models.yaml` entry ([ADD_A_MODEL.md](ADD_A_MODEL.md)), gets a fresh
 provenance-stamped run, and — critically — you can *prove* the tune helped with
 `gauntlet scoreboard --ci tuned,base` rather than trusting a point-estimate bump. The
-[scanned-robustness split](#scanned-and-faxed-robustness-tier-b-under-degradation)
+[scanned-robustness split](#tier-d--scannedfaxed-robustness)
 (clean/light/heavy) doubles as an out-of-distribution check, so a fine-tune that overfits clean
 input gets caught.
 
