@@ -242,6 +242,22 @@ def scoreboard(run_id, fmt, by, readme_inject, perf, tier_b, write_summary, ci, 
         raise click.ClickException(str(e))
 
 
+@main.command()
+@click.option("--out", default="docs/leaderboard.md", show_default=True,
+              help="where to write the rendered markdown")
+def leaderboard(out):
+    """Regenerate the cross-run four-tier leaderboard (docs/leaderboard.md)."""
+    from tbdoc.report.leaderboard import leaderboard_data, render_md
+    try:
+        data = leaderboard_data(Path("results/runs"), _registry())
+    except FileNotFoundError as e:
+        raise click.ClickException(str(e))
+    p = Path(out)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(render_md(data))
+    click.echo(f"wrote {p}")
+
+
 @main.command("list")
 @click.argument("what", type=click.Choice(["models", "benches"]))
 def list_cmd(what):
@@ -307,20 +323,33 @@ _EST_IN_TOK, _EST_OUT_TOK = 2000, 1000
 
 
 def _count_samples(reg: Registry, bench_keys: list[str], max_samples) -> int:
-    """Samples a run will touch across bench_keys, honoring per-bench caps."""
+    """Page inferences a run will touch across bench_keys, honoring per-bench caps.
+
+    APIs bill per page call, NOT per sample, and the two diverge in both directions:
+      - unit="document": one stream == len(pages) calls (merged_forms: ~17x a sample count)
+      - unit="page":     question-samples sharing one rendered image are OCR'd once,
+                         because infer.py memoizes on id(s.image) (realdoc_qa: ~4 questions/doc)
+    Counting samples under-quoted a v1 API run by ~1.5x, which silently leaked the
+    matrix.yaml budget cap. Caps stay SAMPLE caps (as the runner applies them); pages
+    are counted within the capped slice.
+    """
     n = 0
     for b in bench_keys:
         ba = reg.bench(b)
         cap = max_samples.get(b) if isinstance(max_samples, dict) else max_samples
-        if cap:                       # only count up to the cap; don't walk the whole dataset
-            c = 0
-            for _ in ba.load():
-                c += 1
-                if c >= cap:
-                    break
-            n += c
-        else:
-            n += sum(1 for _ in ba.load())
+        # id() is only unique among LIVE objects — hold a ref so a GC'd page's id
+        # can't be recycled and silently alias a distinct page into one call.
+        alive: dict[int, object] = {}
+        c = 0
+        for s in ba.load():
+            if cap and c >= cap:      # don't walk the whole dataset past the cap
+                break
+            c += 1
+            if ba.unit == "document":
+                n += len(s.pages)
+            elif id(s.image) not in alive:
+                alive[id(s.image)] = s.image
+                n += 1
     return n
 
 

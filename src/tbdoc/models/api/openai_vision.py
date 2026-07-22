@@ -17,6 +17,10 @@ class OpenAIVisionAdapter(VisionChatAdapter):
         from openai import OpenAI
         return OpenAI()
 
+    def _extra_body(self) -> dict:
+        """Gateway-specific request extras (see OpenRouterVisionAdapter). Empty here."""
+        return {}
+
     def _call_api(self, image: Any) -> Any:
         import openai
         b64 = encode_png_b64(image, self.longest_side)
@@ -25,6 +29,7 @@ class OpenAIVisionAdapter(VisionChatAdapter):
                 model=self.entry["api_model_id"],
                 temperature=0,
                 max_completion_tokens=self.max_tokens,
+                extra_body=self._extra_body(),
                 messages=[{"role": "user", "content": [
                     {"type": "image_url",
                      "image_url": {"url": f"data:image/png;base64,{b64}"}},
