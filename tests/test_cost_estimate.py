@@ -9,7 +9,7 @@ standing between a typo and real money.
 """
 from __future__ import annotations
 
-from tbdoc.cli import _count_samples
+from tbdoc.cli import _count_reader_calls, _count_samples
 from tbdoc.core.bench_adapter import BenchAdapter, Sample
 
 
@@ -62,6 +62,19 @@ def test_shared_page_objects_are_counted_once():
     """realdoc_qa: 8 questions over 2 docs -> infer.py OCRs 2 pages, so bill 2."""
     reg = _FakeRegistry({"realdoc_qa": _shared_page_bench(n_docs=2, questions_per=4)})
     assert _count_samples(reg, ["realdoc_qa"], None) == 2
+
+
+def test_reader_calls_are_per_sample_not_per_page():
+    """B.2 reader: evaluate() has NO page memoization — 8 question-samples sharing
+    2 pages are 8 paid reader calls. Using the page-deduped counter here once
+    under-quoted reader spend ~4x on realdoc benches (found in PR-14 review)."""
+    reg = _FakeRegistry({"realdoc_qa": _shared_page_bench(n_docs=2, questions_per=4)})
+    assert _count_reader_calls(reg, ["realdoc_qa"], None) == 8
+
+
+def test_reader_calls_honor_the_sample_cap():
+    reg = _FakeRegistry({"realdoc_qa": _shared_page_bench(n_docs=2, questions_per=4)})
+    assert _count_reader_calls(reg, ["realdoc_qa"], 3) == 3
 
 
 def test_cap_applies_to_samples_then_pages_are_counted():

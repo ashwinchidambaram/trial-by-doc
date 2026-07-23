@@ -109,7 +109,7 @@ def run(models, benches, profile, max_samples, run_id, phase, rescore, no_llm_in
                         f"budget guard: reader '{reader}' has no pricing in configs/models.yaml — "
                         "cannot estimate B.2 reader spend; add pricing or use a local reader")
             else:
-                n_calls = _count_samples(reg, needs_reader, max_samples)
+                n_calls = _count_reader_calls(reg, needs_reader, max_samples)
                 per_model = per_call * n_calls
                 click.echo(f"estimated B.2 reader spend ({reader}, upper bound): "
                            f"${per_model:.2f}/model × {len(model_keys)} models "
@@ -320,6 +320,28 @@ def download(bench):
 # Token assumptions for per-Mtok-priced vision APIs (verified workload model 2026-07-07:
 # ~1.5MP page ≈ 1-4k image tokens depending on provider; ~1k output tokens/page).
 _EST_IN_TOK, _EST_OUT_TOK = 2000, 1000
+
+
+def _count_reader_calls(reg: Registry, bench_keys: list[str], max_samples) -> int:
+    """B.2 reader (extractor) calls: one per SAMPLE, honoring per-bench caps.
+
+    Unlike model OCR (memoized per page in infer.py), evaluate() calls the reader once
+    per sample with NO page memoization (realdoc_qa.py evaluate -> extractor.answer):
+    ~4 question-samples sharing one rendered page are 4 paid reader calls. Using the
+    page-deduped _count_samples here under-quoted reader spend ~4x on realdoc benches
+    — the same silent-cap-leak class the page counter itself was built to fix.
+    """
+    n = 0
+    for b in bench_keys:
+        ba = reg.bench(b)
+        cap = max_samples.get(b) if isinstance(max_samples, dict) else max_samples
+        c = 0
+        for _s in ba.load():
+            if cap and c >= cap:      # don't walk the whole dataset past the cap
+                break
+            c += 1
+        n += c
+    return n
 
 
 def _count_samples(reg: Registry, bench_keys: list[str], max_samples) -> int:
