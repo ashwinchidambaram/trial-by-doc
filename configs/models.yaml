@@ -245,7 +245,11 @@ models:
                source: "https://openrouter.ai/api/v1/models/moonshotai/kimi-k3/endpoints (Moonshot AI, sole endpoint)",
                as_of: "2026-07-22" }
     foundry_available: false         # Moonshot-served, NOT Azure Foundry — do not report under the Foundry lane
-    commercial_use: false            # UNVERIFIED — Moonshot API commercial terms not checked; confirm before publishing
+    commercial_use: false            # VERIFIED UNPUBLISHED 2026-07-23: hf.co/moonshotai/Kimi-K3 is an
+                                     # announcement page only — weights + license land 2026-07-27
+                                     # (third-party reports say Modified MIT; not authoritative).
+                                     # API-only access under Moonshot platform terms today. Re-check
+                                     # after 2026-07-27 before flipping this flag.
     specialties: "frontier vision LLM (Moonshot); flagship-tier data point alongside gpt-5.4"
 
   # ---- APIs: adapters built, scored runs deferred ---------------------------
