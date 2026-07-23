@@ -178,3 +178,44 @@ at a time. v1-baseline must have been scored tier-by-tier for the same reason. *
 - **Done & scored:** `gpt41mini_azure`, `mistral_ocr` — all four tiers, both B.2 readers.
 - **Deferred (owner):** `gpt54_azure`, `opus47_azure` (cap vs. drop-Tier-C); `token-cap v2`;
   the score-phase co-residence code fix.
+
+## RESULTS — frontier completion, runs of 2026-07-22/23 (same run-id `run_20260717_095004`)
+
+`gpt54_azure` (Azure-pinned via OpenRouter) and `kimi_k3` (moonshotai-pinned, reasoning disabled)
+ran the 3 agreed benches + both Tier-D scanned benches; Tier D also backfilled for the 07-17 pair.
+Tier C stays deferred for the frontier pair (below-floor tier, cost not justified).
+
+### Scoreboard (B.1 headline; full grid in docs/leaderboard.md + HTML artifact)
+
+| model | olmocr | omnidoc | realdoc B.1 | scanned_light | scanned_heavy | heavy retention |
+|---|---|---|---|---|---|---|
+| kimi_k3 | **0.717** | 0.849 | **0.801** | 0.795 | 0.689 | 86% |
+| mistral_ocr | 0.696 | **0.868** | 0.776 | **0.810** | **0.734** | **95%** |
+| gpt54_azure | 0.575 | 0.803 | 0.765 | 0.767 | 0.582 | 76% |
+| gpt41mini_azure | 0.571 | 0.745 | 0.736 | 0.728 | 0.519 | 71% |
+
+- **CORRECTION to the 07-17 table above:** mistral olmocr_bench is **0.696**, not 0.407 — the
+  original score pass covered only 5/100 of its olmocr samples (status.json `done: 5`); the
+  07-22 completion scored the remaining 95. The 07-17 claim "gpt-4.1-mini leads olmocr" is
+  therefore wrong; kimi-k3 leads, mistral second.
+- **kimi_k3 was the only zero-error run** (500/500 after a one-page gateway-hiccup sweep).
+  gpt-5.4 carries one permanent honest error row: an omnidocbench Chinese-textbook page Azure's
+  content filter refuses across 2×5 retry attempts.
+- B.2 (gpt-5.4-mini reader, isolated `-b2-gpt5mini` run): kimi 0.630, mistral/gpt-4.1-mini 0.590,
+  gpt-5.4 0.570 — again no same-vendor inflation (the OpenAI reader ranks gpt-5.4 last).
+
+### Spend (actual, OpenRouter balance deltas)
+
+Whole frontier exercise (gpt-5.4 full, kimi full, Tier-D backfill ×2 models, sweeps, B.2 rescore):
+**≈ $12.2** ($16.92 → $4.74). kimi ≈ $5.5–6 actual vs $6.59 estimate (per-row telemetry sums
+overcount memoized realdoc pages — trust balance deltas, not row sums). All under the $10/model cap.
+
+### Operational finding — co-residence has a HOST-RAM flavor too (OOM incident 2026-07-22 20:35)
+
+Each `gauntlet run` **materializes every requested bench's page images in host RAM up front**
+(`matrix.py` builds `bench_samples` for all benches before phase dispatch) — ~38–46 GB for the
+5-bench set on a 61 GB host. Running a second gauntlet concurrently (kimi infer + sweep/score
+chain) triggered the kernel OOM killer, which killed the kimi run mid-bench (SIGKILL: no traceback,
+buffered stdout lost; append-only predictions survived, resume lost nothing). **Rule: one gauntlet
+process at a time — API-vs-GPU parallelism does not make it safe.** Candidate code fix (owner):
+lazy page loading, or materialize only benches with pending work on resume.

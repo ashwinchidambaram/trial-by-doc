@@ -26,10 +26,7 @@ B2_RESCORE_RUNS = ("v1-b2-gpt5mini", "run_20260717_095004-b2-gpt5mini")
 
 #: Wired-but-unrun models shown as pending rows so the table states its own gaps.
 #: Remove an entry once its run lands — regeneration then fills the real cells.
-PENDING_MODELS: dict[str, str] = {
-    "gpt54_azure": "run owner-gated (paid; Tier C deferred)",
-    "kimi_k3": "run owner-gated (paid; Tier C deferred)",
-}
+PENDING_MODELS: dict[str, str] = {}
 #: (model, bench) cells intentionally skipped, with the reason shown in the legend.
 DEFERRED_CELLS: dict[tuple[str, str], str] = {
     ("gpt54_azure", "merged_forms"): "deferred",
@@ -224,14 +221,17 @@ def render_md(data: dict) -> str:
     w("")
     w("- **Scan/fax robustness splits the field (Tier D).** VLMs retain 75–80% of clean "
       "extraction under heavy degradation (olmocr2, gemma4); tesseract and easyocr collapse to "
-      "22–29%. docTR is the robust classic exception (58%). Clean-benchmark rankings do not "
-      "survive scanned input.")
-    w("- **Purpose-built OCR leads doc-parse.** mistral_ocr tops omnidocbench (0.868) and "
-      "realdoc B.1 (0.776) among API models; gpt-4.1-mini leads olmocr_bench (0.571).")
+      "22–29%. docTR is the robust classic exception (58%). Among API models mistral_ocr is the "
+      "standout — 95% heavy retention (0.734) vs kimi-k3 86% and the GPTs 71–76%. "
+      "Clean-benchmark rankings do not survive scanned input.")
+    w("- **OCR-specialized beats generalist at doc-parse.** mistral_ocr tops omnidocbench "
+      "(0.868) and both scanned benches; kimi-k3 tops olmocr_bench (0.717) and realdoc B.1 "
+      "(0.801) and was the only API model with a zero-error run. gpt-5.4 leads no bench "
+      "despite being the priciest model in the fleet.")
     w("- **Tier C is unsolved.** Every VLM and API model scores ≈0.01–0.16 PQ — below the "
       "trivial pixel-diff floor (0.226). Classic engines score higher (easyocr 0.397) but "
-      "nothing clears a bar we'd call solved. This is why Tier C is deferred for the pending "
-      "frontier runs.")
+      "nothing clears a bar we'd call solved. This is why Tier C was deferred for the frontier "
+      "API runs (gpt-5.4, kimi-k3).")
     w("- **No same-vendor B.2 inflation observed.** Under the OpenAI gpt-5.4-mini reader, "
       "gpt-4.1-mini and mistral_ocr tie on B.2 exact (0.590) and Mistral is higher on ANLS "
       "(0.920 vs 0.878).")

@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-07-17T17:06:25",
+  "updated_at": "2026-07-23T00:35:03",
   "totals": {
-    "done": 200,
-    "total": 2712,
+    "done": 400,
+    "total": 5424,
     "pct": 7.4
   },
   "current": null,
@@ -22,10 +22,26 @@
       "total": 1356,
       "primary_mean": 0.7763,
       "state": "running"
+    },
+    {
+      "model": "gpt54_azure",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 1356,
+      "primary_mean": 0.7648,
+      "state": "running"
+    },
+    {
+      "model": "kimi_k3",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 1356,
+      "primary_mean": 0.8007,
+      "state": "running"
     }
   ],
   "hardware": {
-    "captured_at": "2026-07-17T17:02:07",
+    "captured_at": "2026-07-23T00:30:19",
     "gpu": {
       "available": true,
       "name": "NVIDIA GeForce RTX 5090",

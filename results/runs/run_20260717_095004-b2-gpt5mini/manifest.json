@@ -2,7 +2,7 @@
   "run_id": "run_20260717_095004-b2-gpt5mini",
   "created_at": "2026-07-17T09:55:23",
   "harness": {
-    "git_sha": "ef5987a13ab43ccc48933b08f0671c4711e05a38",
+    "git_sha": "f27484c96af1bb5bc87e70c13cdf1e84999a51f6",
     "git_dirty": true,
     "python": "3.12.13",
     "argv": [
@@ -16,15 +16,15 @@
       "-b",
       "realdoc_qa",
       "-m",
-      "gpt41mini_azure,mistral_ocr",
+      "gpt54_azure,kimi_k3",
       "--run-id",
       "run_20260717_095004-b2-gpt5mini"
     ]
   },
   "configs": {
-    "benchmarks.yaml": "59108e65ff42fd6e",
-    "matrix.yaml": "4e5ce0b4c2e793fa",
-    "models.yaml": "6c51f520a7903577"
+    "benchmarks.yaml": "824a2e5f7f51b2c9",
+    "matrix.yaml": "d655f82956afa9c0",
+    "models.yaml": "ebce2592a60b95a5"
   },
   "models": {
     "gpt41mini_azure": {
@@ -43,6 +43,24 @@
       "api_version": null,
       "called_on": "2026-07-17",
       "backend": "api"
+    },
+    "gpt54_azure": {
+      "key": "gpt54_azure",
+      "provider": "openrouter",
+      "api_model_id": "openai/gpt-5.4",
+      "api_version": null,
+      "called_on": "2026-07-23",
+      "backend": "api",
+      "or_provider": "azure"
+    },
+    "kimi_k3": {
+      "key": "kimi_k3",
+      "provider": "openrouter",
+      "api_model_id": "moonshotai/kimi-k3",
+      "api_version": null,
+      "called_on": "2026-07-23",
+      "backend": "api",
+      "or_provider": "moonshotai"
     }
   },
   "benchmarks": {
@@ -145,7 +163,7 @@
     }
   },
   "hardware": {
-    "captured_at": "2026-07-17T17:02:07",
+    "captured_at": "2026-07-23T00:30:19",
     "gpu": {
       "available": true,
       "name": "NVIDIA GeForce RTX 5090",
@@ -330,6 +348,36 @@
       "models": [
         "gpt41mini_azure",
         "mistral_ocr"
+      ],
+      "benchmarks": [
+        "realdoc_qa"
+      ]
+    },
+    {
+      "created_at": "2026-07-23T00:31:38",
+      "harness": {
+        "git_sha": "f27484c96af1bb5bc87e70c13cdf1e84999a51f6",
+        "git_dirty": true,
+        "python": "3.12.13",
+        "argv": [
+          "/home/ashwinc/dev/projects/trial-by-doc/.venv/bin/gauntlet",
+          "run",
+          "--phase",
+          "score",
+          "--rescore",
+          "--reader",
+          "gpt5mini",
+          "-b",
+          "realdoc_qa",
+          "-m",
+          "gpt54_azure,kimi_k3",
+          "--run-id",
+          "run_20260717_095004-b2-gpt5mini"
+        ]
+      },
+      "models": [
+        "gpt54_azure",
+        "kimi_k3"
       ],
       "benchmarks": [
         "realdoc_qa"

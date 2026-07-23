@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-07-17T16:59:02",
+  "updated_at": "2026-07-23T00:28:09",
   "totals": {
-    "done": 535,
-    "total": 6084,
-    "pct": 8.8
+    "done": 2030,
+    "total": 2060,
+    "pct": 98.5
   },
   "current": null,
   "cells": [
@@ -11,7 +11,7 @@
       "model": "gpt41mini_azure",
       "bench": "olmocr_bench",
       "done": 100,
-      "total": 5,
+      "total": 100,
       "primary_mean": 0.571,
       "state": "done"
     },
@@ -19,17 +19,17 @@
       "model": "gpt41mini_azure",
       "bench": "omnidocbench",
       "done": 100,
-      "total": 1651,
+      "total": 100,
       "primary_mean": 0.7448,
-      "state": "running"
+      "state": "done"
     },
     {
       "model": "gpt41mini_azure",
       "bench": "realdoc_qa",
       "done": 100,
-      "total": 1356,
+      "total": 100,
       "primary_mean": 0.7363,
-      "state": "running"
+      "state": "done"
     },
     {
       "model": "gpt41mini_azure",
@@ -42,26 +42,26 @@
     {
       "model": "mistral_ocr",
       "bench": "olmocr_bench",
-      "done": 5,
-      "total": 5,
-      "primary_mean": 0.4067,
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.6955,
       "state": "done"
     },
     {
       "model": "mistral_ocr",
       "bench": "omnidocbench",
       "done": 100,
-      "total": 1651,
+      "total": 100,
       "primary_mean": 0.8676,
-      "state": "running"
+      "state": "done"
     },
     {
       "model": "mistral_ocr",
       "bench": "realdoc_qa",
       "done": 100,
-      "total": 1356,
+      "total": 100,
       "primary_mean": 0.7763,
-      "state": "running"
+      "state": "done"
     },
     {
       "model": "mistral_ocr",
@@ -70,10 +70,122 @@
       "total": 30,
       "primary_mean": 0.0789,
       "state": "running"
+    },
+    {
+      "model": "gpt41mini_azure",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7278,
+      "state": "done"
+    },
+    {
+      "model": "gpt41mini_azure",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5193,
+      "state": "done"
+    },
+    {
+      "model": "mistral_ocr",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.8096,
+      "state": "done"
+    },
+    {
+      "model": "mistral_ocr",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7337,
+      "state": "done"
+    },
+    {
+      "model": "gpt54_azure",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5748,
+      "state": "done"
+    },
+    {
+      "model": "gpt54_azure",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.8029,
+      "state": "done"
+    },
+    {
+      "model": "gpt54_azure",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7648,
+      "state": "done"
+    },
+    {
+      "model": "gpt54_azure",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7672,
+      "state": "done"
+    },
+    {
+      "model": "gpt54_azure",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5816,
+      "state": "done"
+    },
+    {
+      "model": "kimi_k3",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7166,
+      "state": "done"
+    },
+    {
+      "model": "kimi_k3",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.8486,
+      "state": "done"
+    },
+    {
+      "model": "kimi_k3",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.8007,
+      "state": "done"
+    },
+    {
+      "model": "kimi_k3",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7948,
+      "state": "done"
+    },
+    {
+      "model": "kimi_k3",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.6893,
+      "state": "done"
     }
   ],
   "hardware": {
-    "captured_at": "2026-07-17T16:57:16",
+    "captured_at": "2026-07-23T00:10:26",
     "gpu": {
       "available": true,
       "name": "NVIDIA GeForce RTX 5090",
