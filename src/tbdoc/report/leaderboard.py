@@ -221,23 +221,24 @@ def render_md(data: dict) -> str:
     w("")
     w("- **Scan/fax robustness splits the field (Tier D).** VLMs retain 75–80% of clean "
       "extraction under heavy degradation (olmocr2, gemma4); tesseract and easyocr collapse to "
-      "22–29%. docTR is the robust classic exception (58%). Among API models mistral_ocr is the "
+      "22–30%. docTR is the robust classic exception (58%). Among API models mistral_ocr is the "
       "standout — 95% heavy retention (0.734) vs kimi-k3 86% and the GPTs 71–76%. "
       "Clean-benchmark rankings do not survive scanned input.")
     w("- **OCR-specialized beats generalist at doc-parse.** mistral_ocr tops omnidocbench "
       "(0.868) and both scanned benches; kimi-k3 tops olmocr_bench (0.717) and realdoc B.1 "
       "(0.801) and was the only API model with a zero-error run. gpt-5.4 leads no bench "
       "despite being the priciest model in the fleet.")
-    w("- **Tier C is unsolved.** Every VLM and API model scores ≈0.01–0.16 PQ — below the "
-      "trivial pixel-diff floor (0.226). Classic engines score higher (easyocr 0.397) but "
-      "nothing clears a bar we'd call solved. This is why Tier C was deferred for the frontier "
-      "API runs (gpt-5.4, kimi-k3).")
+    w("- **Tier C is unsolved.** Every VLM and API model scores 0.006–0.204 PQ — below the "
+      "trivial pixel-diff floor (0.226; kosmos25's 0.204 is the closest miss). Classic engines "
+      "score higher (easyocr 0.397) but nothing clears a bar we'd call solved. This is why "
+      "Tier C was deferred for the frontier API runs (gpt-5.4, kimi-k3).")
     w("- **No same-vendor B.2 inflation observed.** Under the OpenAI gpt-5.4-mini reader, "
       "gpt-4.1-mini and mistral_ocr tie on B.2 exact (0.590) and Mistral is higher on ANLS "
       "(0.920 vs 0.878).")
     w("- **Output-token truncation caveat (Tier C).** Dense form pages truncate at the 4096-token "
-      "cap (52% of Tier-C pages for gpt-4.1-mini vs 2–9% on prose), so API Tier-C scores partly "
-      "reflect truncation; resolving the cap is an open owner decision.")
+      "cap (52% of Tier-C pages for gpt-4.1-mini per run-time telemetry — merged_forms artifacts "
+      "don't store token counts — vs 2–9% on prose), so API Tier-C scores partly reflect "
+      "truncation; resolving the cap is an open owner decision.")
     w("")
     w("## Reproducibility")
     w("")

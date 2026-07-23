@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-23T00:28:09",
+  "updated_at": "2026-07-23T01:09:40",
   "totals": {
     "done": 2030,
     "total": 2060,
@@ -12,7 +12,7 @@
       "bench": "olmocr_bench",
       "done": 100,
       "total": 100,
-      "primary_mean": 0.571,
+      "primary_mean": 0.581,
       "state": "done"
     },
     {
@@ -185,7 +185,7 @@
     }
   ],
   "hardware": {
-    "captured_at": "2026-07-23T00:10:26",
+    "captured_at": "2026-07-23T01:00:51",
     "gpu": {
       "available": true,
       "name": "NVIDIA GeForce RTX 5090",

@@ -41,7 +41,7 @@ A model-agnostic OCR / document-intelligence gauntlet. **No LLM-as-judge**: ever
 | kimi_k3 | 0.717 | 0.849 | 0.801 | deferred | 0.795 | 0.689 |
 | mistral_ocr | 0.696 | 0.868 | 0.776 | 0.079 | 0.810 | 0.734 |
 | gpt54_azure | 0.575 | 0.803 | 0.765 | deferred | 0.767 | 0.582 |
-| gpt41mini_azure | 0.571 | 0.745 | 0.736 | 0.082 | 0.728 | 0.519 |
+| gpt41mini_azure | 0.581 | 0.745 | 0.736 | 0.082 | 0.728 | 0.519 |
 
 ### Tier-C trivial floor baselines (no model, no LLM)
 
@@ -80,11 +80,11 @@ B.1 above is the reader-independent headline. B.2 (did a reader answer questions
 
 ## Findings
 
-- **Scan/fax robustness splits the field (Tier D).** VLMs retain 75–80% of clean extraction under heavy degradation (olmocr2, gemma4); tesseract and easyocr collapse to 22–29%. docTR is the robust classic exception (58%). Among API models mistral_ocr is the standout — 95% heavy retention (0.734) vs kimi-k3 86% and the GPTs 71–76%. Clean-benchmark rankings do not survive scanned input.
+- **Scan/fax robustness splits the field (Tier D).** VLMs retain 75–80% of clean extraction under heavy degradation (olmocr2, gemma4); tesseract and easyocr collapse to 22–30%. docTR is the robust classic exception (58%). Among API models mistral_ocr is the standout — 95% heavy retention (0.734) vs kimi-k3 86% and the GPTs 71–76%. Clean-benchmark rankings do not survive scanned input.
 - **OCR-specialized beats generalist at doc-parse.** mistral_ocr tops omnidocbench (0.868) and both scanned benches; kimi-k3 tops olmocr_bench (0.717) and realdoc B.1 (0.801) and was the only API model with a zero-error run. gpt-5.4 leads no bench despite being the priciest model in the fleet.
-- **Tier C is unsolved.** Every VLM and API model scores ≈0.01–0.16 PQ — below the trivial pixel-diff floor (0.226). Classic engines score higher (easyocr 0.397) but nothing clears a bar we'd call solved. This is why Tier C was deferred for the frontier API runs (gpt-5.4, kimi-k3).
+- **Tier C is unsolved.** Every VLM and API model scores 0.006–0.204 PQ — below the trivial pixel-diff floor (0.226; kosmos25's 0.204 is the closest miss). Classic engines score higher (easyocr 0.397) but nothing clears a bar we'd call solved. This is why Tier C was deferred for the frontier API runs (gpt-5.4, kimi-k3).
 - **No same-vendor B.2 inflation observed.** Under the OpenAI gpt-5.4-mini reader, gpt-4.1-mini and mistral_ocr tie on B.2 exact (0.590) and Mistral is higher on ANLS (0.920 vs 0.878).
-- **Output-token truncation caveat (Tier C).** Dense form pages truncate at the 4096-token cap (52% of Tier-C pages for gpt-4.1-mini vs 2–9% on prose), so API Tier-C scores partly reflect truncation; resolving the cap is an open owner decision.
+- **Output-token truncation caveat (Tier C).** Dense form pages truncate at the 4096-token cap (52% of Tier-C pages for gpt-4.1-mini per run-time telemetry — merged_forms artifacts don't store token counts — vs 2–9% on prose), so API Tier-C scores partly reflect truncation; resolving the cap is an open owner decision.
 
 ## Reproducibility
 
@@ -92,7 +92,7 @@ B.1 above is the reader-independent headline. B.2 (did a reader answer questions
 |---|---|---|---|
 | `v1-baseline` | 14 | raw | 2026-07-13T10:00:34 |
 | `tierc-floor-15` | 3 | raw | 2026-07-13T10:00:33 |
-| `run_20260717_095004` | 4 | raw | 2026-07-23T00:28:09 |
+| `run_20260717_095004` | 4 | raw | 2026-07-23T01:09:40 |
 
 Bench datasets (pinned): `olmocr_bench` = allenai/olmOCR-bench@54a96a6f (odc-by) · `omnidocbench` = opendatalab/OmniDocBench@d386947f (unspecified) · `realdoc_qa` = Extend-AI/RealDoc-Bench@906170ab (cc-by-4.0) · `realdoc_qa_scanned_light` = Extend-AI/RealDoc-Bench@906170ab (cc-by-4.0) · `realdoc_qa_scanned_heavy` = Extend-AI/RealDoc-Bench@906170ab (cc-by-4.0).
 

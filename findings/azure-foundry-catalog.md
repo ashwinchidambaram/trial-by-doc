@@ -14,6 +14,9 @@ non-batched pricing. Dates on every claim; unverified items are called out expli
 - **Running now (2026-07-17):** `gpt41mini_azure` (~$1.35) + `mistral_ocr` (~$2.26), full
   v1. Both smoke-passed 10/10. `gpt54_azure` and `opus47_azure` are wired but **deferred**
   — each breaches the $10/model cap on the full matrix (see costs below).
+  **SUPERSEDED 2026-07-22/23:** `gpt54_azure` and `kimi_k3` have since run and scored on the
+  3 core benches + Tier D (Tier C dropped fits the cap) — see "RESULTS — frontier completion"
+  below. Only `opus47_azure` remains deferred.
 - **Mistral OCR is NOT on OpenRouter** — it needs a direct `MISTRAL_API_KEY`.
 
 ## The Azure Foundry batch constraint (research 2026-07-16)
@@ -128,6 +131,10 @@ Full v1 gauntlet, both models, all four tiers. 507 scored samples, **0 error row
 | gpt41mini_azure | **0.571** | 0.745 | 0.736 | 0.082 |
 | mistral_ocr | 0.407 | **0.868** | **0.776** | 0.079 |
 
+- ⚠ **The mistral olmocr 0.407 above is WRONG** — a 5/100-sample partial score; and with it the
+  "gpt-4.1-mini leads olmocr" read. See the CORRECTION in the frontier-completion section below
+  (real value 0.696; kimi-k3 leads olmocr). gpt-4.1-mini's 0.571 also moved to **0.581** after a
+  silent-empty page was re-inferred (see the incident note below).
 - Mistral OCR (purpose-built) leads on omnidocbench and realdoc-B.1; gpt-4.1-mini leads on olmocr_bench.
 - **Tier C ≈ 0.08 for both** — consistent with the standing README finding that every VLM scores
   below the trivial pixel-diff floor on segmentation. Confirmed, not worth its cost for API models.
@@ -173,7 +180,7 @@ engine sharing. **Workaround (no code change):** split scoring into two invocati
 at a time. v1-baseline must have been scored tier-by-tier for the same reason. **Candidate code fix
 (owner):** sequence-and-unload the reader before the judge, or lower the instruments' util so two fit.
 
-### Status
+### Status (2026-07-17 — superseded by the frontier-completion section below)
 
 - **Done & scored:** `gpt41mini_azure`, `mistral_ocr` — all four tiers, both B.2 readers.
 - **Deferred (owner):** `gpt54_azure`, `opus47_azure` (cap vs. drop-Tier-C); `token-cap v2`;
@@ -192,23 +199,30 @@ Tier C stays deferred for the frontier pair (below-floor tier, cost not justifie
 | kimi_k3 | **0.717** | 0.849 | **0.801** | 0.795 | 0.689 | 86% |
 | mistral_ocr | 0.696 | **0.868** | 0.776 | **0.810** | **0.734** | **95%** |
 | gpt54_azure | 0.575 | 0.803 | 0.765 | 0.767 | 0.582 | 76% |
-| gpt41mini_azure | 0.571 | 0.745 | 0.736 | 0.728 | 0.519 | 71% |
+| gpt41mini_azure | 0.581 | 0.745 | 0.736 | 0.728 | 0.519 | 71% |
 
 - **CORRECTION to the 07-17 table above:** mistral olmocr_bench is **0.696**, not 0.407 — the
   original score pass covered only 5/100 of its olmocr samples (status.json `done: 5`); the
   07-22 completion scored the remaining 95. The 07-17 claim "gpt-4.1-mini leads olmocr" is
   therefore wrong; kimi-k3 leads, mistral second.
 - **kimi_k3 was the only zero-error run** (500/500 after a one-page gateway-hiccup sweep).
-  gpt-5.4 carries one permanent honest error row: an omnidocbench Chinese-textbook page Azure's
-  content filter refuses across 2×5 retry attempts.
+  gpt-5.4 carries one permanent honest error row: an omnidocbench Chinese-textbook page that
+  returned `empty completion (finish_reason=stop)` across 2×5 retry attempts (content filter
+  suspected; the artifact stamps only the empty completion, not a filter verdict).
 - B.2 (gpt-5.4-mini reader, isolated `-b2-gpt5mini` run): kimi 0.630, mistral/gpt-4.1-mini 0.590,
   gpt-5.4 0.570 — again no same-vendor inflation (the OpenAI reader ranks gpt-5.4 last).
+- **Silent-empty incident (caught by the 2026-07-23 verification review):** gpt-4.1-mini's
+  07-17 olmocr cell contained ONE non-error row with empty markdown (`0097571b…page_7_pg1.pdf`,
+  no retries) — inferred before the retry-on-empty guard existed, i.e. exactly the failure
+  class that guard now catches. Page re-inferred + cell rescored 2026-07-23:
+  olmocr **0.571 → 0.581**. All 22 prediction files re-audited: zero other silent-empties.
 
 ### Spend (actual, OpenRouter balance deltas)
 
 Whole frontier exercise (gpt-5.4 full, kimi full, Tier-D backfill ×2 models, sweeps, B.2 rescore):
-**≈ $12.2** ($16.92 → $4.74). kimi ≈ $5.5–6 actual vs $6.59 estimate (per-row telemetry sums
-overcount memoized realdoc pages — trust balance deltas, not row sums). All under the $10/model cap.
+**≈ $12.2** ($16.92 → $4.74). kimi ≈ $6.6 actual vs $6.59 estimate (deduped by `api_request_id`;
+raw per-row telemetry sums read ~1.7× higher because memoized realdoc pages duplicate one call's
+telemetry across QA rows — 99 duplicated request-ids spanning 284 rows). All under the $10/model cap.
 
 ### Operational finding — co-residence has a HOST-RAM flavor too (OOM incident 2026-07-22 20:35)
 

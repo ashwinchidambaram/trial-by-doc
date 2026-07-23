@@ -2,28 +2,29 @@
   "run_id": "run_20260717_095004",
   "created_at": "2026-07-17T09:55:23",
   "harness": {
-    "git_sha": "f27484c96af1bb5bc87e70c13cdf1e84999a51f6",
+    "git_sha": "f1984575c3b1bb46671cab67d59e183469fe8ee9",
     "git_dirty": true,
     "python": "3.12.13",
     "argv": [
       "/home/ashwinc/dev/projects/trial-by-doc/.venv/bin/gauntlet",
       "run",
       "-m",
-      "kimi_k3",
+      "gpt41mini_azure",
       "-b",
-      "olmocr_bench,omnidocbench,realdoc_qa,realdoc_qa_scanned_light,realdoc_qa_scanned_heavy",
+      "olmocr_bench",
       "--max-samples",
       "100",
       "--run-id",
       "run_20260717_095004",
       "--phase",
-      "score"
+      "score",
+      "--rescore"
     ]
   },
   "configs": {
     "benchmarks.yaml": "824a2e5f7f51b2c9",
     "matrix.yaml": "d655f82956afa9c0",
-    "models.yaml": "ebce2592a60b95a5"
+    "models.yaml": "35fbe9726da8e665"
   },
   "models": {
     "gpt41mini_azure": {
@@ -31,7 +32,7 @@
       "provider": "openrouter",
       "api_model_id": "openai/gpt-4.1-mini",
       "api_version": null,
-      "called_on": "2026-07-22",
+      "called_on": "2026-07-23",
       "backend": "api",
       "or_provider": "azure"
     },
@@ -196,7 +197,7 @@
     }
   },
   "hardware": {
-    "captured_at": "2026-07-23T00:10:26",
+    "captured_at": "2026-07-23T01:00:51",
     "gpu": {
       "available": true,
       "name": "NVIDIA GeForce RTX 5090",
@@ -637,6 +638,92 @@
         "realdoc_qa",
         "realdoc_qa_scanned_heavy",
         "realdoc_qa_scanned_light"
+      ]
+    },
+    {
+      "created_at": "2026-07-23T00:53:50",
+      "harness": {
+        "git_sha": "f1984575c3b1bb46671cab67d59e183469fe8ee9",
+        "git_dirty": false,
+        "python": "3.12.13",
+        "argv": [
+          "/home/ashwinc/dev/projects/trial-by-doc/.venv/bin/gauntlet",
+          "run",
+          "-m",
+          "gpt41mini_azure",
+          "-b",
+          "olmocr_bench",
+          "--max-samples",
+          "100",
+          "--run-id",
+          "run_20260717_095004",
+          "--phase",
+          "infer"
+        ]
+      },
+      "models": [
+        "gpt41mini_azure"
+      ],
+      "benchmarks": [
+        "olmocr_bench"
+      ]
+    },
+    {
+      "created_at": "2026-07-23T00:57:22",
+      "harness": {
+        "git_sha": "f1984575c3b1bb46671cab67d59e183469fe8ee9",
+        "git_dirty": true,
+        "python": "3.12.13",
+        "argv": [
+          "/home/ashwinc/dev/projects/trial-by-doc/.venv/bin/gauntlet",
+          "run",
+          "-m",
+          "gpt41mini_azure",
+          "-b",
+          "olmocr_bench",
+          "--max-samples",
+          "100",
+          "--run-id",
+          "run_20260717_095004",
+          "--phase",
+          "score",
+          "--rescore"
+        ]
+      },
+      "models": [
+        "gpt41mini_azure"
+      ],
+      "benchmarks": [
+        "olmocr_bench"
+      ]
+    },
+    {
+      "created_at": "2026-07-23T01:04:09",
+      "harness": {
+        "git_sha": "f1984575c3b1bb46671cab67d59e183469fe8ee9",
+        "git_dirty": true,
+        "python": "3.12.13",
+        "argv": [
+          "/home/ashwinc/dev/projects/trial-by-doc/.venv/bin/gauntlet",
+          "run",
+          "-m",
+          "gpt41mini_azure",
+          "-b",
+          "olmocr_bench",
+          "--max-samples",
+          "100",
+          "--run-id",
+          "run_20260717_095004",
+          "--phase",
+          "score",
+          "--rescore"
+        ]
+      },
+      "models": [
+        "gpt41mini_azure"
+      ],
+      "benchmarks": [
+        "olmocr_bench"
       ]
     }
   ]
