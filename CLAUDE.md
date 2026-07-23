@@ -8,10 +8,14 @@ If reality contradicts the plan, STOP and flag the owner.
 
 ## What this repo is
 A model-agnostic OCR / doc-intelligence evaluation gauntlet. Any model = one adapter
-subclass + one `configs/models.yaml` entry. Three orthogonal tiers:
+subclass + one `configs/models.yaml` entry. Four tiers (A/B/C orthogonal capabilities;
+D is a stress axis over B):
 - **Tier A — parse fidelity** (grade OCR output directly; deterministic scorers)
 - **Tier B — downstream extraction** (markdown → frozen extractor → exact-match/ANLS)
 - **Tier C — document segmentation** (multi-doc PDFs → boundary F1 / PQ / STP)
+- **Tier D — robustness** (Tier-B pages under deterministic scan/fax degradation;
+  headline metric is reader-independent B.1, so a drop is the OCR degrading, not a
+  reader confound)
 
 ## Hard rules
 - **No LLM-as-judge.** All scoring functions are deterministic algorithms. LLMs appear

@@ -17,14 +17,19 @@ class OpenAIVisionAdapter(VisionChatAdapter):
         from openai import OpenAI
         return OpenAI()
 
+    def _extra_body(self) -> dict:
+        """Gateway-specific request extras (see OpenRouterVisionAdapter). Empty here."""
+        return {}
+
     def _call_api(self, image: Any) -> Any:
         import openai
         b64 = encode_png_b64(image, self.longest_side)
         try:
-            return self.client.chat.completions.create(
+            raw = self.client.chat.completions.create(
                 model=self.entry["api_model_id"],
                 temperature=0,
                 max_completion_tokens=self.max_tokens,
+                extra_body=self._extra_body(),
                 messages=[{"role": "user", "content": [
                     {"type": "image_url",
                      "image_url": {"url": f"data:image/png;base64,{b64}"}},
@@ -38,6 +43,15 @@ class OpenAIVisionAdapter(VisionChatAdapter):
             raise
         except openai.APITimeoutError as e:
             raise RetryableError(str(e)) from e
+        # HTTP-200 with EMPTY content is a silent failure, not a transcription:
+        # Azure gpt-5.4 returned fast empties transiently (3/10 smoke pages,
+        # 2026-07-22) and reasoning models emit finish=length with no content.
+        # Raise retryable so the retry loop re-asks; if it never fills, the runner
+        # records an honest error row instead of a 0-byte "success".
+        if not self._response_text(raw).strip():
+            fin = raw.choices[0].finish_reason if getattr(raw, "choices", None) else "?"
+            raise RetryableError(f"empty completion (finish_reason={fin})")
+        return raw
 
     def _response_text(self, raw: Any) -> str:
         return (raw.choices[0].message.content or "") if raw.choices else ""

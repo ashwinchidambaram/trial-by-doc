@@ -139,11 +139,16 @@ models:
     kind: api
     adapter: "tbdoc.models.api.mistral_ocr:MistralOCRAdapter"
     provider: mistral
-    api_model_id: mistral-ocr-latest
+    # Pinned to the concrete 4.0 release, NOT the floating `mistral-ocr-latest`.
+    # /v1/models (verified 2026-07-17) resolves three names to the SAME OCR-4 model:
+    #   mistral-ocr-latest (floats to OCR 5) = mistral-ocr-4 (floats to 4.x) = mistral-ocr-4-0 (this pin).
+    # No dated YYMM snapshot exists for OCR 4 yet (OCR 3 has mistral-ocr-2512); `-4-0` is the
+    # most-pinned id available. _api_version still stamps whatever the API resolves per call.
+    api_model_id: mistral-ocr-4-0
     secrets: [MISTRAL_API_KEY]
     rate_limit: { rps: 1.0, burst: 2 }
     retry: { max_attempts: 5, base_s: 1.0 }
-    pricing: { per_page_usd: 0.004, source: "https://mistral.ai/pricing/api", as_of: "2026-07-07" }
+    pricing: { per_page_usd: 0.004, source: "https://mistral.ai/pricing/api", as_of: "2026-07-17" }
     commercial_use: true
     specialties: "purpose-built OCR API; native markdown per page"
 
@@ -159,6 +164,93 @@ models:
                source: "https://ai.google.dev/gemini-api/docs/pricing", as_of: "2026-07-07" }
     commercial_use: true
     specialties: "cheapest credible VLM baseline; strong doc-OCR reputation"
+
+  # ---- APIs: Azure Foundry frontier lane, via the OpenRouter gateway ---------
+  # WHY the gateway: OPEN_ROUTER_API_KEY is the only API key provisioned, and it reaches
+  # OpenAI- and Anthropic-family models in one lane. `or_provider: azure` PINS the serving
+  # host (allow_fallbacks:false -> hard fail, never a silent reroute), so these rows honestly
+  # measure Azure Foundry. Unpinned they would not: claude-opus-4.7 alone has 7 endpoints
+  # across Bedrock/Anthropic/Google/Azure. fingerprint() stamps or_provider on every row.
+  #
+  # PRICING verified 2026-07-16 from https://openrouter.ai/api/v1/models. For the OpenAI
+  # models the OpenRouter list price EQUALS Azure Global Standard ($2.50/$15 and $0.40/$1.60,
+  # cross-checked on the Azure pricing page the same day) — so cost_usd here IS the Azure
+  # standard cost. Azure Global Batch is exactly half, but batch is a REPORTED projection
+  # only: OpenRouter is real-time, no batch API. Never label a batch figure as incurred.
+  #
+  # Claude on Azure bills in Consumption Units with no published per-token table, so the
+  # opus row's OpenRouter price is NOT an Azure-cost claim — it is the gateway's price.
+  gpt41mini_azure:
+    kind: api
+    adapter: "tbdoc.models.api.openrouter_vision:OpenRouterVisionAdapter"
+    provider: openrouter
+    or_provider: azure
+    api_model_id: openai/gpt-4.1-mini
+    secrets: [OPEN_ROUTER_API_KEY]
+    rate_limit: { rps: 1.0, burst: 2 }
+    retry: { max_attempts: 5, base_s: 1.0 }
+    pricing: { per_mtok_in_usd: 0.40, per_mtok_out_usd: 1.60,
+               source: "https://openrouter.ai/api/v1/models#openai/gpt-4.1-mini (== Azure Global Standard)",
+               as_of: "2026-07-16" }
+    foundry_available: true
+    commercial_use: true
+    specialties: "cheap API anchor for the value frontier; smoke target for this lane"
+
+  gpt54_azure:
+    kind: api
+    adapter: "tbdoc.models.api.openrouter_vision:OpenRouterVisionAdapter"
+    provider: openrouter
+    or_provider: azure
+    api_model_id: openai/gpt-5.4
+    secrets: [OPEN_ROUTER_API_KEY]
+    rate_limit: { rps: 1.0, burst: 2 }
+    retry: { max_attempts: 5, base_s: 1.0 }
+    pricing: { per_mtok_in_usd: 2.50, per_mtok_out_usd: 15.00,
+               source: "https://openrouter.ai/api/v1/models#openai/gpt-5.4 (== Azure Global Standard)",
+               as_of: "2026-07-16" }
+    foundry_available: true          # newest Azure model that is ALSO Global-Batch eligible
+    commercial_use: true
+    specialties: "frontier VLM; the batch-eligible ceiling on Azure (GPT-5.5/5.6 are not)"
+
+  opus47_azure:
+    kind: api
+    adapter: "tbdoc.models.api.openrouter_vision:OpenRouterVisionAdapter"
+    provider: openrouter
+    or_provider: azure
+    api_model_id: anthropic/claude-opus-4.7
+    secrets: [OPEN_ROUTER_API_KEY]
+    rate_limit: { rps: 1.0, burst: 2 }
+    retry: { max_attempts: 5, base_s: 1.0 }
+    pricing: { per_mtok_in_usd: 5.00, per_mtok_out_usd: 25.00,
+               source: "https://openrouter.ai/api/v1/models#anthropic/claude-opus-4.7 (gateway price; Azure bills CCU, no per-token table published)",
+               as_of: "2026-07-16" }
+    foundry_available: true          # UNCONFIRMED on the Foundry catalog — re-verify before publishing
+    commercial_use: true
+    specialties: "frontier VLM; ~$16.80 for a full v1 run -> BREACHES matrix.yaml max_usd_per_model"
+
+  kimi_k3:
+    kind: api
+    adapter: "tbdoc.models.api.openrouter_vision:OpenRouterVisionAdapter"
+    provider: openrouter
+    or_provider: moonshotai          # sole endpoint (Moonshot AI); slug verified via /api/v1/providers 2026-07-22
+    or_reasoning: { enabled: false } # kimi-k3 is a reasoning VLM: with reasoning on it burns the FULL
+                                     # 4096-token budget thinking on dense pages -> finish=length, EMPTY
+                                     # content (smoke 8/10 empty, 2026-07-22). Off: same-quality markdown
+                                     # at ~1/4 the output tokens. Transcription needs no chain-of-thought.
+    api_model_id: moonshotai/kimi-k3
+    secrets: [OPEN_ROUTER_API_KEY]
+    rate_limit: { rps: 1.0, burst: 2 }
+    retry: { max_attempts: 5, base_s: 1.0 }
+    pricing: { per_mtok_in_usd: 3.00, per_mtok_out_usd: 15.00,
+               source: "https://openrouter.ai/api/v1/models/moonshotai/kimi-k3/endpoints (Moonshot AI, sole endpoint)",
+               as_of: "2026-07-22" }
+    foundry_available: false         # Moonshot-served, NOT Azure Foundry — do not report under the Foundry lane
+    commercial_use: false            # VERIFIED UNPUBLISHED 2026-07-23: hf.co/moonshotai/Kimi-K3 is an
+                                     # announcement page only — weights + license land 2026-07-27
+                                     # (third-party reports say Modified MIT; not authoritative).
+                                     # API-only access under Moonshot platform terms today. Re-check
+                                     # after 2026-07-27 before flipping this flag.
+    specialties: "frontier vision LLM (Moonshot); flagship-tier data point alongside gpt-5.4"
 
   # ---- APIs: adapters built, scored runs deferred ---------------------------
   anthropic_vision:

@@ -1,0 +1,5 @@
+model,olmocr_bench,omnidocbench,realdoc_qa,merged_forms,realdoc_qa_scanned_light,realdoc_qa_scanned_heavy
+gpt41mini_azure,0.581,0.7448,0.7363,0.0816,0.7278,0.5193
+mistral_ocr,0.6955,0.8676,0.7763,0.0789,0.8096,0.7337
+gpt54_azure,0.5748,0.8029,0.7648,,0.7672,0.5816
+kimi_k3,0.7166,0.8486,0.8007,,0.7948,0.6893

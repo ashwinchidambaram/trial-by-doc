@@ -1,4 +1,8 @@
-# Part D — Scanned/faxed robustness (Tier-B extraction under degradation)
+# Tier D — Scanned/faxed robustness (Tier-B extraction under degradation)
+
+> Promoted from the "Part D" study to official **Tier D** on 2026-07-22 (file renamed
+> `partd-scanned-robustness.md` → `tierd-scanned-robustness.md`; content below is the
+> original study, unchanged).
 
 **Run:** `v1-baseline` · 14 models × {clean, scanned_light, scanned_heavy} × 100 samples ·
 scored 2026-07-09 · 0 error rows across all 42 (model × variant) cells.

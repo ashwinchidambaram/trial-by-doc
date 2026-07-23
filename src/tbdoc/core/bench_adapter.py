@@ -5,7 +5,9 @@ OFFICIAL scorer for official benchmarks (never reimplemented) or our validated
 custom scorer (VALIDATION.md required, enforced by the registry).
 
 Tiers: A = parse fidelity, B = downstream extraction (needs the frozen extractor),
-C = segmentation (unit="document"; runner calls model.segment(), not predict()).
+C = segmentation (unit="document"; runner calls model.segment(), not predict()),
+D = robustness (Tier-B extraction under deterministic scan/fax degradation — a
+stress axis over B, not a fourth orthogonal capability; same extractor contract).
 """
 from __future__ import annotations
 
@@ -32,7 +34,7 @@ class Sample:
 class BenchAdapter(ABC):
     """A benchmark: a stream of samples + a scorer-backed evaluate()."""
 
-    tier: str = "A"                          # "A" | "B" | "C"
+    tier: str = "A"                          # "A" | "B" | "C" | "D"
     unit: str = "page"                       # "page" | "document"
     provenance: str = "official"             # "official" | "custom"
     validation_doc: str | None = None        # REQUIRED for custom (registry enforces)

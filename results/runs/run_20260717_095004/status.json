@@ -1,0 +1,233 @@
+{
+  "updated_at": "2026-07-23T01:09:40",
+  "totals": {
+    "done": 2030,
+    "total": 2060,
+    "pct": 98.5
+  },
+  "current": null,
+  "cells": [
+    {
+      "model": "gpt41mini_azure",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.581,
+      "state": "done"
+    },
+    {
+      "model": "gpt41mini_azure",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7448,
+      "state": "done"
+    },
+    {
+      "model": "gpt41mini_azure",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7363,
+      "state": "done"
+    },
+    {
+      "model": "gpt41mini_azure",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 30,
+      "primary_mean": 0.0816,
+      "state": "running"
+    },
+    {
+      "model": "mistral_ocr",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.6955,
+      "state": "done"
+    },
+    {
+      "model": "mistral_ocr",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.8676,
+      "state": "done"
+    },
+    {
+      "model": "mistral_ocr",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7763,
+      "state": "done"
+    },
+    {
+      "model": "mistral_ocr",
+      "bench": "merged_forms",
+      "done": 15,
+      "total": 30,
+      "primary_mean": 0.0789,
+      "state": "running"
+    },
+    {
+      "model": "gpt41mini_azure",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7278,
+      "state": "done"
+    },
+    {
+      "model": "gpt41mini_azure",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5193,
+      "state": "done"
+    },
+    {
+      "model": "mistral_ocr",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.8096,
+      "state": "done"
+    },
+    {
+      "model": "mistral_ocr",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7337,
+      "state": "done"
+    },
+    {
+      "model": "gpt54_azure",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5748,
+      "state": "done"
+    },
+    {
+      "model": "gpt54_azure",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.8029,
+      "state": "done"
+    },
+    {
+      "model": "gpt54_azure",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7648,
+      "state": "done"
+    },
+    {
+      "model": "gpt54_azure",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7672,
+      "state": "done"
+    },
+    {
+      "model": "gpt54_azure",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.5816,
+      "state": "done"
+    },
+    {
+      "model": "kimi_k3",
+      "bench": "olmocr_bench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7166,
+      "state": "done"
+    },
+    {
+      "model": "kimi_k3",
+      "bench": "omnidocbench",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.8486,
+      "state": "done"
+    },
+    {
+      "model": "kimi_k3",
+      "bench": "realdoc_qa",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.8007,
+      "state": "done"
+    },
+    {
+      "model": "kimi_k3",
+      "bench": "realdoc_qa_scanned_light",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.7948,
+      "state": "done"
+    },
+    {
+      "model": "kimi_k3",
+      "bench": "realdoc_qa_scanned_heavy",
+      "done": 100,
+      "total": 100,
+      "primary_mean": 0.6893,
+      "state": "done"
+    }
+  ],
+  "hardware": {
+    "captured_at": "2026-07-23T01:00:51",
+    "gpu": {
+      "available": true,
+      "name": "NVIDIA GeForce RTX 5090",
+      "vram_gb": 33.7,
+      "capability": [
+        12,
+        0
+      ],
+      "arch": "sm_120",
+      "driver_version": "595.71.05",
+      "supported_arch_list": [
+        "sm_75",
+        "sm_80",
+        "sm_86",
+        "sm_90",
+        "sm_100",
+        "sm_120"
+      ]
+    },
+    "cuda": {
+      "torch_cuda_build": "13.0",
+      "toolkit_home": "/home/ashwinc/cuda-13.3",
+      "toolkit_path": "/home/ashwinc/cuda-13.3",
+      "nvcc_version": "13.3",
+      "nvcc_present": true,
+      "note": "standalone CUDA toolkit, build-time only (JIT compile for FlashInfer/deepseek); torch runtime stays at torch_cuda_build. Lives outside the repo \u2014 see the CLAUDE.md environment notes."
+    },
+    "software": {
+      "python": "3.12.13",
+      "torch": "2.11.0+cu130",
+      "torchvision": "0.26.0+cu130",
+      "triton": "3.6.0",
+      "vllm": "0.22.1",
+      "transformers": "5.11.0",
+      "datasets": null,
+      "accelerate": "1.14.0",
+      "huggingface_hub": "1.22.0"
+    },
+    "system": {
+      "os": "Linux",
+      "kernel": "7.0.0-27-generic",
+      "cpu_count": 24
+    }
+  }
+}

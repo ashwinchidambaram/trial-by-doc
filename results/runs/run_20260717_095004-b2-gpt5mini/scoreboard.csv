@@ -1,0 +1,5 @@
+model,realdoc_qa
+gpt41mini_azure,0.7363
+mistral_ocr,0.7763
+gpt54_azure,0.7648
+kimi_k3,0.8007

@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Any
 
 from tbdoc.core.checkpoint import CheckpointStore
-from tbdoc.report.scoreboard import _is_derived_bench
 from tbdoc.report.scoreboard import collect_grid as _collect_grid
 from tbdoc.report.scoreboard import load_summary as _load_summary
 
@@ -34,10 +33,9 @@ def scoreboard_payload(run_dir: Path, registry) -> dict[str, Any]:
         models, benches, cells, cats, from_summary = _collect_grid(run_dir)
     except FileNotFoundError:
         models, benches, cells, cats, from_summary = [], [], {}, {}, False
-    # scanned-degradation variants are a robustness study, not core leaderboard columns —
-    # they surface via the robustness endpoint / the cockpit's robust column, not here
-    # (mirrors report.scoreboard.render). Keeps the leaderboard the canonical tiers.
-    benches = [b for b in benches if not _is_derived_bench(b)]
+    # Tier-D scanned variants are official leaderboard columns (2026-07-22 promotion) —
+    # they appear in the grid like any tier, and ALSO drive the robustness curve
+    # endpoint / cockpit robust column (same numbers, two views).
     bmeta = registry.benchmarks if registry else {}
 
     def mean_n(stat: dict | None) -> dict[str, Any]:
@@ -190,7 +188,7 @@ def robustness_payload(run_dir: Path) -> list[dict[str, Any]]:
     """Per-model scan-robustness curve: clean -> light -> heavy B.1, and heavy-retained %.
 
     clean = realdoc_qa primary; light/heavy = the scanned-variant benches. Only models with
-    scanned data are returned. Matches findings/partd-scanned-robustness.md.
+    scanned data are returned. Matches findings/tierd-scanned-robustness.md.
     """
     try:
         _models, _benches, cells, _cats, _ = _collect_grid(run_dir)
