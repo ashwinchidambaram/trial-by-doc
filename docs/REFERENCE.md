@@ -29,9 +29,11 @@ you rely on them — licenses move).
 | [docTR](https://github.com/mindee/doctr) | classic engine | PyTorch (CPU/GPU) | Apache-2.0 | ✅ | modern classic OCR (Mindee, det+reco); word-level boxes |
 | [RapidOCR](https://github.com/RapidAI/RapidOCR) | classic engine | ONNXRuntime (CPU) | Apache-2.0 | ✅ | modern classic OCR (PP-OCR-derived); CPU-only on this box |
 | [EasyOCR](https://github.com/JaidedAI/EasyOCR) | classic engine | PyTorch (CPU/GPU) | Apache-2.0 | ✅ | modern classic OCR (JaidedAI, CRAFT+CRNN); line-level boxes |
-| Mistral OCR | API | Mistral API | API terms | ✅ | purpose-built OCR API, native markdown ($0.004/page, verified 2026-07-07) |
-| Gemini Flash-Lite | API | Google API | API terms | ✅ | cheapest credible VLM baseline (~$0.0005/page est.) |
-| Claude / GPT vision | API | Anthropic / OpenAI | API terms | ✅ | adapters built; scored runs deferred |
+| Mistral OCR | API | Mistral API | API terms | ✅ | purpose-built OCR API, native markdown ($0.004/page, verified 2026-07-07) — **scored** (`run_20260717_095004`) |
+| GPT-4.1-mini / GPT-5.4 | API | Azure via OpenRouter (pinned, no-fallback) | API terms | ✅ | generalist frontier VLMs — **scored** (`run_20260717_095004`) |
+| Kimi-K3 | API | Moonshot via OpenRouter (pinned) | weights license unpublished until 2026-07-27 | ❌ re-check 07-27 | reasoning VLM run with reasoning disabled — **scored** (`run_20260717_095004`) |
+| Gemini Flash-Lite | API | Google API | API terms | ✅ | cheapest credible VLM baseline (~$0.0005/page est.); wired, unscored |
+| Claude (opus-4.7) vision | API | Azure via OpenRouter | API terms | ✅ | adapter built; unscored (cost-gated: full matrix breaches the $10/model cap) |
 
 † Gemma-4 ships under **Apache-2.0** per its HF model card and API metadata (verified live
 2026-07-08, `google/gemma-4-E4B-it` @ `fee6332`) — a departure from the custom *Gemma Terms of
@@ -68,19 +70,25 @@ Vantage/CloudPrice: **T4-16GB ≈ $0.53/hr** (≤3B models), **A100-80GB ≈ $3.
 
 Honest limitations, current as of the v1 baseline:
 
-- **Landing next**: the two scored API lanes (Mistral OCR, Gemini Flash-Lite) and their
-  per-page $/page. The 14-model, 4-tier local scoreboard, the Tier-B/latency/CPU-vs-GPU-cost
-  tables, and the Azure self-host cost column above are complete and stable; the API lanes are additive.
+- **API lanes: LANDED (2026-07-17 → 07-23).** Four hosted models are fully scored in
+  `run_20260717_095004` at the v1 caps — Mistral OCR, GPT-4.1-mini, GPT-5.4 (both
+  Azure-pinned via OpenRouter), and Kimi-K3 — including both Tier-D scanned benches and a
+  gpt-5.4-mini B.2 rescore. Measured spend per 1k pages (deduped by request id): Mistral
+  $4.00 flat, gpt-4.1-mini ~$2.32, gpt-5.4 ~$17.49, kimi ~$21.75. Full grid:
+  `docs/leaderboard.md`. Still unscored: Gemini Flash-Lite (wired) and opus-4.7 (wired,
+  cost-gated). The 14-model local scoreboard and cost tables above are unchanged.
 - **DocVQA / DocBench not included**: DocVQA's visual-spatial questions measure the
   extractor, not the OCR (deferred with cause); DocBench requires an LLM judge —
   excluded by the no-judge rule.
 - **OmniDocBench CDM excluded** (formula render metric needs TeX Live in a container);
   we report the official edit-distance + TEDS set and flag `cdm_excluded` per row.
 - **RealDoc-Layout not wired** (box-emitting models only; optional lane).
-- **API fleet not yet scored**: adapters for Mistral OCR, Gemini Flash-Lite, and
-  Textract/Azure/Google Doc AI/Claude/GPT ship validated but unscored — no API rows are in
-  the v1-baseline scoreboard. Mistral OCR + Gemini Flash-Lite are the cheapest worth testing
-  (pricing verified) and land next. Azure DI's self-host container lane is designed, not wired.
+- **API fleet partially scored** (updated 2026-07-23): Mistral OCR + GPT-4.1-mini + GPT-5.4 +
+  Kimi-K3 are scored (`run_20260717_095004`; no API rows in `v1-baseline` itself — the
+  cross-run leaderboard merges them). Gemini Flash-Lite and opus-4.7 remain wired-but-unscored;
+  Textract/Azure/Google Doc AI lanes are designed, not wired. API rows are not
+  byte-reproducible (no revision pin/seed) — each stamps provider, model version, request id,
+  and call date.
 - **Florence-2 and Phi-4-multimodal adapters are built but unregistered** — blocked on the
   pinned **transformers 5.11** (distinct pre-v5 remote-code incompatibilities per model). Kept
   out of `configs/models.yaml` (commented block, see each adapter's docstring) and out of the
